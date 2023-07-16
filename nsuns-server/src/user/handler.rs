@@ -11,7 +11,7 @@ use crate::{
     util::no_content_or_404,
 };
 
-use super::model::{CreateUser, User};
+use super::model::{CreateUser, User, UsernameTaken};
 
 pub async fn users_index(State(pool): State<Pool>) -> impl IntoResponse {
     User::get_users(&pool)
@@ -44,6 +44,14 @@ pub async fn delete_user(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl
     User::delete_one(&pool, &id)
         .await
         .map(no_content_or_404)
+        .into_result()
+        .log_error()
+}
+
+pub async fn is_taken(State(pool): State<Pool>, Path(username): Path<String>) -> impl IntoResponse {
+    UsernameTaken::is_username_taken(&pool, &username)
+        .await
+        .map(Json)
         .into_result()
         .log_error()
 }

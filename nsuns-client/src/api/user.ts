@@ -25,6 +25,11 @@ export const createUser = async (user: CreateUser): Promise<User> => {
   ).json();
 };
 
+export const isUsernameTaken = async (username: string): Promise<boolean> => {
+  return (await (await fetch(`${path}/validation/is-taken/${username}`)).json())
+    .taken;
+};
+
 export const updateUser = async (user: User): Promise<User> => {
   return (
     await fetch(path, {

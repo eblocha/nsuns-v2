@@ -5,10 +5,11 @@ use axum::{
 
 use crate::db::Pool;
 
-use super::handler::{create_user, delete_user, update_user, users_index};
+use super::handler::{create_user, delete_user, update_user, users_index, is_taken};
 
 pub fn users_router() -> Router<Pool> {
     Router::new()
         .route("/", get(users_index).post(create_user).put(update_user))
         .route("/:id", delete(delete_user))
+        .route("/validation/is-taken/:username", get(is_taken))
 }

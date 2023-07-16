@@ -75,6 +75,27 @@ impl User {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct UsernameTaken {
+    pub taken: bool,
+}
+
+impl UsernameTaken {
+    pub async fn is_username_taken(
+        executor: impl Executor<'_, Database = DB>,
+        username: &str,
+    ) -> Result<UsernameTaken> {
+        sqlx::query_as::<_, (bool,)>("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
+            .bind(username)
+            .fetch_one(executor)
+            .await
+            .with_context(|| format!("failed to determine if username={} is taken", username))
+            .map(|(taken,)| UsernameTaken { taken })
+            .into_result()
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateUser {
     pub username: String,
     pub name: Option<String>,

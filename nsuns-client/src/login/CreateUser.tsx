@@ -4,9 +4,12 @@ import { TextInput } from "../forms/TextInput";
 import { A, useNavigate } from "@solidjs/router";
 import { createUser } from "../api";
 import styles from "./CreateUser.module.css";
+import { UsernameInput } from "../forms/UsernameInput";
+import { hasErrors } from "../forms/errors";
 
 export const CreateUser: Component = () => {
   const [submitError, setSubmitError] = createSignal<unknown>(null);
+  const [validatingUsername, setValidatingUsername] = createSignal(false);
 
   const navigator = useNavigate();
 
@@ -18,7 +21,8 @@ export const CreateUser: Component = () => {
   });
 
   const onSubmit = async () => {
-    if (group.isSubmitted || !group.isValid) return;
+    console.log(group);
+    if (group.isSubmitted || anyErrors()) return;
 
     setSubmitError(null);
     group.markSubmitted(true);
@@ -41,7 +45,13 @@ export const CreateUser: Component = () => {
       control.markTouched(false);
       control.setValue("");
     }
-  }
+  };
+
+  const anyErrors = () => {
+    return !Object.values(group.controls).every(
+      (control) => !hasErrors(control.errors)
+    );
+  };
 
   return (
     <div class="w-full h-full flex flex-col items-center justify-center">
@@ -57,10 +67,12 @@ export const CreateUser: Component = () => {
         <label for="username" class="text-right">
           <span class="text-red-500">*</span>Username
         </label>
-        <TextInput
+        <UsernameInput
           control={group.controls.username}
           class="ml-3 p-1 rounded"
           name="username"
+          validating={validatingUsername}
+          setValidating={setValidatingUsername}
         />
         <label for="name" class="text-right">
           Name
@@ -87,8 +99,9 @@ export const CreateUser: Component = () => {
               Reset
             </button>
             <button
+              type="submit"
               class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-              disabled={!group.isValid || group.isSubmitted}
+              disabled={anyErrors() || group.isSubmitted}
             >
               <Show when={!group.isSubmitted} fallback={<>Creating...</>}>
                 Create User

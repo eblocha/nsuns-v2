@@ -1,25 +1,32 @@
-import { Show, type Component, createRenderEffect } from "solid-js";
+import { Show, type Component, createRenderEffect, JSXElement } from "solid-js";
 import { IFormControl } from "solid-forms";
 import style from "./TextInput.module.css";
+import { hasErrors } from "./errors";
 
 export const TextInput: Component<{
   control: IFormControl<string>;
   name?: string;
   type?: string;
   class?: string;
+  onBlur?: (
+    e: FocusEvent & {
+      currentTarget: HTMLInputElement;
+      target: HTMLInputElement;
+    }
+  ) => void;
+  children?: JSXElement;
 }> = (props) => {
-
   createRenderEffect(() => {
     if (!props.control.isRequired || props.control.value.length > 0) {
-      props.control.setErrors(null);
+      props.control.patchErrors({ isMissing: false });
     } else {
-      props.control.setErrors({ isMissing: true });
+      props.control.patchErrors({ isMissing: true });
     }
   });
 
   const showErrors = () => {
-    return !!props.control.errors && props.control.isDirty;
-  }
+    return hasErrors(props.control.errors) && props.control.isDirty;
+  };
 
   return (
     <div class="flex flex-col items-end">
@@ -35,13 +42,17 @@ export const TextInput: Component<{
           props.control.setValue(e.currentTarget.value);
           props.control.markDirty(true);
         }}
-        onblur={() => props.control.markTouched(true)}
+        onblur={(e) => {
+          props.control.markTouched(true);
+          props.onBlur?.(e);
+        }}
         disabled={props.control.isDisabled}
         required={props.control.isRequired}
       />
       <Show when={showErrors() && props.control.errors?.isMissing}>
         <small class="text-red-500">This field is required.</small>
       </Show>
+      {props.children}
     </div>
   );
 };
