@@ -1,3 +1,3 @@
 .invalid {
-  @apply border-red-500
+  @apply ring-red-500 ring-1;
 }
