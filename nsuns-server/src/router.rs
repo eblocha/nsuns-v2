@@ -7,14 +7,13 @@ use tower_http::{
 use tracing::Level;
 
 use crate::{
-    db::Pool,
-    program::{self},
-    settings::Settings,
+    db::Pool, program::router::programs_router, settings::Settings, user::router::users_router,
 };
 
 pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
     let app = Router::new()
-        .nest("/api/programs", program::router::router())
+        .nest("/api/programs", programs_router())
+        .nest("/api/users", users_router())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))

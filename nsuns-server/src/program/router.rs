@@ -7,7 +7,7 @@ use crate::db::Pool;
 
 use super::handler::{create_program, delete_program, update_program, user_programs};
 
-pub fn router() -> Router<Pool> {
+pub fn programs_router() -> Router<Pool> {
     Router::new()
         .route(
             "/",
