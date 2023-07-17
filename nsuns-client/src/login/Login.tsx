@@ -1,6 +1,7 @@
-import { Component, For, Show, createResource } from "solid-js";
+import { Component, For, Match, Show, Switch, createResource } from "solid-js";
 import { getUsers } from "../api";
 import { AddUserCard, LoadingUserCard, UserCard } from "./UserCard";
+import { createQuery } from "@tanstack/solid-query";
 
 const Error: Component<{ message: string }> = (props) => {
   return (
@@ -33,34 +34,47 @@ const LoadingOrError: Component<{
 };
 
 export const Login: Component = () => {
-  const [data, { refetch }] = createResource(getUsers);
+  const query = createQuery(() => ["users"], getUsers);
 
   return (
     <div class="h-full w-full overflow-hidden p-10 flex flex-col items-center justify-center">
       <h2 class="text-lg">Select a user</h2>
-      <Show
-        when={data.state === "ready"}
-        fallback={
-          <LoadingOrError isLoading={data.loading} error={data.error} />
-        }
-      >
-        <ul class="my-8 flex flex-row items-center">
-          <For each={data.latest}>
-            {(user) => (
-              <li>
-                <UserCard {...user} />
-              </li>
-            )}
-          </For>
-          <li>
-            <AddUserCard />
-          </li>
-        </ul>
-      </Show>
+      <Switch>
+        <Match when={query.isLoading}>
+          <ul class="my-8 flex flex-row items-center">
+            <For each={[1, 2, 3]}>
+              {() => (
+                <li>
+                  <LoadingUserCard />
+                </li>
+              )}
+            </For>
+          </ul>
+        </Match>
+        <Match when={query.isError}>
+          <div class="flex flex-col items-center justify-center">
+            <div class="mb-2">Error</div>
+          </div>
+        </Match>
+        <Match when={query.isSuccess}>
+          <ul class="my-8 flex flex-row items-center">
+            <For each={query.data}>
+              {(user) => (
+                <li>
+                  <UserCard {...user} />
+                </li>
+              )}
+            </For>
+            <li>
+              <AddUserCard />
+            </li>
+          </ul>
+        </Match>
+      </Switch>
       <div class="flex flex-row items-center justify-center">
         <button
-          onClick={refetch}
-          disabled={data.loading}
+          onClick={() => query.refetch()}
+          disabled={query.isFetching}
           class="p-3 rounded bg-gray-300 hover:bg-gray-400 active:bg-gray-500 mr-2"
         >
           Refresh
