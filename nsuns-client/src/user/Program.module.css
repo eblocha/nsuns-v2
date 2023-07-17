@@ -1,0 +1,11 @@
+.program {
+  @apply p-2 w-full rounded border inline-block;
+}
+
+.program.default {
+  @apply ring-blue-500 ring-1;
+}
+
+:not(.program.default) {
+  @apply border-gray-400;
+}

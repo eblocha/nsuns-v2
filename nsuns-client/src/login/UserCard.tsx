@@ -2,6 +2,7 @@ import { Component } from "solid-js";
 import { User } from "../api";
 import { A } from "@solidjs/router";
 import style from "./UserCard.module.css";
+import { Plus } from "../icons/Plus";
 
 export const UserCard: Component<User> = (props) => {
   return (
@@ -11,9 +12,14 @@ export const UserCard: Component<User> = (props) => {
   );
 };
 
-export const LoadingUserCard: Component = (props) => {
+export const LoadingUserCard: Component = () => {
+  return <div class={`shimmer ${style.card}`}></div>;
+};
+
+export const AddUserCard: Component = () => {
   return (
-    <div class={`${style.shimmer} ${style.card}`}>
-    </div>
+    <A href="/user/new" class={`hover:bg-blue-100 ${style.card}`}>
+      <Plus />
+    </A>
   );
 };

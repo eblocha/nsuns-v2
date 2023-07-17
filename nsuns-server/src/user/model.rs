@@ -22,11 +22,11 @@ impl User {
         executor: impl Executor<'_, Database = DB>,
         id: &Uuid,
     ) -> Result<Option<i32>> {
-        sqlx::query_as::<_, (i32,)>("SELECT default_program FROM users WHERE id = $1")
+        sqlx::query_as::<_, (Option<i32>,)>("SELECT default_program FROM users WHERE id = $1")
             .bind(id)
             .fetch_optional(executor)
             .await
-            .map(|opt| opt.map(|(id,)| id))
+            .map(|opt| opt.and_then(|(id,)| id))
             .into_result()
     }
 

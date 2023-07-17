@@ -1,7 +1,6 @@
 import { Component, For, Show, createResource } from "solid-js";
 import { getUsers } from "../api";
-import { LoadingUserCard, UserCard } from "./UserCard";
-import { A } from "@solidjs/router";
+import { AddUserCard, LoadingUserCard, UserCard } from "./UserCard";
 
 const Error: Component<{ message: string }> = (props) => {
   return (
@@ -33,15 +32,12 @@ const LoadingOrError: Component<{
   );
 };
 
-const NoUsers: Component = () => {
-  return <p class="h-44 flex flex-col items-center justify-center">No users.</p>;
-};
-
 export const Login: Component = () => {
   const [data, { refetch }] = createResource(getUsers);
 
   return (
     <div class="h-full w-full overflow-hidden p-10 flex flex-col items-center justify-center">
+      <h2 class="text-lg">Select a user</h2>
       <Show
         when={data.state === "ready"}
         fallback={
@@ -49,13 +45,16 @@ export const Login: Component = () => {
         }
       >
         <ul class="my-8 flex flex-row items-center">
-          <For each={data.latest} fallback={<NoUsers />}>
+          <For each={data.latest}>
             {(user) => (
               <li>
                 <UserCard {...user} />
               </li>
             )}
           </For>
+          <li>
+            <AddUserCard />
+          </li>
         </ul>
       </Show>
       <div class="flex flex-row items-center justify-center">
@@ -66,12 +65,6 @@ export const Login: Component = () => {
         >
           Refresh
         </button>
-        <A
-          href="/create-user"
-          class="p-3 rounded bg-blue-500 hover:bg-blue-600 active:bg-blue-600 text-center text-white"
-        >
-          Create User
-        </A>
       </div>
     </div>
   );
