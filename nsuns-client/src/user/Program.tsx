@@ -11,8 +11,8 @@ export const ProgramItem: Component<{
 }> = (props) => {
   return (
     <A
-      href={`/programs/${props.program.id}`}
-      class={`w-full ${styles.program}`}
+      href={`program/${props.program.id}`}
+      class={`w-full ${styles.program} hover:bg-gray-900 focus:outline-none focus:ring focus:ring-blue-500`}
       classList={{
         [styles.default]: props.isDefault,
       }}
@@ -28,7 +28,7 @@ export const LoadingProgram: Component = () => {
 
 export const AddProgram: Component = () => {
   return (
-    <A href="create-program" class={`hover:bg-gray-700 ${styles.program}`}>
+    <A href="program/new" class={`hover:bg-gray-700 ${styles.program}`}>
       <div class="flex flex-row items-center justify-start">
         <Plus />
         <span class="mx-4">Create New</span>

@@ -56,6 +56,8 @@ impl UserPrograms {
                     break;
                 }
             }
+        } else {
+            default = all_programs.first().cloned();
         }
 
         Ok(UserPrograms {

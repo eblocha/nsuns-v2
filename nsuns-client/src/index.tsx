@@ -2,11 +2,8 @@
 import { render } from "solid-js/web";
 
 import "./index.css";
-import { Route, Router, Routes } from "@solidjs/router";
-import { Login } from "./login/Login";
-import { CreateUser } from "./login/CreateUser";
-import { UserHome } from "./user/UserHome";
-import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
+import { QueryClient } from "@tanstack/solid-query";
+import { App } from "./App";
 
 const root = document.getElementById("root");
 
@@ -18,17 +15,4 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 
 const queryClient = new QueryClient();
 
-render(
-  () => (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" component={Login} />
-          <Route path="/user/new" component={CreateUser} />
-          <Route path="/user/:id" component={UserHome} />
-        </Routes>
-      </Router>
-    </QueryClientProvider>
-  ),
-  root!
-);
+render(() => <App />, root!);

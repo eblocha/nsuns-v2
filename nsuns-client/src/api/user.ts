@@ -1,4 +1,5 @@
 import axios from "axios";
+import { baseHeaders } from "./util";
 
 export type User = {
   id: string;
@@ -10,10 +11,6 @@ export type User = {
 export type CreateUser = Omit<User, "id" | "defaultProgram">;
 
 const path = "/api/users";
-
-const baseHeaders = {
-  "content-type": "application/json",
-};
 
 export const getUsers = async (): Promise<User[]> => {
   return (await axios.get(path)).data;

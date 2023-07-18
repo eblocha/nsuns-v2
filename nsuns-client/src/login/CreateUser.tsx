@@ -6,10 +6,21 @@ import { createUser } from "../api";
 import styles from "./CreateUser.module.css";
 import { UsernameInput } from "../forms/UsernameInput";
 import { hasErrors } from "../forms/errors";
+import { createMutation, useQueryClient } from "@tanstack/solid-query";
 
 export const CreateUser: Component = () => {
-  const [submitError, setSubmitError] = createSignal<unknown>(null);
   const [validatingUsername, setValidatingUsername] = createSignal(false);
+  const queryClient = useQueryClient();
+
+  const mutation = createMutation({
+    mutationFn: createUser,
+    onSuccess: (user) => {
+      queryClient.invalidateQueries(["users"], {
+        exact: false,
+      });
+      navigator(`/users/${user.id}`);
+    },
+  });
 
   const navigator = useNavigate();
 
@@ -21,22 +32,12 @@ export const CreateUser: Component = () => {
   });
 
   const onSubmit = async () => {
-    console.log(group);
-    if (group.isSubmitted || anyErrors()) return;
+    if (mutation.isLoading || anyErrors() || validatingUsername()) return;
 
-    setSubmitError(null);
-    group.markSubmitted(true);
-    try {
-      const user = await createUser({
-        username: group.value.username ?? "user",
-        name: group.value.name || null,
-      });
-      navigator(`/users/${user.id}`);
-    } catch (e) {
-      setSubmitError(e);
-    } finally {
-      group.markSubmitted(false);
-    }
+    mutation.mutate({
+      username: group.value.username!,
+      name: group.value.name || null,
+    });
   };
 
   const resetForm = () => {
@@ -64,7 +65,7 @@ export const CreateUser: Component = () => {
         classList={{ [styles.form]: true }}
       >
         <h2 class="col-span-2 text-lg mb-4">Create User</h2>
-        <label for="username" class="text-right">
+        <label for="username" class="label-left">
           <span class="text-red-500">*</span>Username
         </label>
         <UsernameInput
@@ -74,7 +75,7 @@ export const CreateUser: Component = () => {
           validating={validatingUsername}
           setValidating={setValidatingUsername}
         />
-        <label for="name" class="text-right">
+        <label for="name" class="label-left">
           Name
         </label>
         <TextInput
@@ -82,33 +83,30 @@ export const CreateUser: Component = () => {
           class="ml-3 input"
           name="name"
         />
-        <div class="col-span-2">
+        <div class="col-span-2 mt-4">
           <div class="float-right flex flex-row items-center justify-end w-full">
-            <A
-              href="/"
-              class="secondary-button text-center mr-2"
-            >
+            <A href="/" class="text-button text-center mr-2">
               Home
             </A>
             <button
               type="button"
               onClick={resetForm}
               class="secondary-button mr-2"
-              disabled={!group.isDirty || group.isSubmitted}
+              disabled={!group.isDirty || mutation.isLoading}
             >
               Reset
             </button>
             <button
               type="submit"
               class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-400"
-              disabled={anyErrors() || group.isSubmitted}
+              disabled={anyErrors() || mutation.isLoading}
             >
-              <Show when={!group.isSubmitted} fallback={<>Creating...</>}>
+              <Show when={!mutation.isLoading} fallback={<>Creating...</>}>
                 Create User
               </Show>
             </button>
           </div>
-          <Show when={submitError() !== null}>{`${submitError()}`}</Show>
+          <Show when={mutation.isError}>{`${mutation.error}`}</Show>
         </div>
       </form>
     </div>

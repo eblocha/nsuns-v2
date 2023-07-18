@@ -33,14 +33,26 @@
   }
 }
 
+button, a {
+  @apply focus:outline-none focus:ring focus:ring-blue-500;
+}
+
+.label-left {
+  @apply flex flex-row items-center justify-end;
+}
+
 .input {
-  @apply p-1 rounded bg-black border border-gray-700;
+  @apply p-1 rounded bg-black border border-gray-700 focus:outline-none focus:ring focus:ring-blue-500;
 }
 
 .primary-button {
-  @apply p-2 rounded bg-blue-500 hover:bg-blue-600 active:bg-blue-400 disabled:bg-blue-400 text-white;
+  @apply p-2 rounded bg-blue-600 hover:bg-blue-500 active:bg-blue-400 disabled:bg-blue-400 text-white;
 }
 
 .secondary-button {
   @apply p-2 rounded bg-gray-800 hover:bg-gray-600 active:bg-gray-500 disabled:bg-gray-500 text-white;
+}
+
+.text-button {
+  @apply p-2 rounded bg-transparent hover:bg-gray-800 active:bg-gray-700 disabled:opacity-50;
 }
