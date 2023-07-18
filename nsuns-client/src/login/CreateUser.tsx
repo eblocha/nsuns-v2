@@ -69,7 +69,7 @@ export const CreateUser: Component = () => {
         </label>
         <UsernameInput
           control={group.controls.username}
-          class="ml-3 p-1 rounded"
+          class="ml-3 p-1 input"
           name="username"
           validating={validatingUsername}
           setValidating={setValidatingUsername}
@@ -79,28 +79,28 @@ export const CreateUser: Component = () => {
         </label>
         <TextInput
           control={group.controls.name}
-          class="ml-3 p-1 rounded"
+          class="ml-3 input"
           name="name"
         />
         <div class="col-span-2">
           <div class="float-right flex flex-row items-center justify-end w-full">
             <A
               href="/"
-              class="bg-gray-300 p-2 rounded hover:bg-gray-400 text-center mr-2"
+              class="secondary-button text-center mr-2"
             >
               Home
             </A>
             <button
               type="button"
               onClick={resetForm}
-              class="bg-gray-300 p-2 rounded hover:bg-gray-400 text-center mr-2 disabled:text-gray-600 disabled:bg-gray-200"
+              class="secondary-button mr-2"
               disabled={!group.isDirty || group.isSubmitted}
             >
               Reset
             </button>
             <button
               type="submit"
-              class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
+              class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-400"
               disabled={anyErrors() || group.isSubmitted}
             >
               <Show when={!group.isSubmitted} fallback={<>Creating...</>}>

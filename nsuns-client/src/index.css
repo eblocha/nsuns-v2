@@ -33,6 +33,14 @@
   }
 }
 
+.input {
+  @apply p-1 rounded bg-black border border-gray-700;
+}
+
+.primary-button {
+  @apply p-2 rounded bg-blue-500 hover:bg-blue-600 active:bg-blue-400 disabled:bg-blue-400 text-white;
+}
+
 .secondary-button {
-  @apply p-2 rounded bg-gray-800 hover:bg-gray-600 active:bg-gray-500;
+  @apply p-2 rounded bg-gray-800 hover:bg-gray-600 active:bg-gray-500 disabled:bg-gray-500 text-white;
 }

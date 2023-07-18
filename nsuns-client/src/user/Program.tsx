@@ -23,7 +23,7 @@ export const ProgramItem: Component<{
 };
 
 export const LoadingProgram: Component = () => {
-  return <div class={`${styles.program} shimmer h-8 w-full`}></div>;
+  return <div class={`${styles.program} shimmer h-10 w-full`}></div>;
 };
 
 export const AddProgram: Component = () => {

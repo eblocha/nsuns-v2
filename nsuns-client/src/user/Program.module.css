@@ -3,7 +3,7 @@
 }
 
 .program.default {
-  @apply ring-blue-500 ring-1;
+  @apply ring-blue-500 ring-1 border-transparent;
 }
 
 .program:not(.default) {
