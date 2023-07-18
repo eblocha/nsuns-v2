@@ -1,37 +1,7 @@
-import { Component, For, Match, Show, Switch, createResource } from "solid-js";
+import { Component, For, Match, Switch } from "solid-js";
 import { getUsers } from "../api";
 import { AddUserCard, LoadingUserCard, UserCard } from "./UserCard";
 import { createQuery } from "@tanstack/solid-query";
-
-const Error: Component<{ message: string }> = (props) => {
-  return (
-    <div class="flex flex-col items-center justify-center">
-      <div class="mb-2">Error: {props.message}</div>
-    </div>
-  );
-};
-
-const LoadingOrError: Component<{
-  error?: unknown;
-  isLoading: boolean;
-}> = (props) => {
-  return (
-    <Show
-      when={props.isLoading}
-      fallback={<Error message={`${props.error}`} />}
-    >
-      <ul class="my-8 flex flex-row items-center">
-        <For each={[1, 2, 3]}>
-          {() => (
-            <li>
-              <LoadingUserCard />
-            </li>
-          )}
-        </For>
-      </ul>
-    </Show>
-  );
-};
 
 export const Login: Component = () => {
   const query = createQuery(() => ["users"], getUsers);
@@ -75,7 +45,7 @@ export const Login: Component = () => {
         <button
           onClick={() => query.refetch()}
           disabled={query.isFetching}
-          class="p-3 rounded bg-gray-300 hover:bg-gray-400 active:bg-gray-500 mr-2"
+          class="secondary-button mr-2"
         >
           Refresh
         </button>

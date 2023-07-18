@@ -12,7 +12,7 @@ export const ProgramItem: Component<{
   return (
     <A
       href={`/programs/${props.program.id}`}
-      class={styles.program}
+      class={`w-full ${styles.program}`}
       classList={{
         [styles.default]: props.isDefault,
       }}
@@ -23,12 +23,12 @@ export const ProgramItem: Component<{
 };
 
 export const LoadingProgram: Component = () => {
-  return <div class={`${styles.program} shimmer h-8`}></div>;
+  return <div class={`${styles.program} shimmer h-8 w-full`}></div>;
 };
 
 export const AddProgram: Component = () => {
   return (
-    <A href="create-program" class={`hover:bg-blue-200 ${styles.program}`}>
+    <A href="create-program" class={`hover:bg-gray-700 ${styles.program}`}>
       <div class="flex flex-row items-center justify-start">
         <Plus />
         <span class="mx-4">Create New</span>

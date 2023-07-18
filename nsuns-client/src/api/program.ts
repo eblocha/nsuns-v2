@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export type Program = {
   id: number;
   name: string | null;
@@ -10,6 +12,12 @@ export type UserPrograms = {
   all: Program[];
 };
 
+const path = "/api/programs";
+
 export const getUserPrograms = async (id: string): Promise<UserPrograms> => {
-  return (await fetch(`/api/programs?userId=${encodeURIComponent(id)}`)).json();
+  return (
+    await axios.get(path, {
+      params: { userId: id },
+    })
+  ).data;
 };

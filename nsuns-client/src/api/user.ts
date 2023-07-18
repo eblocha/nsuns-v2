@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export type User = {
   id: string;
   username: string;
@@ -9,39 +11,40 @@ export type CreateUser = Omit<User, "id" | "defaultProgram">;
 
 const path = "/api/users";
 
+const baseHeaders = {
+  "content-type": "application/json",
+};
+
 export const getUsers = async (): Promise<User[]> => {
-  return (await fetch(path)).json();
+  return (await axios.get(path)).data;
+};
+
+export const getUser = async (id: string): Promise<User> => {
+  return (await axios.get(`${path}/${id}`)).data;
 };
 
 export const createUser = async (user: CreateUser): Promise<User> => {
-  return (
-    await fetch(path, {
-      method: "POST",
-      body: JSON.stringify(user),
-      headers: {
-        "content-type": "application/json",
-      },
-    })
-  ).json();
+  return axios.post(path, user, {
+    headers: baseHeaders,
+  });
 };
 
 export const isUsernameTaken = async (username: string): Promise<boolean> => {
-  return (await (await fetch(`${path}/validation/is-taken/${username}`)).json())
-    .taken;
+  return (
+    await axios.get<{ taken: boolean }>(
+      `${path}/validation/is-taken/${username}`
+    )
+  ).data.taken;
 };
 
 export const updateUser = async (user: User): Promise<User> => {
   return (
-    await fetch(path, {
-      method: "PUT",
-      body: JSON.stringify(user),
-      headers: {
-        "content-type": "application/json",
-      },
+    await axios.put(path, user, {
+      headers: baseHeaders,
     })
-  ).json();
+  ).data;
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
-  await fetch(`${path}/${id}`, { method: "DELETE" });
+  return axios.delete(`${path}/${id}`);
 };

@@ -21,6 +21,7 @@
   "dependencies": {
     "@solidjs/router": "^0.8.2",
     "@tanstack/solid-query": "^4.29.25",
+    "axios": "^1.4.0",
     "solid-forms": "^0.4.8",
     "solid-js": "^1.7.6"
   }
