@@ -1,5 +1,4 @@
 use anyhow::Context;
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
 use uuid::Uuid;
@@ -16,7 +15,6 @@ pub struct Program {
     pub id: i32,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub created_on: DateTime<Utc>,
     pub owner: Uuid,
 }
 
