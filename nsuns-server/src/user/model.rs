@@ -1,12 +1,14 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
-use sqlx::Executor;
+use sqlx::{Executor, Transaction};
 use uuid::Uuid;
 
 use crate::{
     db::DB,
     error::{IntoResult, Result},
 };
+
+use super::validation::validate_user;
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -18,6 +20,18 @@ pub struct User {
 }
 
 impl User {
+    pub async fn select_one(
+        executor: impl Executor<'_, Database = DB>,
+        id: &Uuid,
+    ) -> Result<Option<Self>> {
+        sqlx::query_as::<_, Self>("SELECT * from users WHERE id = $1")
+            .bind(id)
+            .fetch_optional(executor)
+            .await
+            .with_context(|| format!("failed to fetch user with id={}", id))
+            .into_result()
+    }
+
     pub async fn get_default_program_id(
         executor: impl Executor<'_, Database = DB>,
         id: &Uuid,
@@ -27,6 +41,7 @@ impl User {
             .fetch_optional(executor)
             .await
             .map(|opt| opt.and_then(|(id,)| id))
+            .with_context(|| format!("failed to get default program id for user id={}", id))
             .into_result()
     }
 
@@ -34,13 +49,13 @@ impl User {
         sqlx::query_as::<_, Self>("SELECT * FROM users")
             .fetch_all(executor)
             .await
+            .with_context(|| "failed to select all users")
             .into_result()
     }
 
-    pub async fn update_one(
-        self,
-        executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Self>> {
+    pub async fn update_one(self, tx: &mut Transaction<'_, DB>) -> Result<Option<Self>> {
+        validate_user(&self.username, &mut **tx).await?;
+
         sqlx::query_as::<_, Self>(
             "UPDATE users SET username = $1, name = $2, default_program = $3 WHERE id = $4 RETURNING *",
         )
@@ -48,8 +63,9 @@ impl User {
         .bind(self.name)
         .bind(self.default_program)
         .bind(self.id)
-        .fetch_optional(executor)
+        .fetch_optional(&mut **tx)
         .await
+        .with_context(|| format!("failed to update user with id={}", self.id))
         .into_result()
     }
 
@@ -102,12 +118,14 @@ pub struct CreateUser {
 }
 
 impl CreateUser {
-    pub async fn create_one(self, executor: impl Executor<'_, Database = DB>) -> Result<User> {
+    pub async fn create_one(self, tx: &mut Transaction<'_, DB>) -> Result<User> {
+        validate_user(&self.username, &mut **tx).await?;
         sqlx::query_as::<_, User>("INSERT INTO users (username, name) VALUES ($1, $2) RETURNING *")
             .bind(self.username)
             .bind(self.name)
-            .fetch_one(executor)
+            .fetch_one(&mut **tx)
             .await
+            .with_context(|| "failed to create user")
             .into_result()
     }
 }
