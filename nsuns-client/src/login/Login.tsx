@@ -22,8 +22,8 @@ export const Login: Component = () => {
           </ul>
         </Match>
         <Match when={query.isError}>
-          <div class="flex flex-col items-center justify-center">
-            <div class="mb-2">Error</div>
+          <div class="flex flex-col items-center justify-center my-10">
+            <div class="mb-2">Error fetching users: {`${query.error}`}</div>
           </div>
         </Match>
         <Match when={query.isSuccess}>
@@ -45,7 +45,7 @@ export const Login: Component = () => {
         <button
           onClick={() => query.refetch()}
           disabled={query.isFetching}
-          class="secondary-button mr-2"
+          class="secondary-button"
         >
           Refresh
         </button>

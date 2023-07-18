@@ -16,9 +16,9 @@ export const UserHome: Component = () => {
 
   createEffect(() => {
     if (programsQuery.isSuccess && programsQuery.data?.all.length === 0) {
-      navigate("program/new")
+      navigate("program/new");
     }
-  })
+  });
 
   return (
     <div class="h-full grid grid-cols-3 gap-10">
@@ -41,8 +41,10 @@ export const UserHome: Component = () => {
               </ul>
             </Match>
             <Match when={programsQuery.isError}>
-              <div class="flex flex-col items-center justify-center">
-                <div class="mb-2">Error</div>
+              <div class="flex flex-col items-center justify-center my-10">
+                <div class="mb-2">
+                  Error fetching programs: {`${programsQuery.error}`}
+                </div>
               </div>
             </Match>
             <Match when={programsQuery.isSuccess}>
