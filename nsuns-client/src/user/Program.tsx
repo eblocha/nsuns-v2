@@ -7,15 +7,11 @@ import { Plus } from "../icons/Plus";
 export const ProgramItem: Component<{
   program: Program;
   index: number;
-  isDefault?: boolean;
 }> = (props) => {
   return (
     <A
       href={`program/${props.program.id}`}
-      class={`w-full ${styles.program} hover:bg-gray-900 focus:outline-none focus:ring focus:ring-blue-500`}
-      classList={{
-        [styles.default]: props.isDefault,
-      }}
+      class={`w-full ${styles.program} hover:bg-gray-900`}
     >
       {props.program.name ?? `Program ${props.index}`}
     </A>

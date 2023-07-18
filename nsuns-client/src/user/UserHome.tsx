@@ -51,14 +51,17 @@ export const UserHome: Component = () => {
               <ul class="my-4 w-full">
                 <For each={programsQuery.data?.all}>
                   {(program, i) => (
-                    <li>
-                      <ProgramItem
-                        program={program}
-                        index={i()}
-                        isDefault={
-                          program.id === programsQuery.data?.default?.id
-                        }
-                      />
+                    <li
+                      class="rounded border"
+                      classList={{
+                        shimmer: programsQuery.isFetching,
+                        "border-blue-500":
+                          program.id === programsQuery.data?.default?.id,
+                        "border-gray-600":
+                          program.id !== programsQuery.data?.default?.id,
+                      }}
+                    >
+                      <ProgramItem program={program} index={i()} />
                     </li>
                   )}
                 </For>
