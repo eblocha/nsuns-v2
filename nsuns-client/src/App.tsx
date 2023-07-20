@@ -5,6 +5,7 @@ import { Login } from "./login/Login";
 import { CreateUser } from "./login/CreateUser";
 import { UserHome } from "./user/UserHome";
 import { NewProgram } from "./program/NewProgram";
+import { ProgramBuilder } from "./program/builder/ProgramBuilder";
 
 const queryClient = new QueryClient();
 
@@ -18,7 +19,7 @@ export const App: Component = () => {
           <Route path="/user/:userId" component={UserHome}>
             <Route path="/" />
             <Route path="program/new" component={NewProgram} />
-            <Route path="program/:programId" element={<>id</>} />
+            <Route path="program/:programId" component={ProgramBuilder} />
           </Route>
         </Routes>
       </Router>

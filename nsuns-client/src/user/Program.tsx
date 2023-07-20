@@ -3,6 +3,7 @@ import { Program } from "../api/program";
 import styles from "./Program.module.css";
 import { A } from "@solidjs/router";
 import { Plus } from "../icons/Plus";
+import { Play } from "../icons/Play";
 
 export const ProgramItem: Component<{
   program: Program;
@@ -11,9 +12,16 @@ export const ProgramItem: Component<{
   return (
     <A
       href={`program/${props.program.id}`}
-      class={`w-full ${styles.program} hover:bg-gray-900`}
+      class={`w-full ${styles.program} hover:bg-gray-900 flex flex-row`}
     >
-      {props.program.name ?? `Program ${props.index}`}
+      <div class="w-full flex flex-row justify-between items-center">
+        <span class="flex-grow">
+          {props.program.name ?? `Program ${props.index}`}
+        </span>
+        <A href={`program/${props.program.id}/run`} class="text-button">
+          <Play />
+        </A>
+      </div>
     </A>
   );
 };
