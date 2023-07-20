@@ -7,7 +7,6 @@ use crate::{
     db::DB,
     error::{IntoResult, Result},
     sets::model::Set,
-    user::model::User,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]
@@ -42,41 +41,6 @@ impl Program {
             .await
             .with_context(|| format!("failed to fetch program with id={}", id))
             .into_result()
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct UserPrograms {
-    pub default: Option<Program>,
-    pub all: Vec<Program>,
-}
-
-impl UserPrograms {
-    pub async fn get_user_programs(
-        tx: &mut Transaction<'_, DB>,
-        owner: &Uuid,
-    ) -> Result<UserPrograms> {
-        let default_id = User::get_default_program_id(&mut **tx, owner).await?;
-        let all_programs = Program::select_all_for_user(&mut **tx, owner).await?;
-
-        let mut default: Option<Program> = None;
-
-        if let Some(default_id) = default_id {
-            for program in all_programs.iter() {
-                if program.id == default_id {
-                    default = Some(program.clone());
-                    break;
-                }
-            }
-        } else {
-            default = all_programs.first().cloned();
-        }
-
-        Ok(UserPrograms {
-            default,
-            all: all_programs,
-        })
     }
 }
 

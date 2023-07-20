@@ -100,11 +100,13 @@ impl CreateSet {
 }
 
 pub async fn delete_one(id: i32, tx: &mut Transaction<'_, DB>) -> Result<Option<()>> {
-    let opt = sqlx::query_as::<_, (i32, i32, i32,)>("DELETE FROM \"sets\" WHERE id = $1 RETURNING ordering, program_id, day")
-        .bind(id)
-        .fetch_optional(&mut **tx)
-        .await
-        .with_context(|| format!("failed to delete set with id={}", id))?;
+    let opt = sqlx::query_as::<_, (i32, i32, i32)>(
+        "DELETE FROM \"sets\" WHERE id = $1 RETURNING ordering, program_id, day",
+    )
+    .bind(id)
+    .fetch_optional(&mut **tx)
+    .await
+    .with_context(|| format!("failed to delete set with id={}", id))?;
 
     if let Some((ordering, program_id, day)) = opt {
         // decrement any sets with ordering > this one

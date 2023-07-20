@@ -12,9 +12,7 @@ use crate::{
     util::{created, no_content_or_404, or_404},
 };
 
-use super::model::{
-    delete_one, gather_program_summary, CreateProgram, UpdateProgram, UserPrograms,
-};
+use super::model::{delete_one, gather_program_summary, CreateProgram, Program, UpdateProgram};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -26,12 +24,10 @@ pub async fn user_programs(
     Query(params): Query<ProgramQuery>,
     State(pool): State<Pool>,
 ) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.log_error()?;
-    let res = UserPrograms::get_user_programs(&mut tx, &params.user_id)
+    Program::select_all_for_user(&pool, &params.user_id)
         .await
-        .map(Json);
-
-    commit_ok(res, tx).await.log_error()
+        .map(Json)
+        .log_error()
 }
 
 pub async fn create_program(

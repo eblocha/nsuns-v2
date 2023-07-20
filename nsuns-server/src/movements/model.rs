@@ -17,7 +17,7 @@ pub struct Movement {
 
 impl Movement {
     pub async fn select_all(executor: impl Executor<'_, Database = DB>) -> Result<Vec<Self>> {
-        sqlx::query_as::<_, Self>("SELECT * FROM movement")
+        sqlx::query_as::<_, Self>("SELECT * FROM movements")
             .fetch_all(executor)
             .await
             .with_context(|| "failed to select movements")
@@ -35,7 +35,7 @@ pub struct CreateMovement {
 impl CreateMovement {
     pub async fn insert_one(self, executor: impl Executor<'_, Database = DB>) -> Result<Movement> {
         sqlx::query_as::<_, Movement>(
-            "INSERT INTO movement (name, description) VALUES ($1, $2) RETURNING *",
+            "INSERT INTO movements (name, description) VALUES ($1, $2) RETURNING *",
         )
         .bind(&self.name)
         .bind(self.description.as_ref())
