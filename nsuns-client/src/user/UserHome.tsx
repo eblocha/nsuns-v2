@@ -6,7 +6,7 @@ import { createQuery } from "@tanstack/solid-query";
 import { UserGreeting } from "./UserGreeting";
 
 export const UserHome: Component = () => {
-  const params = useParams<{ userId: string }>();
+  const params = useParams<{ userId: string; programId?: string }>();
   const navigate = useNavigate();
   const programsQuery = createQuery({
     queryKey: () => ["programs", params.userId],
@@ -15,7 +15,7 @@ export const UserHome: Component = () => {
   });
 
   createEffect(() => {
-    if (programsQuery.isSuccess && programsQuery.data?.all.length === 0) {
+    if (programsQuery.isSuccess && programsQuery.data?.length === 0) {
       navigate("program/new");
     }
   });
@@ -49,16 +49,14 @@ export const UserHome: Component = () => {
             </Match>
             <Match when={programsQuery.isSuccess}>
               <ul class="my-4 w-full">
-                <For each={programsQuery.data?.all}>
+                <For each={programsQuery.data}>
                   {(program, i) => (
                     <li
                       class="rounded border"
                       classList={{
                         shimmer: programsQuery.isFetching,
-                        "border-blue-500":
-                          program.id === programsQuery.data?.default?.id,
-                        "border-gray-600":
-                          program.id !== programsQuery.data?.default?.id,
+                        "border-blue-500": program.id.toString() === params.programId,
+                        "border-gray-600": program.id.toString() !== params.programId,
                       }}
                     >
                       <ProgramItem program={program} index={i()} />
