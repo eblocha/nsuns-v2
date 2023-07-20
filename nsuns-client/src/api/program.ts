@@ -32,7 +32,7 @@ export const getUserPrograms = async (id: string): Promise<UserPrograms> => {
 export const createProgram = async (
   program: CreateProgram
 ): Promise<Program> => {
-  return await axios.post(path, program, {
+  return (await axios.post(path, program, {
     headers: baseHeaders,
-  });
+  })).data;
 };

@@ -18,7 +18,7 @@ export const CreateUser: Component = () => {
       queryClient.invalidateQueries(["users"], {
         exact: false,
       });
-      navigator(`/users/${user.id}`);
+      navigator(`/user/${user.id}`);
     },
   });
 

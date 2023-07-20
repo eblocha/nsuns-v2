@@ -21,9 +21,9 @@ export const getUser = async (id: string): Promise<User> => {
 };
 
 export const createUser = async (user: CreateUser): Promise<User> => {
-  return axios.post(path, user, {
+  return (await axios.post(path, user, {
     headers: baseHeaders,
-  });
+  })).data;
 };
 
 export const isUsernameTaken = async (username: string): Promise<boolean> => {
