@@ -22,10 +22,10 @@ export type ProgramSummary = {
 
 const path = "/api/programs";
 
-export const getUserPrograms = async (id: string): Promise<Program[]> => {
+export const getProfilePrograms = async (id: string): Promise<Program[]> => {
   return (
     await axios.get(path, {
-      params: { userId: id },
+      params: { profileId: id },
     })
   ).data;
 };

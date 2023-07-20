@@ -17,14 +17,14 @@ use super::model::{delete_one, gather_program_summary, CreateProgram, Program, U
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgramQuery {
-    pub user_id: Uuid,
+    pub profile_id: Uuid,
 }
 
-pub async fn user_programs(
+pub async fn profile_programs(
     Query(params): Query<ProgramQuery>,
     State(pool): State<Pool>,
 ) -> impl IntoResponse {
-    Program::select_all_for_user(&pool, &params.user_id)
+    Program::select_all_for_profile(&pool, &params.profile_id)
         .await
         .map(Json)
         .log_error()

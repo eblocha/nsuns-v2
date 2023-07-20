@@ -1,20 +1,15 @@
-CREATE TABLE users (
+CREATE TABLE profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username VARCHAR NOT NULL,
-  name VARCHAR,
-  CONSTRAINT unique_user_username UNIQUE (username)
+  name VARCHAR NOT NULL
 );
 CREATE TABLE programs (
   id SERIAL PRIMARY KEY,
   name VARCHAR,
   description VARCHAR,
   created_on TIMESTAMP NOT NULL DEFAULT now(),
-  -- user who owns the program
-  owner UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  -- profile that owns the program
+  owner UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE
 );
-ALTER TABLE users
-ADD COLUMN default_program INTEGER REFERENCES programs(id) ON DELETE
-SET NULL;
 -- bench press, squat, etc.
 CREATE TABLE movements (
   id SERIAL PRIMARY KEY,
@@ -22,7 +17,7 @@ CREATE TABLE movements (
   description VARCHAR,
   CONSTRAINT unique_movement_name UNIQUE (name)
 );
-CREATE TABLE "sets" (
+CREATE TABLE program_sets (
   id SERIAL PRIMARY KEY,
   program_id INTEGER NOT NULL REFERENCES programs(id) ON DELETE CASCADE,
   movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
@@ -41,16 +36,20 @@ CREATE TABLE "sets" (
   description VARCHAR,
   CONSTRAINT unique_set UNIQUE (program_id, day, movement_id, ordering)
 );
-CREATE INDEX sets_by_program_id ON "sets"(program_id);
+CREATE INDEX sets_by_program_id ON program_sets(program_id);
 CREATE TABLE maxes (
   id SERIAL PRIMARY KEY,
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
   timestamp TIMESTAMP DEFAULT now(),
   amount DOUBLE PRECISION
 );
+CREATE INDEX maxes_by_profile_id ON maxes(profile_id);
 CREATE TABLE reps (
   id SERIAL PRIMARY KEY,
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
   timestamp TIMESTAMP DEFAULT now(),
   amount INTEGER NOT NULL CHECK (amount >= 0)
 );
+CREATE INDEX reps_by_profile_id ON reps(profile_id);

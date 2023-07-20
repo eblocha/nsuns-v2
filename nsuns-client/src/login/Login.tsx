@@ -1,21 +1,21 @@
 import { Component, For, Match, Switch } from "solid-js";
-import { getUsers } from "../api";
-import { AddUserCard, LoadingUserCard, UserCard } from "./UserCard";
+import { getProfiles } from "../api";
+import { AddProfileCard, LoadingProfileCard, ProfileCard } from "./ProfileCard";
 import { createQuery } from "@tanstack/solid-query";
 
 export const Login: Component = () => {
-  const query = createQuery(() => ["users"], getUsers);
+  const query = createQuery(() => ["profiles"], getProfiles);
 
   return (
     <div class="h-full w-full overflow-hidden p-10 flex flex-col items-center justify-center">
-      <h2 class="text-lg">Select a user</h2>
+      <h2 class="text-lg">Select a profile</h2>
       <Switch>
         <Match when={query.isLoading}>
           <ul class="my-8 flex flex-row items-center">
             <For each={[1, 2, 3]}>
               {() => (
                 <li>
-                  <LoadingUserCard />
+                  <LoadingProfileCard />
                 </li>
               )}
             </For>
@@ -23,20 +23,20 @@ export const Login: Component = () => {
         </Match>
         <Match when={query.isError}>
           <div class="flex flex-col items-center justify-center my-10">
-            <div class="mb-2">Error fetching users: {`${query.error}`}</div>
+            <div class="mb-2">Error fetching profiles: {`${query.error}`}</div>
           </div>
         </Match>
         <Match when={query.isSuccess}>
           <ul class="my-8 flex flex-row items-center">
             <For each={query.data}>
-              {(user) => (
+              {(profile) => (
                 <li>
-                  <UserCard {...user} />
+                  <ProfileCard {...profile} />
                 </li>
               )}
             </For>
             <li>
-              <AddUserCard />
+              <AddProfileCard />
             </li>
           </ul>
         </Match>

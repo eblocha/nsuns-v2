@@ -7,14 +7,14 @@ use tower_http::{
 use tracing::Level;
 
 use crate::{
-    db::Pool, movements::router::movements_router, program::router::programs_router,
-    sets::router::sets_router, settings::Settings, user::router::users_router,
+    db::Pool, movements::router::movements_router, profiles::router::profiles_router,
+    program::router::programs_router, sets::router::sets_router, settings::Settings,
 };
 
 pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
     let app = Router::new()
+        .nest("/api/profiles", profiles_router())
         .nest("/api/programs", programs_router())
-        .nest("/api/users", users_router())
         .nest("/api/sets", sets_router())
         .nest("/api/movements", movements_router())
         .layer(

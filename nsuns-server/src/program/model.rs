@@ -19,7 +19,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub async fn select_all_for_user(
+    pub async fn select_all_for_profile(
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
     ) -> Result<Vec<Self>> {

@@ -26,7 +26,7 @@ impl Set {
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Set>> {
         sqlx::query_as::<_, Self>(
-            "SELECT * FROM \"sets\" WHERE program_id = $1 ORDER BY day, ordering",
+            "SELECT * FROM program_sets WHERE program_id = $1 ORDER BY day, ordering",
         )
         .bind(program_id)
         .fetch_all(executor)
@@ -54,7 +54,7 @@ impl CreateSet {
     pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> Result<Set> {
         // get the max `ordering` value for the program and day
         let ordering = sqlx::query_as::<_, (i32,)>(
-            "SELECT MAX(ordering) FROM \"sets\" WHERE program_id = $1 AND day = $2",
+            "SELECT MAX(ordering) FROM program_sets WHERE program_id = $1 AND day = $2",
         )
         .bind(self.program_id)
         .bind(self.day)
@@ -70,7 +70,7 @@ impl CreateSet {
         .unwrap_or(0);
 
         let id = sqlx::query_as::<_, (i32,)>(
-            "INSERT INTO \"sets\" SET (
+            "INSERT INTO program_sets SET (
             program_id, movement_id, day, ordering, reps, reps_is_minimum, description
         ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
         )
@@ -101,7 +101,7 @@ impl CreateSet {
 
 pub async fn delete_one(id: i32, tx: &mut Transaction<'_, DB>) -> Result<Option<()>> {
     let opt = sqlx::query_as::<_, (i32, i32, i32)>(
-        "DELETE FROM \"sets\" WHERE id = $1 RETURNING ordering, program_id, day",
+        "DELETE FROM program_sets WHERE id = $1 RETURNING ordering, program_id, day",
     )
     .bind(id)
     .fetch_optional(&mut **tx)
@@ -110,7 +110,7 @@ pub async fn delete_one(id: i32, tx: &mut Transaction<'_, DB>) -> Result<Option<
 
     if let Some((ordering, program_id, day)) = opt {
         // decrement any sets with ordering > this one
-        sqlx::query("UPDATE \"sets\" SET ordering = ordering - 1 WHERE ordering > $1 AND program_id = $2 AND day = $3")
+        sqlx::query("UPDATE program_sets SET ordering = ordering - 1 WHERE ordering > $1 AND program_id = $2 AND day = $3")
             .bind(ordering)
             .bind(program_id)
             .bind(day)

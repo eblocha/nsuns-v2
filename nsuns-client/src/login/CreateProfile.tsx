@@ -1,42 +1,38 @@
 import { createFormControl, createFormGroup } from "solid-forms";
-import { Component, Show, createSignal } from "solid-js";
+import { Component, Show } from "solid-js";
 import { TextInput } from "../forms/TextInput";
 import { A, useNavigate } from "@solidjs/router";
-import { createUser } from "../api";
-import styles from "./CreateUser.module.css";
-import { UsernameInput } from "../forms/UsernameInput";
+import { createProfile } from "../api";
+import styles from "./CreateProfile.module.css";
 import { hasErrors } from "../forms/errors";
 import { createMutation, useQueryClient } from "@tanstack/solid-query";
 
-export const CreateUser: Component = () => {
-  const [validatingUsername, setValidatingUsername] = createSignal(false);
+export const CreateProfile: Component = () => {
   const queryClient = useQueryClient();
 
   const mutation = createMutation({
-    mutationFn: createUser,
-    onSuccess: (user) => {
-      queryClient.invalidateQueries(["users"], {
+    mutationFn: createProfile,
+    onSuccess: (profile) => {
+      queryClient.invalidateQueries(["profiles"], {
         exact: false,
       });
-      navigator(`/user/${user.id}`);
+      navigator(`/profile/${profile.id}`);
     },
   });
 
   const navigator = useNavigate();
 
   const group = createFormGroup({
-    username: createFormControl("", {
+    name: createFormControl("", {
       required: true,
     }),
-    name: createFormControl<string>(""),
   });
 
   const onSubmit = async () => {
-    if (mutation.isLoading || anyErrors() || validatingUsername()) return;
+    if (mutation.isLoading || anyErrors()) return;
 
     mutation.mutate({
-      username: group.value.username!,
-      name: group.value.name || null,
+      name: group.value.name!,
     });
   };
 
@@ -64,19 +60,9 @@ export const CreateUser: Component = () => {
         class="mx-3 grid gap-y-2 gap-x-4"
         classList={{ [styles.form]: true }}
       >
-        <h2 class="col-span-2 text-lg mb-4">Create User</h2>
-        <label for="username" class="label-left">
-          <span class="text-red-500">*</span>Username
-        </label>
-        <UsernameInput
-          control={group.controls.username}
-          class="ml-3 p-1 input"
-          name="username"
-          validating={validatingUsername}
-          setValidating={setValidatingUsername}
-        />
+        <h2 class="col-span-2 text-lg mb-4">Create Profile</h2>
         <label for="name" class="label-left">
-          Name
+          <span class="text-red-500">*</span>Name
         </label>
         <TextInput
           control={group.controls.name}
@@ -102,7 +88,7 @@ export const CreateUser: Component = () => {
               disabled={anyErrors() || mutation.isLoading}
             >
               <Show when={!mutation.isLoading} fallback={<>Creating...</>}>
-                Create User
+                Create Profile
               </Show>
             </button>
           </div>

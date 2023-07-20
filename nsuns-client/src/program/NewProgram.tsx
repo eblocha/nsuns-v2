@@ -9,7 +9,7 @@ import { A, useNavigate, useParams } from "@solidjs/router";
 import { hasErrors } from "../forms/errors";
 
 export const NewProgram: Component = () => {
-  const params = useParams<{ userId: string }>();
+  const params = useParams<{ profileId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -20,7 +20,7 @@ export const NewProgram: Component = () => {
   const mutation = createMutation({
     mutationFn: createProgram,
     onSuccess: (program) => {
-      queryClient.invalidateQueries(["programs", params.userId]);
+      queryClient.invalidateQueries(["programs", params.profileId]);
       navigate(`../${program.id}`);
     },
   });
@@ -37,7 +37,7 @@ export const NewProgram: Component = () => {
     mutation.mutate({
       name: group.value.name || null,
       description: group.value.description || null,
-      owner: params.userId,
+      owner: params.profileId,
     });
   };
 

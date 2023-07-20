@@ -15,7 +15,7 @@ pub mod program;
 pub mod router;
 pub mod sets;
 pub mod settings;
-pub mod user;
+pub mod profiles;
 pub mod util;
 pub mod validation;
 

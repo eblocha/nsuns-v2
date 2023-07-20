@@ -1,17 +1,17 @@
 import { A, Outlet, useNavigate, useParams } from "@solidjs/router";
 import { Component, For, Match, Switch, createEffect } from "solid-js";
-import { getUserPrograms } from "../api/program";
+import { getProfilePrograms } from "../api/program";
 import { AddProgram, LoadingProgram, ProgramItem } from "./Program";
 import { createQuery } from "@tanstack/solid-query";
-import { UserGreeting } from "./UserGreeting";
+import { ProfileGreeting } from "./ProfileGreeting";
 
-export const UserHome: Component = () => {
-  const params = useParams<{ userId: string; programId?: string }>();
+export const ProfileHome: Component = () => {
+  const params = useParams<{ profileId: string; programId?: string }>();
   const navigate = useNavigate();
   const programsQuery = createQuery({
-    queryKey: () => ["programs", params.userId],
-    queryFn: () => getUserPrograms(params.userId),
-    enabled: !!params.userId,
+    queryKey: () => ["programs", params.profileId],
+    queryFn: () => getProfilePrograms(params.profileId),
+    enabled: !!params.profileId,
   });
 
   createEffect(() => {
@@ -24,7 +24,7 @@ export const UserHome: Component = () => {
     <div class="h-full grid grid-cols-3 gap-10">
       <div class="h-full py-60 pl-32 pr-12">
         <div class="mb-4">
-          <UserGreeting id={params.userId} />
+          <ProfileGreeting id={params.profileId} />
         </div>
         <h2 class="text-lg">Your Programs</h2>
         <div class="flex flex-col justify-center">

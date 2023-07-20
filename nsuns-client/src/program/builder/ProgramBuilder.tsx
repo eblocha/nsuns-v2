@@ -30,7 +30,7 @@ const Error: Component<{ message: string }> = (props) => {
 };
 
 export const ProgramBuilder: Component = () => {
-  const params = useParams<{ userId: string; programId: string }>();
+  const params = useParams<{ profileId: string; programId: string }>();
 
   const query = createQuery({
     queryKey: () => ["programs", params.programId],
