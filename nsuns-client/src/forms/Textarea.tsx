@@ -1,4 +1,4 @@
-import { Show, type Component, createRenderEffect, JSXElement } from "solid-js";
+import { Show, type Component, createRenderEffect, JSXElement, JSX } from "solid-js";
 import { IFormControl } from "solid-forms";
 import style from "./TextInput.module.css";
 import { hasErrors } from "./errors";
@@ -7,12 +7,7 @@ export const TextArea: Component<{
   control: IFormControl<string>;
   name?: string;
   class?: string;
-  onBlur?: (
-    e: FocusEvent & {
-      currentTarget: HTMLTextAreaElement;
-      target: HTMLTextAreaElement;
-    }
-  ) => void;
+  onBlur?: JSX.FocusEventHandler<HTMLTextAreaElement, FocusEvent>;
   children?: JSXElement;
 }> = (props) => {
   createRenderEffect(() => {
