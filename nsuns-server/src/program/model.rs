@@ -6,6 +6,7 @@ use uuid::Uuid;
 use crate::{
     db::DB,
     error::{IntoResult, Result},
+    sets::model::Set,
     user::model::User,
 };
 
@@ -23,11 +24,23 @@ impl Program {
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
     ) -> Result<Vec<Self>> {
-        sqlx::query_as::<_, Program>("SELECT * FROM programs WHERE owner = $1 ORDER BY created_on")
+        sqlx::query_as::<_, Self>("SELECT * FROM programs WHERE owner = $1 ORDER BY created_on")
             .bind(owner)
             .fetch_all(executor)
             .await
             .with_context(|| format!("failed to select program with owner id={}", owner))
+            .into_result()
+    }
+
+    pub async fn select_one(
+        id: i32,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> Result<Option<Self>> {
+        sqlx::query_as::<_, Self>("SELECT * from programs WHERE id = $1")
+            .bind(id)
+            .fetch_optional(executor)
+            .await
+            .with_context(|| format!("failed to fetch program with id={}", id))
             .into_result()
     }
 }
@@ -116,26 +129,39 @@ impl UpdateProgram {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Copy)]
-pub struct ProgramId(pub i32);
+pub async fn delete_one(id: i32, executor: impl Executor<'_, Database = DB>) -> Result<Option<()>> {
+    sqlx::query("DELETE FROM programs WHERE id = $1")
+        .bind(id)
+        .execute(executor)
+        .await
+        .with_context(|| format!("failed to delete program with id={}", id))
+        .map(|result| {
+            if result.rows_affected() == 0 {
+                None
+            } else {
+                Some(())
+            }
+        })
+        .into_result()
+}
 
-impl ProgramId {
-    pub async fn delete_one(
-        self,
-        executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<()>> {
-        sqlx::query("DELETE FROM programs WHERE id = $1")
-            .bind(self.0)
-            .execute(executor)
-            .await
-            .with_context(|| format!("failed to delete program with id={}", self.0))
-            .map(|result| {
-                if result.rows_affected() == 0 {
-                    None
-                } else {
-                    Some(())
-                }
-            })
-            .into_result()
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProgramSummary {
+    pub program: Program,
+    pub sets: Vec<Set>,
+}
+
+pub async fn gather_program_summary(
+    id: i32,
+    tx: &mut Transaction<'_, DB>,
+) -> Result<Option<ProgramSummary>> {
+    let program_opt = Program::select_one(id, &mut **tx).await?;
+
+    if let Some(program) = program_opt {
+        let sets = Set::select_for_program(program.id, &mut **tx).await?;
+        Ok(Some(ProgramSummary { program, sets }))
+    } else {
+        Ok(None)
     }
 }

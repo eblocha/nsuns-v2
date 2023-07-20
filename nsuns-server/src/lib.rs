@@ -10,12 +10,14 @@ use crate::util::shutdown_signal;
 
 pub mod db;
 pub mod error;
+pub mod movements;
 pub mod program;
 pub mod router;
+pub mod sets;
 pub mod settings;
+pub mod user;
 pub mod util;
 pub mod validation;
-pub mod user;
 
 pub async fn initialize_api_server(settings: &Settings) -> Result<Router> {
     let pool = db::create_connection_pool(&settings.database)

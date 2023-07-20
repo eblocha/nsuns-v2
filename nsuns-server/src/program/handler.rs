@@ -12,7 +12,9 @@ use crate::{
     util::{created, no_content_or_404, or_404},
 };
 
-use super::model::{CreateProgram, ProgramId, UpdateProgram, UserPrograms};
+use super::model::{
+    delete_one, gather_program_summary, CreateProgram, UpdateProgram, UserPrograms,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -58,10 +60,18 @@ pub async fn update_program(
 }
 
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<i32>) -> impl IntoResponse {
-    ProgramId(id)
-        .delete_one(&pool)
+    delete_one(id, &pool)
         .await
         .map(no_content_or_404)
         .into_result()
         .log_error()
+}
+
+pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<i32>) -> impl IntoResponse {
+    let mut tx = transaction(&pool).await.log_error()?;
+    let res = gather_program_summary(id, &mut tx)
+        .await
+        .map(or_404::<_, Json<_>>)
+        .into_result();
+    commit_ok(res, tx).await.log_error()
 }

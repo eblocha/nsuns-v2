@@ -22,22 +22,15 @@ CREATE TABLE movements (
   description VARCHAR,
   CONSTRAINT unique_movement_name UNIQUE (name)
 );
-CREATE TABLE program_day (
+CREATE TABLE "sets" (
   id SERIAL PRIMARY KEY,
   program_id INTEGER NOT NULL REFERENCES programs(id) ON DELETE CASCADE,
+  movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
   -- sunday, monday, etc.
   day INTEGER NOT NULL CHECK (
     day >= 0
     AND day < 7
   ),
-  -- can't define multiple definitions for the same day of week
-  CONSTRAINT unique_program_day UNIQUE (program_id, day)
-);
-CREATE INDEX program_day_program_id_index ON program_day (program_id);
-CREATE TABLE "sets" (
-  id SERIAL PRIMARY KEY,
-  program_day_id INTEGER NOT NULL REFERENCES program_day(id) ON DELETE CASCADE,
-  movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
   ordering INTEGER NOT NULL,
   reps INTEGER CHECK (
     reps IS NULL
@@ -46,8 +39,9 @@ CREATE TABLE "sets" (
   -- represent "1+ reps"
   reps_is_minimum BOOLEAN DEFAULT false,
   description VARCHAR,
-  CONSTRAINT unique_set UNIQUE (program_day_id, movement_id, ordering)
+  CONSTRAINT unique_set UNIQUE (program_id, day, movement_id, ordering)
 );
+CREATE INDEX sets_by_program_id ON "sets"(program_id);
 CREATE TABLE maxes (
   id SERIAL PRIMARY KEY,
   movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
