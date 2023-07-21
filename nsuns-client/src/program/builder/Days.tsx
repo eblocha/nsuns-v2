@@ -115,25 +115,27 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
                   </For>
                 </Show>
 
-                <Show when={addSetTo() === index()}>
-                  <li>
+                <li>
+                  <Show
+                    when={addSetTo() === index()}
+                    fallback={
+                      <button
+                        class="text-button text-sm border border-gray-700 flex flex-row items-center justify-center gap-2"
+                        disabled={addSetTo() !== null}
+                        onClick={() => setAddSetTo(index())}
+                      >
+                        <Plus />
+                        Add Set
+                      </button>
+                    }
+                  >
                     <NewSet
                       close={() => setAddSetTo(null)}
                       dayIndex={index()}
                       programId={props.programId}
                       movements={movements()}
                     />
-                  </li>
-                </Show>
-                <li>
-                  <button
-                    class="text-button text-sm border border-gray-700 flex flex-row items-center justify-center gap-2"
-                    disabled={addSetTo() !== null}
-                    onClick={() => setAddSetTo(index())}
-                  >
-                    <Plus />
-                    Add Set
-                  </button>
+                  </Show>
                 </li>
               </ul>
             </li>
