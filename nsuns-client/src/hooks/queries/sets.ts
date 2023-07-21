@@ -9,6 +9,7 @@ import {
   ProgramSet,
   ProgramSummary,
   createSet,
+  deleteSet,
   getProgramSummary,
   updateSet,
 } from "../../api";
@@ -49,9 +50,11 @@ export const useCreateSet = (
   return mutation;
 };
 
-export const useEditSet = (options?: Partial<
-  CreateMutationOptions<ProgramSet, unknown, CreateProgramSet, unknown>
->) => {
+export const useEditSet = (
+  options?: Partial<
+    CreateMutationOptions<ProgramSet, unknown, CreateProgramSet, unknown>
+  >
+) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({
     ...options,
@@ -80,4 +83,31 @@ export const useEditSet = (options?: Partial<
   });
 
   return mutation;
-}
+};
+
+export const useDeleteSet = (
+  programId: string,
+  options?: Partial<
+    CreateMutationOptions<void, unknown, string | number, unknown>
+  >
+) => {
+  const queryClient = useQueryClient();
+  const mutation = createMutation({
+    ...options,
+    mutationFn: deleteSet,
+    onSuccess: (v, id, ...args) => {
+      queryClient.setQueryData(
+        ["programs", programId],
+        (summary?: ProgramSummary) => {
+          if (!summary) return;
+          return {
+            program: summary.program,
+            sets: summary.sets.filter((s) => s.id !== id),
+          };
+        }
+      );
+      options?.onSuccess?.(v, id, ...args);
+    },
+  });
+  return mutation;
+};

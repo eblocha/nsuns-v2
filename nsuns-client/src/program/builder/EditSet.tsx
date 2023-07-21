@@ -1,6 +1,6 @@
 import { Component } from "solid-js";
 import { Day, Movement, ProgramSet } from "../../api";
-import { useEditSet } from "../../hooks/queries/sets";
+import { useDeleteSet, useEditSet } from "../../hooks/queries/sets";
 import { createControl, createControlGroup, required } from "../../hooks/forms";
 import { SetForm } from "./SetForm";
 
@@ -15,6 +15,10 @@ export const EditSet: Component<{
     onSuccess: () => {
       props.close();
     },
+  });
+
+  const deleteMutation = useDeleteSet(props.programId.toString(), {
+    onSuccess: () => props.close(),
   });
 
   const group = createControlGroup({
@@ -38,6 +42,7 @@ export const EditSet: Component<{
         group={group}
         dayIndex={props.dayIndex}
         mutationUpdate={mutation}
+        mutationDelete={deleteMutation}
         id={props.set.id}
         onClose={props.close}
         programId={props.programId}

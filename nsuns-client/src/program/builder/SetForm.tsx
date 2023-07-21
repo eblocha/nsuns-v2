@@ -13,6 +13,7 @@ import {
 } from "../../api";
 import { Spinner } from "../../icons/Spinner";
 import { Input } from "../../forms/Input";
+import { displaySet } from "./Set";
 
 export type SetFormControls = ControlGroup<{
   movementId: Control<string>;
@@ -40,13 +41,24 @@ export const SetForm: Component<{
     UpdateProgramSet,
     unknown
   >;
+  mutationDelete?: CreateMutationResult<
+    void,
+    unknown,
+    string | number,
+    unknown
+  >;
   id?: number;
   programId: number;
   dayIndex: Day;
   movements?: Movement[];
 }> = (props) => {
+  const isLoading = () =>
+    props.mutationCreate?.isLoading || props.mutationUpdate?.isLoading;
+
+  const isDeleting = () => props.mutationDelete?.isLoading;
+
   const onSubmit = () => {
-    if (props.group.hasErrors()) return;
+    if (props.group.hasErrors() || isLoading()) return;
     const value = props.group.value();
 
     if (!value.amount || !value.movementId) return;
@@ -78,7 +90,9 @@ export const SetForm: Component<{
     }))
   );
 
-  const isLoading = () => props.mutationCreate?.isLoading || props.mutationUpdate?.isLoading;
+  const onDelete = () => {
+    !isDeleting() && props.id && props.mutationDelete?.mutate(props.id);
+  };
 
   return (
     <form
@@ -156,18 +170,25 @@ export const SetForm: Component<{
       </label>
 
       <div class="col-span-2 flex flex-row items-center justify-end gap-2">
+        <Show when={props.mutationDelete}>
+          <button type="button" class="danger-button w-16 flex flex-row items-center justify-center h-full" onClick={onDelete}>
+            <Show
+              when={!isDeleting()}
+              fallback={<Spinner class="animate-spin" />}
+            >
+              Delete
+            </Show>
+          </button>
+        </Show>
         <button type="button" class="secondary-button" onClick={props.onClose}>
           Cancel
         </button>
         <button
           type="submit"
           class="primary-button w-20 flex flex-row items-center justify-center h-full"
-          disabled={isLoading() || props.group.hasErrors()}
+          disabled={isLoading() || isDeleting() || props.group.hasErrors()}
         >
-          <Show
-            when={!isLoading()}
-            fallback={<Spinner class="animate-spin" />}
-          >
+          <Show when={!isLoading()} fallback={<Spinner class="animate-spin" />}>
             Confirm
           </Show>
         </button>

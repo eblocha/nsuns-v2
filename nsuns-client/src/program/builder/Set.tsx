@@ -4,7 +4,7 @@ import { EditSet } from "./EditSet";
 
 const plural = (value: number) => (value === 1 ? "" : "s");
 
-const displaySet = (set: ProgramSet, movements: Movement[]) => {
+export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const movement = movements.find((m) => m.id === set.movementId);
   const percentOfMax = set.percentageOfMax
     ? movements.find((m) => m.id === set.percentageOfMax)
