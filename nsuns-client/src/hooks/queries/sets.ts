@@ -1,6 +1,7 @@
 import {
   CreateMutationOptions,
   createMutation,
+  createQuery,
   useQueryClient,
 } from "@tanstack/solid-query";
 import {
@@ -8,7 +9,16 @@ import {
   ProgramSet,
   ProgramSummary,
   createSet,
+  getProgramSummary,
 } from "../../api";
+
+export const useProgramSummaryQuery = (programId: string) => {
+  return createQuery({
+    queryKey: () => ["programs", programId],
+    queryFn: () => getProgramSummary(programId),
+    enabled: !!programId,
+  });
+};
 
 export const useCreateSet = (
   options?: Partial<
@@ -21,7 +31,7 @@ export const useCreateSet = (
     mutationFn: createSet,
     onSuccess: (set, ...args) => {
       queryClient.setQueryData(
-        ["programs", set.programId],
+        ["programs", set.programId.toString()],
         (summary?: ProgramSummary) => {
           if (!summary) return;
 

@@ -1,4 +1,4 @@
-import { Component, Show, createEffect, createMemo } from "solid-js";
+import { Component, Show, createMemo } from "solid-js";
 import { Day, Movement } from "../../api";
 import { useCreateSet } from "../../hooks/queries/sets";
 import { Spinner } from "../../icons/Spinner";
@@ -6,6 +6,7 @@ import { createControl, createControlGroup, required } from "../../hooks/forms";
 import { Select, SelectOption } from "../../forms/Select";
 import { Input } from "../../forms/Input";
 import { TextArea } from "../../forms/TextArea";
+import { Checkbox } from "../../forms/Checkbox";
 
 export const NewSet: Component<{
   close: () => void;
@@ -22,7 +23,7 @@ export const NewSet: Component<{
   const group = createControlGroup({
     movementId: createControl<string>("", { validators: [required()] }),
     reps: createControl<string>(""),
-    repsIsMinimum: createControl("true"),
+    repsIsMinimum: createControl(false),
     description: createControl<string>(""),
     amount: createControl<string>("0", { validators: [required()] }),
     maxMovementId: createControl<string>(""),
@@ -44,7 +45,7 @@ export const NewSet: Component<{
         : null,
       programId: props.programId,
       reps: value.reps ? parseInt(value.reps) : null,
-      repsIsMinimum: value.repsIsMinimum === "true",
+      repsIsMinimum: value.repsIsMinimum,
     });
   };
 
@@ -86,10 +87,9 @@ export const NewSet: Component<{
             min={0}
           />
           <label class="flex flex-row items-center">
-            <Input
+            <Checkbox
               control={group.controls.repsIsMinimum}
               class="mr-3"
-              type="checkbox"
             />
             Is Minimum?
           </label>

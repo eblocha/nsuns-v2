@@ -5,6 +5,7 @@ import { getProgramSummary } from "../../api";
 import { MovementList } from "../../movements/MovementList";
 import { Days } from "./Days";
 import { ProgramDetails } from "./ProgramDetails";
+import { useProgramSummaryQuery } from "../../hooks/queries/sets";
 
 const Loading: Component = () => {
   return (
@@ -34,11 +35,7 @@ const Error: Component<{ message: string }> = (props) => {
 export const ProgramBuilder: Component = () => {
   const params = useParams<{ profileId: string; programId: string }>();
 
-  const query = createQuery({
-    queryKey: () => ["programs", params.programId],
-    queryFn: () => getProgramSummary(params.programId),
-    enabled: !!params.programId,
-  });
+  const query = useProgramSummaryQuery(params.programId);
 
   return (
     <div class="w-full min-h-full overflow-visible border-l border-gray-700 grid grid-cols-4 gap-5 p-5 relative">
