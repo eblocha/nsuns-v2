@@ -57,12 +57,12 @@ pub struct CreateSet {
 impl CreateSet {
     pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> Result<Set> {
         // get the max `ordering` value for the program and day
-        let ordering = sqlx::query_as::<_, (i32,)>(
+        let ordering = sqlx::query_as::<_, (Option<i32>,)>(
             "SELECT MAX(ordering) FROM program_sets WHERE program_id = $1 AND day = $2",
         )
         .bind(self.program_id)
         .bind(self.day)
-        .fetch_optional(&mut **tx)
+        .fetch_one(&mut **tx)
         .await
         .with_context(|| {
             format!(
@@ -70,11 +70,12 @@ impl CreateSet {
                 self.program_id, self.day
             )
         })?
-        .map(|(order,)| order + 1)
+        .0
+        .map(|value| value + 1)
         .unwrap_or(0);
 
         let id = sqlx::query_as::<_, (i32,)>(
-            "INSERT INTO program_sets SET (
+            "INSERT INTO program_sets (
             program_id, movement_id, day, ordering, reps, reps_is_minimum, description, amount, percentage_of_max
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
         )
@@ -102,7 +103,7 @@ impl CreateSet {
             reps_is_minimum: self.reps_is_minimum,
             description: self.description,
             amount: self.amount,
-            percentage_of_max: self.percentage_of_max
+            percentage_of_max: self.percentage_of_max,
         })
     }
 }

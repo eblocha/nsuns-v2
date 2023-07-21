@@ -1,4 +1,4 @@
-import { baseHeaders, del, get, post, put } from "./util";
+import { baseHeaders, del, get, json, noContent, post, put } from "./util";
 import { ProgramSet } from "./sets";
 
 export type Program = {
@@ -22,23 +22,24 @@ export type ProgramSummary = {
 const path = "/api/programs";
 
 export const getProfilePrograms = async (id: string): Promise<Program[]> =>
-  get(`${path}?profileId=${encodeURIComponent(id)}`);
+  get(`${path}?profileId=${encodeURIComponent(id)}`).then(json());
 
 export const createProgram = async (program: CreateProgram): Promise<Program> =>
   post(path, {
     body: JSON.stringify(program),
     headers: baseHeaders,
-  });
+  }).then(json());
 
 export const getProgramSummary = async (
   programId: number | string
-): Promise<ProgramSummary> => get(`${path}/${programId}`);
+): Promise<ProgramSummary> =>
+  get(`${path}/${programId}`).then(json());
 
 export const updateProgram = async (program: UpdateProgram): Promise<Program> =>
   put(path, {
     body: JSON.stringify(program),
     headers: baseHeaders,
-  });
+  }).then(json());
 
 export const deleteProgram = async (id: number | string): Promise<void> =>
-  del(`${path}/${id}`);
+  del(`${path}/${id}`).then(noContent);

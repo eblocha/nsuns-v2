@@ -886,11 +886,6 @@ escape-string-regexp@^1.0.5:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==
 
-fast-deep-equal@^3.1.0:
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
-  integrity sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
-
 fast-glob@^3.2.12:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.3.0.tgz#7c40cb491e1e2ed5664749e87bfb516dbe8727c0"
@@ -1303,13 +1298,6 @@ solid-devtools@^0.27.3:
     "@babel/types" "^7.22.4"
     "@solid-devtools/debugger" "^0.22.1"
     "@solid-devtools/shared" "^0.12.0"
-
-solid-forms@^0.4.8:
-  version "0.4.8"
-  resolved "https://registry.yarnpkg.com/solid-forms/-/solid-forms-0.4.8.tgz#d006f905ea77eed58a8849b38045745371dc33b9"
-  integrity sha512-ygNQBdrNvmMeWziA5WQK5qKOS/DUOnRYXl2Nn0TzG5/Ey5RVm37AoRK1JHIm3+3Bv1wEOjTpCaNSFE0fDnVESg==
-  dependencies:
-    fast-deep-equal "^3.1.0"
 
 solid-js@^1.7.5, solid-js@^1.7.6:
   version "1.7.8"

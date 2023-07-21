@@ -1,4 +1,4 @@
-import { baseHeaders, get, post } from "./util";
+import { baseHeaders, get, json, post } from "./util";
 
 export type Movement = {
   id: number;
@@ -10,7 +10,7 @@ export type CreateMovement = Omit<Movement, "id">;
 
 const path = "/api/movements";
 
-export const getMovements = async (): Promise<Movement[]> => get(path);
+export const getMovements = async (): Promise<Movement[]> => get(path).then(json());
 
 export const createMovement = async (
   movement: CreateMovement
@@ -18,4 +18,4 @@ export const createMovement = async (
   post(path, {
     body: JSON.stringify(movement),
     headers: baseHeaders,
-  });
+  }).then(json());

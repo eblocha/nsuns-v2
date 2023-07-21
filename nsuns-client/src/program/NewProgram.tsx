@@ -1,37 +1,30 @@
 import { Component, Show } from "solid-js";
 import styles from "./NewProgram.module.css";
-import { TextInput } from "../forms/TextInput";
-import { createFormControl, createFormGroup } from "solid-forms";
+import { Input } from "../forms/Input";
 import { A, useParams } from "@solidjs/router";
-import { hasErrors } from "../forms/errors";
 import { Spinner } from "../icons/Spinner";
 import { useCreateProgram } from "../hooks/queries/programs";
 import { useNavigateToProgram } from "../hooks/navigation";
+import { createControl, required } from "../hooks/forms";
+import { ErrorMessages } from "../forms/ErrorMessages";
 
 export const NewProgram: Component = () => {
   const params = useParams<{ profileId: string }>();
   const navigateToProgram = useNavigateToProgram();
 
-  const group = createFormGroup({
-    name: createFormControl("", { required: true }),
-  });
+  const name = createControl("", { validators: [required()] });
+
   const mutation = useCreateProgram(params.profileId, {
     onSuccess: (program) => {
       navigateToProgram(program.id);
     },
   });
 
-  const anyErrors = () => {
-    return !Object.values(group.controls).every(
-      (control) => !hasErrors(control.errors)
-    );
-  };
-
   const onSubmit = async () => {
-    if (mutation.isLoading || anyErrors()) return;
+    if (mutation.isLoading || name.hasErrors()) return;
 
     mutation.mutate({
-      name: group.value.name!,
+      name: name.value(),
       owner: params.profileId,
     });
   };
@@ -50,18 +43,22 @@ export const NewProgram: Component = () => {
         <label for="program-name" class="label-left">
           <span class="text-red-500">*</span>Title
         </label>
-        <TextInput
-          control={group.controls.name}
-          class="ml-3 input"
-          name="program-name"
-        />
+        <div class="flex flex-col items-end">
+          <Input
+            control={name}
+            class="ml-3 input"
+            name="program-name"
+            required={true}
+          />
+          <ErrorMessages control={name} />
+        </div>
         <div class="col-span-2 flex flex-row items-center justify-end mt-4">
           <A href="../.." class="text-button">
             Cancel
           </A>
           <button
             class="primary-button ml-2 flex flex-row items-center justify-center w-36"
-            disabled={mutation.isLoading || anyErrors()}
+            disabled={mutation.isLoading || name.hasErrors()}
           >
             <Show
               when={!mutation.isLoading}

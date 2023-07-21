@@ -1,47 +1,31 @@
-import { createFormControl, createFormGroup } from "solid-forms";
 import { Component, Show, createRenderEffect, on } from "solid-js";
-import { TextInput } from "../../forms/TextInput";
+import { Input } from "../../forms/Input";
 import { Program } from "../../api";
-import { hasErrors } from "../../forms/errors";
 import { Spinner } from "../../icons/Spinner";
 import { createDelayedLatch } from "../../hooks/createDelayedLatch";
 import { useUpdateProgram } from "../../hooks/queries/programs";
+import { createControl, required } from "../../hooks/forms";
+import { ErrorMessages } from "../../forms/ErrorMessages";
 
 export const ProgramDetails: Component<Program> = (props) => {
-  const group = createFormGroup({
-    name: createFormControl(props.name, { required: true }),
-  });
+  const name = createControl(props.name, { validators: [required()] });
 
   const mutation = useUpdateProgram();
 
-  const anyErrors = () => {
-    return !Object.values(group.controls).every(
-      (control) => !hasErrors(control.errors)
-    );
-  };
-
   const onSubmit = async () => {
-    if (mutation.isLoading || anyErrors()) return;
+    if (mutation.isLoading || name.hasErrors()) return;
 
     mutation.mutate({
       id: props.id,
-      name: group.value.name!,
+      name: name.value(),
     });
-  };
-
-  const reset = (name: string) => {
-    group.setValue({ name });
-    for (const control of Object.values(group.controls)) {
-      control.markDirty(false);
-      control.markTouched(false);
-    }
   };
 
   createRenderEffect(
     on(
       () => props.name,
       () => {
-        reset(props.name ?? "");
+        name.reset(props.name);
       }
     )
   );
@@ -56,10 +40,13 @@ export const ProgramDetails: Component<Program> = (props) => {
         onSubmit();
       }}
     >
-      <TextInput control={group.controls.name} class="ghost-input" />
+      <div class="flex flex-col items-end">
+        <Input control={name} class="ghost-input" required={true} />
+        <ErrorMessages control={name} />
+      </div>
       <button
         class="primary-button ml-4 w-16 flex flex-row items-center justify-center"
-        disabled={isLoading() || anyErrors() || !group.isDirty}
+        disabled={isLoading() || name.hasErrors() || !name.dirty()}
       >
         <Show
           when={!isLoading()}

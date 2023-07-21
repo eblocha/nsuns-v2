@@ -1,4 +1,4 @@
-import { A, Outlet, useNavigate, useParams } from "@solidjs/router";
+import { A, Outlet, useParams } from "@solidjs/router";
 import { Component, For, Match, Switch, createEffect } from "solid-js";
 import { AddProgram, LoadingProgram, ProgramItem } from "./Program";
 import { ProfileGreeting } from "./ProfileGreeting";

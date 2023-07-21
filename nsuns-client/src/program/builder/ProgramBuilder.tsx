@@ -1,6 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { createQuery } from "@tanstack/solid-query";
-import { Component, For, Match, Switch } from "solid-js";
+import { Component, Match, Switch } from "solid-js";
 import { getProgramSummary } from "../../api";
 import { MovementList } from "../../movements/MovementList";
 import { Days } from "./Days";
@@ -57,7 +57,10 @@ export const ProgramBuilder: Component = () => {
                 <ProgramDetails {...query.data!.program} />
               </div>
               <div class="flex-grow overflow-visible">
-                <Days sets={query.data?.sets ?? []} />
+                <Days
+                  sets={query.data?.sets ?? []}
+                  programId={parseInt(params.programId)}
+                />
               </div>
             </Match>
           </Switch>

@@ -33,7 +33,8 @@
   }
 }
 
-button, a {
+button,
+a {
   @apply focus:outline-none focus:ring focus:ring-blue-500;
 }
 
@@ -62,5 +63,5 @@ button, a {
 }
 
 .text-button {
-  @apply p-2 rounded bg-transparent hover:bg-gray-800 active:bg-gray-700 disabled:opacity-50;
+  @apply p-2 rounded bg-transparent hover:bg-gray-800 active:bg-gray-700 disabled:bg-transparent disabled:opacity-50;
 }

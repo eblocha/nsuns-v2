@@ -1,4 +1,4 @@
-import { baseHeaders, post } from "./util";
+import { baseHeaders, json, post } from "./util";
 
 export type Day = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -23,4 +23,4 @@ export const createSet = async (set: CreateProgramSet): Promise<ProgramSet> =>
   post(path, {
     body: JSON.stringify(set),
     headers: baseHeaders,
-  });
+  }).then(json());

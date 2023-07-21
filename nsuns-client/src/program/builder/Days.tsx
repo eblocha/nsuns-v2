@@ -1,6 +1,8 @@
-import { Component, For, Show } from "solid-js";
-import { ProgramSet } from "../../api";
+import { Component, For, Show, createSignal } from "solid-js";
+import { Movement, ProgramSet } from "../../api";
 import { Plus } from "../../icons/Plus";
+import { NewSet } from "./NewSet";
+import { useMovementsQuery } from "../../hooks/queries/movements";
 
 const dayNames = [
   "Sunday",
@@ -12,7 +14,21 @@ const dayNames = [
   "Saturday",
 ];
 
-export const Days: Component<{ sets: ProgramSet[] }> = (props) => {
+const displaySet = (set: ProgramSet, movements: Movement[]) => {
+  const movement = movements.find((m) => m.id === set.movementId);
+
+  const repsComponent =
+    set.reps != null ? `for ${set.reps} Rep${set.reps === 1 ? "" : "s"}` : "";
+
+  return `${movement ? movement.name : ""}${repsComponent}`;
+};
+
+export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
+  props
+) => {
+  const [addSetTo, setAddSetTo] = createSignal<number | null>(null);
+  const query = useMovementsQuery();
+
   const setsForDay = (day: number) => {
     return props.sets.filter((set) => set.day === day);
   };
@@ -31,9 +47,25 @@ export const Days: Component<{ sets: ProgramSet[] }> = (props) => {
                 </Show>
               </h3>
               <ul>
-                <For each={sets}>{(set) => <li>{set.description}</li>}</For>
+                <For each={sets}>
+                  {(set) => <li>{displaySet(set, query.data ?? [])}</li>}
+                </For>
+                <Show when={addSetTo() === index()}>
+                  <li>
+                    <NewSet
+                      close={() => setAddSetTo(null)}
+                      dayIndex={index()}
+                      programId={props.programId}
+                      movements={query.data}
+                    />
+                  </li>
+                </Show>
                 <li>
-                  <button class="text-button text-sm border border-gray-700 mt-2 flex flex-row items-center justify-center gap-2">
+                  <button
+                    class="text-button text-sm border border-gray-700 mt-2 flex flex-row items-center justify-center gap-2"
+                    disabled={addSetTo() !== null}
+                    onClick={() => setAddSetTo(index())}
+                  >
                     <Plus />
                     Add Set
                   </button>

@@ -4,25 +4,29 @@ export const baseHeaders = {
 
 export type FetchParams = Parameters<typeof fetch>;
 
-export const processResponse = async <T>(res: Response): Promise<T> => {
+export const processResponse = async (res: Response): Promise<Response> => {
   if (!res.ok) {
     throw new Error(
       `HTTP Error ${res.status} (${res.statusText}): ${await res.text()}`
     );
   }
 
-  return await res.json();
+  return res;
 };
 
-type Fetcher = <T>(...args: FetchParams) => Promise<T>;
+export const noContent = () => undefined;
+
+export const json = <T>() => (res: Response): Promise<T> => res.json() as Promise<T>;
+
+type Fetcher = (...args: FetchParams) => Promise<Response>;
 
 const req =
   (method: string = "GET"): Fetcher =>
-  <T>(...args: FetchParams) =>
+  (...args: FetchParams) =>
     fetch(args[0], {
       method: method,
       ...args[1],
-    }).then(processResponse) as Promise<T>;
+    }).then(processResponse);
 
 export const get = req();
 
