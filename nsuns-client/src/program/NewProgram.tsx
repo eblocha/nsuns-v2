@@ -2,25 +2,22 @@ import { Component, Show } from "solid-js";
 import styles from "./NewProgram.module.css";
 import { TextInput } from "../forms/TextInput";
 import { createFormControl, createFormGroup } from "solid-forms";
-import { createMutation, useQueryClient } from "@tanstack/solid-query";
-import { createProgram } from "../api";
-import { A, useNavigate, useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { hasErrors } from "../forms/errors";
 import { Spinner } from "../icons/Spinner";
+import { useCreateProgram } from "../hooks/queries/programs";
+import { useNavigateToProgram } from "../hooks/navigation";
 
 export const NewProgram: Component = () => {
   const params = useParams<{ profileId: string }>();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const navigateToProgram = useNavigateToProgram();
 
   const group = createFormGroup({
     name: createFormControl("", { required: true }),
   });
-  const mutation = createMutation({
-    mutationFn: createProgram,
+  const mutation = useCreateProgram(params.profileId, {
     onSuccess: (program) => {
-      queryClient.invalidateQueries(["programs", params.profileId]);
-      navigate(`../${program.id}`);
+      navigateToProgram(program.id);
     },
   });
 
@@ -66,7 +63,10 @@ export const NewProgram: Component = () => {
             class="primary-button ml-2 flex flex-row items-center justify-center w-36"
             disabled={mutation.isLoading || anyErrors()}
           >
-            <Show when={!mutation.isLoading} fallback={<Spinner class="animate-spin my-1" />}>
+            <Show
+              when={!mutation.isLoading}
+              fallback={<Spinner class="animate-spin my-1" />}
+            >
               Create Program
             </Show>
           </button>

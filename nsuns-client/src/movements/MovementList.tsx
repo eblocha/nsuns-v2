@@ -4,6 +4,7 @@ import { getMovements } from "../api";
 import { CreateMovement } from "./CreateMovement";
 import { Plus } from "../icons/Plus";
 import { Movement } from "./Movement";
+import { useMovementsQuery } from "../hooks/queries/movements";
 
 const Loading: Component = () => {
   return (
@@ -19,10 +20,7 @@ const Loading: Component = () => {
 };
 
 export const MovementList: Component = () => {
-  const query = createQuery({
-    queryKey: () => ["movements"],
-    queryFn: getMovements,
-  });
+  const query = useMovementsQuery();
   const [showForm, setShowForm] = createSignal(false);
 
   return (

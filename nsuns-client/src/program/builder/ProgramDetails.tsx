@@ -1,24 +1,18 @@
 import { createFormControl, createFormGroup } from "solid-forms";
 import { Component, Show, createRenderEffect, on } from "solid-js";
 import { TextInput } from "../../forms/TextInput";
-import { Program, updateProgram } from "../../api";
-import { createMutation, useQueryClient } from "@tanstack/solid-query";
+import { Program } from "../../api";
 import { hasErrors } from "../../forms/errors";
 import { Spinner } from "../../icons/Spinner";
 import { createDelayedLatch } from "../../hooks/createDelayedLatch";
+import { useUpdateProgram } from "../../hooks/queries/programs";
 
 export const ProgramDetails: Component<Program> = (props) => {
   const group = createFormGroup({
     name: createFormControl(props.name, { required: true }),
   });
 
-  const queryClient = useQueryClient();
-  const mutation = createMutation({
-    mutationFn: updateProgram,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["programs"]);
-    },
-  });
+  const mutation = useUpdateProgram();
 
   const anyErrors = () => {
     return !Object.values(group.controls).every(

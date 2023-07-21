@@ -1,5 +1,6 @@
 import { Component, For } from "solid-js";
 import { ProgramSet } from "../../api";
+import { Plus } from "../../icons/Plus";
 
 const NoSets = () => {
   return <span class="italic opacity-80 text-sm">Rest Day</span>;
@@ -37,6 +38,12 @@ export const Days: Component<{ sets: ProgramSet[] }> = (props) => {
               >
                 {(set) => <li>{set.description}</li>}
               </For>
+              <li>
+                <button class="text-button text-lg border border-gray-700 mt-2 flex flex-row items-center justify-center gap-2">
+                  <Plus />
+                  Add Set
+                </button>
+              </li>
             </ul>
           </li>
         )}

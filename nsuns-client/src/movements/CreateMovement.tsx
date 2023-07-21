@@ -3,20 +3,16 @@ import { Component } from "solid-js";
 import styles from "./CreateMovement.module.css";
 import { TextInput } from "../forms/TextInput";
 import { TextArea } from "../forms/Textarea";
-import { createMutation, useQueryClient } from "@tanstack/solid-query";
-import { createMovement } from "../api";
 import { hasErrors } from "../forms/errors";
+import { useCreateMovement } from "../hooks/queries/movements";
 
 export const CreateMovement: Component<{ cancel: () => void }> = (props) => {
   const group = createFormGroup({
     name: createFormControl("", { required: true }),
     description: createFormControl(""),
   });
-  const queryClient = useQueryClient();
-  const mutation = createMutation({
-    mutationFn: createMovement,
+  const mutation = useCreateMovement({
     onSuccess: () => {
-      queryClient.invalidateQueries(["movements"]);
       props.cancel();
     },
   });

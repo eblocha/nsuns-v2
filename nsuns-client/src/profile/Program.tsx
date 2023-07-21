@@ -1,14 +1,14 @@
 import { Component, Show, createSignal } from "solid-js";
-import { Program, deleteProgram } from "../api/program";
+import { Program } from "../api/program";
 import styles from "./Program.module.css";
 import { A, useParams } from "@solidjs/router";
 import { Plus } from "../icons/Plus";
 import { Play } from "../icons/Play";
 import { Trash } from "../icons/Trash";
 import { Modal } from "../modal/Modal";
-import { createMutation, useQueryClient } from "@tanstack/solid-query";
 import { Spinner } from "../icons/Spinner";
 import { useNavigateToProfileHome } from "../hooks/navigation";
+import { useDeleteProgram } from "../hooks/queries/programs";
 
 const DeleteProgram: Component<{
   show: boolean;
@@ -17,16 +17,13 @@ const DeleteProgram: Component<{
 }> = (props) => {
   const params = useParams<{ programId?: string }>();
   const navigateToProfileHome = useNavigateToProfileHome();
-  const queryClient = useQueryClient();
 
-  const mutation = createMutation({
-    mutationFn: deleteProgram,
+  const mutation = useDeleteProgram({
     onSuccess: () => {
       props.close();
       if (params.programId === props.program.id.toString()) {
         navigateToProfileHome();
       }
-      queryClient.invalidateQueries(["programs"]);
     },
   });
 
@@ -81,7 +78,7 @@ export const ProgramItem: Component<{
           <button
             class="text-button mr-2"
             onClick={(e) => {
-              e.preventDefault()
+              e.preventDefault();
               setShowDeleteModal(true);
             }}
           >

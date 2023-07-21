@@ -12,6 +12,8 @@ export type CreateProgram = {
   owner: string;
 };
 
+export type UpdateProgram = Omit<Program, "createdOn">;
+
 export type ProgramSummary = {
   program: Program;
   sets: ProgramSet[];
@@ -32,9 +34,7 @@ export const getProgramSummary = async (
   programId: number | string
 ): Promise<ProgramSummary> => get(`${path}/${programId}`);
 
-export const updateProgram = async (
-  program: Omit<Program, "createdOn">
-): Promise<Program> =>
+export const updateProgram = async (program: UpdateProgram): Promise<Program> =>
   put(path, {
     body: JSON.stringify(program),
     headers: baseHeaders,

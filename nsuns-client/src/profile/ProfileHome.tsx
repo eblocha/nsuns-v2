@@ -1,24 +1,20 @@
 import { A, Outlet, useNavigate, useParams } from "@solidjs/router";
 import { Component, For, Match, Switch, createEffect } from "solid-js";
-import { getProfilePrograms } from "../api/program";
 import { AddProgram, LoadingProgram, ProgramItem } from "./Program";
-import { createQuery } from "@tanstack/solid-query";
 import { ProfileGreeting } from "./ProfileGreeting";
 import { createDelayedLatch } from "../hooks/createDelayedLatch";
 import { RefreshButton } from "../components/RefreshButton";
+import { useProgramsQuery } from "../hooks/queries/programs";
+import { useNavigateToNewProgram } from "../hooks/navigation";
 
 export const ProfileHome: Component = () => {
   const params = useParams<{ profileId: string; programId?: string }>();
-  const navigate = useNavigate();
-  const programsQuery = createQuery({
-    queryKey: () => ["programs", params.profileId],
-    queryFn: () => getProfilePrograms(params.profileId),
-    enabled: !!params.profileId,
-  });
+  const navToNewProgram = useNavigateToNewProgram();
+  const programsQuery = useProgramsQuery(params.profileId);
 
   createEffect(() => {
     if (programsQuery.isSuccess && programsQuery.data?.length === 0) {
-      navigate("program/new");
+      navToNewProgram();
     }
   });
 
