@@ -40,8 +40,12 @@ export const SetComponent: Component<{
     <Show
       when={isEditing()}
       fallback={
-        <button onClick={() => setIsEditing(true)} class="w-full h-full text-left text-button">
+        <button
+          onClick={() => setIsEditing(true)}
+          class="w-full h-full text-left text-button"
+        >
           {displaySet(props.set, props.movements)}
+          <div class="text-sm opacity-60">{props.set.description}</div>
         </button>
       }
     >
