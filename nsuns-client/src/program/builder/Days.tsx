@@ -62,7 +62,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
         {(day, index) => {
           return (
             <li class="mb-4">
-              <h3 class="text-lg">
+              <h3 class="text-lg mb-2">
                 {day}
                 <Show when={!setMap()[day]?.length}>
                   <span class="italic opacity-80 text-sm ml-4">Rest Day</span>
