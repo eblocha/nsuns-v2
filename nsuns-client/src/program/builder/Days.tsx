@@ -1,10 +1,6 @@
-import { Component, For } from "solid-js";
+import { Component, For, Show } from "solid-js";
 import { ProgramSet } from "../../api";
 import { Plus } from "../../icons/Plus";
-
-const NoSets = () => {
-  return <span class="italic opacity-80 text-sm">Rest Day</span>;
-};
 
 const dayNames = [
   "Sunday",
@@ -24,29 +20,28 @@ export const Days: Component<{ sets: ProgramSet[] }> = (props) => {
   return (
     <ul>
       <For each={dayNames}>
-        {(day, index) => (
-          <li class="mb-4">
-            <h3 class="text-lg">{day}</h3>
-            <ul>
-              <For
-                each={setsForDay(index())}
-                fallback={
-                  <li>
-                    <NoSets />
-                  </li>
-                }
-              >
-                {(set) => <li>{set.description}</li>}
-              </For>
-              <li>
-                <button class="text-button text-lg border border-gray-700 mt-2 flex flex-row items-center justify-center gap-2">
-                  <Plus />
-                  Add Set
-                </button>
-              </li>
-            </ul>
-          </li>
-        )}
+        {(day, index) => {
+          const sets = setsForDay(index());
+          return (
+            <li class="mb-4">
+              <h3 class="text-lg">
+                {day}
+                <Show when={sets.length === 0}>
+                  <span class="italic opacity-80 text-sm ml-4">Rest Day</span>
+                </Show>
+              </h3>
+              <ul>
+                <For each={sets}>{(set) => <li>{set.description}</li>}</For>
+                <li>
+                  <button class="text-button text-sm border border-gray-700 mt-2 flex flex-row items-center justify-center gap-2">
+                    <Plus />
+                    Add Set
+                  </button>
+                </li>
+              </ul>
+            </li>
+          );
+        }}
       </For>
     </ul>
   );

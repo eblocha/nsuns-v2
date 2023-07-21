@@ -41,10 +41,10 @@ export const ProgramBuilder: Component = () => {
   });
 
   return (
-    <div class="w-full h-full overflow-hidden border-l border-gray-700 grid grid-cols-4 gap-5 p-5">
-      <div class="col-span-3 flex flex-col">
+    <div class="w-full min-h-full overflow-visible border-l border-gray-700 grid grid-cols-4 gap-5 p-5 relative">
+      <div class="col-span-3 flex flex-col overflow-visible relative">
         <h2 class="mb-4 text-xl">Program Details</h2>
-        <div class="flex-grow">
+        <div class="flex-grow flex flex-col overflow-visible relative">
           <Switch>
             <Match when={query.isLoading}>
               <Loading />
@@ -53,10 +53,12 @@ export const ProgramBuilder: Component = () => {
               <Error message={`${query.error}`} />
             </Match>
             <Match when={query.isSuccess}>
-              <div class="mb-8 border-b border-gray-700">
+              <div class="mb-8 border-b border-gray-700 flex-shrink-0">
                 <ProgramDetails {...query.data!.program} />
               </div>
-              <Days sets={query.data?.sets ?? []} />
+              <div class="flex-grow overflow-visible">
+                <Days sets={query.data?.sets ?? []} />
+              </div>
             </Match>
           </Switch>
         </div>

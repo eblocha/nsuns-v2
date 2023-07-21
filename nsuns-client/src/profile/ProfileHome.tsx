@@ -21,7 +21,7 @@ export const ProfileHome: Component = () => {
   const isFetching = createDelayedLatch(() => programsQuery.isFetching, 400);
 
   return (
-    <div class="h-full grid grid-cols-3 gap-10">
+    <div class="h-full grid grid-cols-3 gap-10 overflow-hidden">
       <div class="h-full py-60 pl-32 pr-12">
         <div class="mb-4">
           <ProfileGreeting id={params.profileId} />
@@ -68,7 +68,7 @@ export const ProfileHome: Component = () => {
               </ul>
             </Match>
           </Switch>
-          <div class="flex flex-row items-center">
+          <div class="flex flex-row items-center overflow-visible">
             <AddProgram />
             <RefreshButton
               isFetching={isFetching()}
@@ -81,7 +81,7 @@ export const ProfileHome: Component = () => {
           </div>
         </div>
       </div>
-      <div class="h-full col-span-2">
+      <div class="h-full col-span-2 overflow-auto">
         <Outlet />
       </div>
     </div>
