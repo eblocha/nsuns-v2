@@ -14,9 +14,18 @@ const displaySet = (set: ProgramSet, movements: Movement[]) => {
 
   const nameComponent = movement ? movement.name : "";
 
-  const weightComponent = percentOfMax?.name
-    ? ` ${amountStr}% of ${percentOfMax.name} max`
-    : ` ${amountStr} lb${plural(set.amount)}`;
+  let weightComponent: string;
+
+  if (percentOfMax) {
+    const weightOfComponent =
+      percentOfMax?.id === set.movementId
+        ? " of max"
+        : ` of ${percentOfMax?.name} max`;
+
+    weightComponent = ` ${amountStr}%${weightOfComponent}`
+  } else {
+    weightComponent = set.amount ? ` ${amountStr} lb${plural(set.amount)}` : "";
+  }
 
   const repsComponent =
     set.reps != null

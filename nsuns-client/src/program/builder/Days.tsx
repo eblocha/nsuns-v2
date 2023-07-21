@@ -1,9 +1,18 @@
-import { Component, For, Show, createMemo, createSignal } from "solid-js";
-import { Day, Movement, ProgramSet } from "../../api";
+import {
+  Component,
+  For,
+  Setter,
+  Show,
+  createMemo,
+  createSignal,
+} from "solid-js";
+import { Day, ProgramSet } from "../../api";
 import { Plus } from "../../icons/Plus";
 import { NewSet } from "./NewSet";
 import { useMovementsQuery } from "../../hooks/queries/movements";
 import { SetComponent } from "./Set";
+import { SetSummary } from "./SetSummary";
+import { ChevronDown } from "../../icons/ChevronDown";
 
 const dayNames = [
   "Sunday",
@@ -17,10 +26,47 @@ const dayNames = [
 
 const EMPTY: never[] = [];
 
+const TitleRow: Component<{
+  index: number;
+  day: string;
+  hasSets: boolean;
+  expanded: boolean;
+  setExpanded: Setter<boolean[]>;
+}> = (props) => {
+  return (
+    <div class="mb-2 flex flex-row items-center">
+      <h3 class="text-lg">{props.day}</h3>
+      <Show
+        when={!props.hasSets}
+        fallback={
+          <button
+            class="ml-auto text-sm text-button"
+            classList={{
+              "rotate-180": props.expanded,
+            }}
+            onClick={() =>
+              props.setExpanded((expanded) => {
+                const e = [...expanded];
+                e[props.index] = !e[props.index];
+                return e;
+              })
+            }
+          >
+            <ChevronDown />
+          </button>
+        }
+      >
+        <span class="italic opacity-80 text-sm ml-4">Rest Day</span>
+      </Show>
+    </div>
+  );
+};
+
 export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
   props
 ) => {
   const [addSetTo, setAddSetTo] = createSignal<number | null>(null);
+  const [expanded, setExpanded] = createSignal(dayNames.map(() => false));
   const query = useMovementsQuery();
 
   const setMap = createMemo(() => {
@@ -39,25 +85,36 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
         {(day, index) => {
           return (
             <li class="mb-4">
-              <h3 class="text-lg mb-2">
-                {day}
-                <Show when={!setMap()[day]?.length}>
-                  <span class="italic opacity-80 text-sm ml-4">Rest Day</span>
-                </Show>
-              </h3>
+              <TitleRow
+                day={day}
+                hasSets={!!setMap()[day]?.length}
+                index={index()}
+                setExpanded={setExpanded}
+                expanded={expanded()[index()]}
+              />
               <ul>
-                <For each={setMap()[day]}>
-                  {(set) => (
-                    <li class="rounded border border-gray-700 mb-2">
-                      <SetComponent
-                        set={set}
-                        movements={movements()}
-                        dayIndex={index() as Day}
-                        programId={props.programId}
-                      />
+                <Show
+                  when={expanded()[index()]}
+                  fallback={
+                    <li>
+                      <SetSummary sets={setMap()[day]} />
                     </li>
-                  )}
-                </For>
+                  }
+                >
+                  <For each={setMap()[day]}>
+                    {(set) => (
+                      <li class="rounded border border-gray-700 mb-2">
+                        <SetComponent
+                          set={set}
+                          movements={movements()}
+                          dayIndex={index() as Day}
+                          programId={props.programId}
+                        />
+                      </li>
+                    )}
+                  </For>
+                </Show>
+
                 <Show when={addSetTo() === index()}>
                   <li>
                     <NewSet
