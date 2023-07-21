@@ -4,6 +4,9 @@ import { getProfilePrograms } from "../api/program";
 import { AddProgram, LoadingProgram, ProgramItem } from "./Program";
 import { createQuery } from "@tanstack/solid-query";
 import { ProfileGreeting } from "./ProfileGreeting";
+import { Spinner } from "../icons/Spinner";
+import { createDelayedLatch } from "../hooks/createDelayedLatch";
+import { RefreshButton } from "../components/RefreshButton";
 
 export const ProfileHome: Component = () => {
   const params = useParams<{ profileId: string; programId?: string }>();
@@ -19,6 +22,8 @@ export const ProfileHome: Component = () => {
       navigate("program/new");
     }
   });
+
+  const isFetching = createDelayedLatch(() => programsQuery.isFetching, 400);
 
   return (
     <div class="h-full grid grid-cols-3 gap-10">
@@ -52,11 +57,13 @@ export const ProfileHome: Component = () => {
                 <For each={programsQuery.data}>
                   {(program, i) => (
                     <li
-                      class="rounded border"
+                      class="rounded border mb-2"
                       classList={{
-                        shimmer: programsQuery.isFetching,
-                        "border-blue-500": program.id.toString() === params.programId,
-                        "border-gray-600": program.id.toString() !== params.programId,
+                        shimmer: isFetching(),
+                        "border-blue-500":
+                          program.id.toString() === params.programId,
+                        "border-gray-600":
+                          program.id.toString() !== params.programId,
                       }}
                     >
                       <ProgramItem program={program} index={i()} />
@@ -68,13 +75,11 @@ export const ProfileHome: Component = () => {
           </Switch>
           <div class="flex flex-row items-center">
             <AddProgram />
-            <button
+            <RefreshButton
+              isFetching={isFetching()}
               onClick={() => programsQuery.refetch()}
-              disabled={programsQuery.isFetching}
               class="secondary-button ml-2"
-            >
-              Refresh
-            </button>
+            />
             <A href="/" class="text-button ml-2">
               Home
             </A>

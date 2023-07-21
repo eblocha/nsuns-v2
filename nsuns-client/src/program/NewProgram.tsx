@@ -1,12 +1,12 @@
-import { Component } from "solid-js";
+import { Component, Show } from "solid-js";
 import styles from "./NewProgram.module.css";
 import { TextInput } from "../forms/TextInput";
 import { createFormControl, createFormGroup } from "solid-forms";
-import { TextArea } from "../forms/Textarea";
 import { createMutation, useQueryClient } from "@tanstack/solid-query";
 import { createProgram } from "../api";
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { hasErrors } from "../forms/errors";
+import { Spinner } from "../icons/Spinner";
 
 export const NewProgram: Component = () => {
   const params = useParams<{ profileId: string }>();
@@ -14,8 +14,7 @@ export const NewProgram: Component = () => {
   const queryClient = useQueryClient();
 
   const group = createFormGroup({
-    name: createFormControl(""),
-    description: createFormControl(""),
+    name: createFormControl("", { required: true }),
   });
   const mutation = createMutation({
     mutationFn: createProgram,
@@ -35,8 +34,7 @@ export const NewProgram: Component = () => {
     if (mutation.isLoading || anyErrors()) return;
 
     mutation.mutate({
-      name: group.value.name || null,
-      description: group.value.description || null,
+      name: group.value.name!,
       owner: params.profileId,
     });
   };
@@ -53,30 +51,24 @@ export const NewProgram: Component = () => {
         classList={{ [styles.form]: true }}
       >
         <label for="program-name" class="label-left">
-          Title
+          <span class="text-red-500">*</span>Title
         </label>
         <TextInput
           control={group.controls.name}
           class="ml-3 input"
           name="program-name"
         />
-        <label for="program-description" class="label-left">
-          Description
-        </label>
-        <TextArea
-          control={group.controls.description}
-          class="ml-3 input"
-          name="program-description"
-        />
         <div class="col-span-2 flex flex-row items-center justify-end mt-4">
           <A href="../.." class="text-button">
             Cancel
           </A>
           <button
-            class="primary-button ml-2"
+            class="primary-button ml-2 flex flex-row items-center justify-center w-36"
             disabled={mutation.isLoading || anyErrors()}
           >
-            Create Program
+            <Show when={!mutation.isLoading} fallback={<Spinner class="animate-spin my-1" />}>
+              Create Program
+            </Show>
           </button>
         </div>
       </form>

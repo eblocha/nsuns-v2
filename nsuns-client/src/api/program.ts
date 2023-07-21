@@ -4,14 +4,12 @@ import { ProgramSet } from "./sets";
 
 export type Program = {
   id: number;
-  name: string | null;
-  description: string | null;
+  name: string;
   createdOn: number;
 };
 
 export type CreateProgram = {
-  name?: string | null;
-  description?: string | null;
+  name: string;
   owner: string;
 };
 
@@ -44,4 +42,14 @@ export const getProgramSummary = async (
   programId: number | string
 ): Promise<ProgramSummary> => {
   return (await axios.get(`${path}/${programId}`)).data;
+};
+
+export const updateProgram = async (
+  program: Omit<Program, "createdOn">
+): Promise<Program> => {
+  return (await axios.put(path, program)).data;
+};
+
+export const deleteProgram = async (id: number | string): Promise<void> => {
+  return await axios.delete(`${path}/${id}`);
 };

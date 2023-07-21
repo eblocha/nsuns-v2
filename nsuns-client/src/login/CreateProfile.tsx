@@ -1,14 +1,17 @@
 import { createFormControl, createFormGroup } from "solid-forms";
 import { Component, Show } from "solid-js";
 import { TextInput } from "../forms/TextInput";
-import { A, useNavigate } from "@solidjs/router";
+import { A } from "@solidjs/router";
 import { createProfile } from "../api";
 import styles from "./CreateProfile.module.css";
 import { hasErrors } from "../forms/errors";
 import { createMutation, useQueryClient } from "@tanstack/solid-query";
+import { Spinner } from "../icons/Spinner";
+import { useNavigateToProfileHome } from "../hooks/navigation";
 
 export const CreateProfile: Component = () => {
   const queryClient = useQueryClient();
+  const navigateToProfileHome = useNavigateToProfileHome();
 
   const mutation = createMutation({
     mutationFn: createProfile,
@@ -16,11 +19,9 @@ export const CreateProfile: Component = () => {
       queryClient.invalidateQueries(["profiles"], {
         exact: false,
       });
-      navigator(`/profile/${profile.id}`);
+      navigateToProfileHome(profile.id);
     },
   });
-
-  const navigator = useNavigate();
 
   const group = createFormGroup({
     name: createFormControl("", {
@@ -84,10 +85,13 @@ export const CreateProfile: Component = () => {
             </button>
             <button
               type="submit"
-              class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-400"
+              class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-400 w-32 flex flex-row items-center justify-center"
               disabled={anyErrors() || mutation.isLoading}
             >
-              <Show when={!mutation.isLoading} fallback={<>Creating...</>}>
+              <Show
+                when={!mutation.isLoading}
+                fallback={<Spinner class="animate-spin my-1" />}
+              >
                 Create Profile
               </Show>
             </button>

@@ -33,11 +33,11 @@ export const TextInput: Component<{
         name={props.name}
         type={props.type}
         value={props.control.value}
-        oninput={(e) => {
+        onInput={(e) => {
           props.control.setValue(e.currentTarget.value);
           props.control.markDirty(true);
         }}
-        onblur={(e) => {
+        onBlur={(e) => {
           props.control.markTouched(true);
           props.onBlur?.(e);
         }}

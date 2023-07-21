@@ -3,6 +3,7 @@ import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
 import { getMovements } from "../api";
 import { CreateMovement } from "./CreateMovement";
 import { Plus } from "../icons/Plus";
+import { Movement } from "./Movement";
 
 const Loading: Component = () => {
   return (
@@ -53,10 +54,10 @@ export const MovementList: Component = () => {
               <ul class="flex-grow">
                 <For each={query.data}>
                   {(movement) => (
-                    <li class="border rounded border-gray-400 p-2 my-1">
-                      <p>{movement.name}</p>
-                      <p class="opacity-80">{movement.description}</p>
-                    </li>
+                    <Movement
+                      name={movement.name}
+                      description={movement.description}
+                    />
                   )}
                 </For>
               </ul>

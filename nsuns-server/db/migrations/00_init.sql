@@ -34,6 +34,8 @@ CREATE TABLE program_sets (
   -- represent "1+ reps"
   reps_is_minimum BOOLEAN DEFAULT false,
   description VARCHAR,
+  amount DOUBLE PRECISION NOT NULL,
+  percentage_of_max INTEGER REFERENCES movements(id) ON DELETE SET NULL,
   CONSTRAINT unique_set UNIQUE (program_id, day, movement_id, ordering)
 );
 CREATE INDEX sets_by_program_id ON program_sets(program_id);

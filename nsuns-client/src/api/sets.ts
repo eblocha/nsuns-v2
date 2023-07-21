@@ -11,6 +11,8 @@ export type ProgramSet = {
   reps: number | null;
   repsIsMinimum: boolean;
   description: string | null;
+  amount: number;
+  percentageOfMax: number | null;
 };
 
 export type CreateProgramSet = Omit<ProgramSet, "id" | "ordering">;

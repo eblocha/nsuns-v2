@@ -2,9 +2,13 @@ import { Component, For, Match, Switch } from "solid-js";
 import { getProfiles } from "../api";
 import { AddProfileCard, LoadingProfileCard, ProfileCard } from "./ProfileCard";
 import { createQuery } from "@tanstack/solid-query";
+import { createDelayedLatch } from "../hooks/createDelayedLatch";
+import { RefreshButton } from "../components/RefreshButton";
 
 export const Login: Component = () => {
   const query = createQuery(() => ["profiles"], getProfiles);
+
+  const isFetching = createDelayedLatch(() => query.isFetching, 500);
 
   return (
     <div class="h-full w-full overflow-hidden p-10 flex flex-col items-center justify-center">
@@ -27,10 +31,12 @@ export const Login: Component = () => {
           </div>
         </Match>
         <Match when={query.isSuccess}>
-          <ul class="my-8 flex flex-row items-center">
+          <ul class="my-8 flex flex-row items-center gap-4">
             <For each={query.data}>
               {(profile) => (
-                <li>
+                <li class="rounded" classList={{
+                  shimmer: isFetching()
+                }}>
                   <ProfileCard {...profile} />
                 </li>
               )}
@@ -42,13 +48,11 @@ export const Login: Component = () => {
         </Match>
       </Switch>
       <div class="flex flex-row items-center justify-center">
-        <button
+        <RefreshButton
           onClick={() => query.refetch()}
-          disabled={query.isFetching}
+          isFetching={isFetching()}
           class="secondary-button"
-        >
-          Refresh
-        </button>
+        />
       </div>
     </div>
   );

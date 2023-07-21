@@ -18,6 +18,8 @@ pub struct Set {
     pub reps: Option<i32>,
     pub reps_is_minimum: bool,
     pub description: Option<String>,
+    pub amount: f64,
+    pub percentage_of_max: Option<i32>,
 }
 
 impl Set {
@@ -48,6 +50,8 @@ pub struct CreateSet {
     #[serde(default)]
     pub reps_is_minimum: bool,
     pub description: Option<String>,
+    pub amount: f64,
+    pub percentage_of_max: Option<i32>,
 }
 
 impl CreateSet {
@@ -71,8 +75,8 @@ impl CreateSet {
 
         let id = sqlx::query_as::<_, (i32,)>(
             "INSERT INTO program_sets SET (
-            program_id, movement_id, day, ordering, reps, reps_is_minimum, description
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+            program_id, movement_id, day, ordering, reps, reps_is_minimum, description, amount, percentage_of_max
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
         )
         .bind(self.program_id)
         .bind(self.movement_id)
@@ -81,6 +85,8 @@ impl CreateSet {
         .bind(self.reps)
         .bind(self.reps_is_minimum)
         .bind(&self.description)
+        .bind(self.amount)
+        .bind(self.percentage_of_max)
         .fetch_one(&mut **tx)
         .await
         .with_context(|| "failed to insert new set")?
@@ -95,6 +101,8 @@ impl CreateSet {
             reps: self.reps,
             reps_is_minimum: self.reps_is_minimum,
             description: self.description,
+            amount: self.amount,
+            percentage_of_max: self.percentage_of_max
         })
     }
 }

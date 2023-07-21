@@ -1,8 +1,10 @@
 import { useParams } from "@solidjs/router";
 import { createQuery } from "@tanstack/solid-query";
-import { Component, Match, Switch } from "solid-js";
+import { Component, For, Match, Switch } from "solid-js";
 import { getProgramSummary } from "../../api";
 import { MovementList } from "../../movements/MovementList";
+import { Days } from "./Days";
+import { ProgramDetails } from "./ProgramDetails";
 
 const Loading: Component = () => {
   return (
@@ -51,7 +53,10 @@ export const ProgramBuilder: Component = () => {
               <Error message={`${query.error}`} />
             </Match>
             <Match when={query.isSuccess}>
-              <div></div>
+              <div class="mb-8 border-b border-gray-700">
+                <ProgramDetails {...query.data!.program} />
+              </div>
+              <Days sets={query.data?.sets ?? []} />
             </Match>
           </Switch>
         </div>
