@@ -71,7 +71,12 @@ export const Select: Component<
     >
       <For each={options()}>
         {(option) => (
-          <option value={option.value}>{option.name ?? option.value}</option>
+          <option
+            value={option.value}
+            selected={option.value === props.control.value()}
+          >
+            {option.name ?? option.value}
+          </option>
         )}
       </For>
     </select>

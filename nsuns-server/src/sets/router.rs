@@ -5,10 +5,10 @@ use axum::{
 
 use crate::db::Pool;
 
-use super::handler::{create_set, delete_set};
+use super::handler::{create_set, delete_set, update_set};
 
 pub fn sets_router() -> Router<Pool> {
     Router::new()
-        .route("/", post(create_set))
+        .route("/", post(create_set).put(update_set))
         .route("/:id", delete(delete_set))
 }

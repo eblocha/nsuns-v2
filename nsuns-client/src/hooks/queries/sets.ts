@@ -10,6 +10,7 @@ import {
   ProgramSummary,
   createSet,
   getProgramSummary,
+  updateSet,
 } from "../../api";
 
 export const useProgramSummaryQuery = (programId: string) => {
@@ -47,3 +48,36 @@ export const useCreateSet = (
 
   return mutation;
 };
+
+export const useEditSet = (options?: Partial<
+  CreateMutationOptions<ProgramSet, unknown, CreateProgramSet, unknown>
+>) => {
+  const queryClient = useQueryClient();
+  const mutation = createMutation({
+    ...options,
+    mutationFn: updateSet,
+    onSuccess: (set, ...args) => {
+      queryClient.setQueryData(
+        ["programs", set.programId.toString()],
+        (summary?: ProgramSummary) => {
+          if (!summary) return;
+
+          const index = summary.sets.findIndex((s) => s.id === set.id);
+
+          if (index === -1) return;
+
+          const newSets = [...summary.sets];
+          newSets.splice(index, 1, set);
+
+          return {
+            program: summary.program,
+            sets: newSets,
+          };
+        }
+      );
+      options?.onSuccess?.(set, ...args);
+    },
+  });
+
+  return mutation;
+}

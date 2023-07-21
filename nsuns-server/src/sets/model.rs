@@ -131,3 +131,71 @@ pub async fn delete_one(id: i32, tx: &mut Transaction<'_, DB>) -> Result<Option<
         Ok(None)
     }
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, validator::Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSet {
+    pub id: i32,
+    pub program_id: i32,
+    pub movement_id: i32,
+    #[validate(range(min = 0, max = 6))]
+    pub day: i32,
+    #[validate(range(min = 0))]
+    pub reps: Option<i32>,
+    #[serde(default)]
+    pub reps_is_minimum: bool,
+    pub description: Option<String>,
+    pub amount: f64,
+    pub percentage_of_max: Option<i32>,
+}
+
+impl UpdateSet {
+    pub async fn update_one(
+        self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> Result<Option<Set>> {
+        let opt = sqlx::query_as::<_, (i32, i32)>(
+            "UPDATE program_sets SET
+            program_id = $1,
+            movement_id = $2,
+            day = $3,
+            reps = $4,
+            reps_is_minimum = $5,
+            description = $6,
+            amount = $7,
+            percentage_of_max = $8
+            WHERE id = $9
+            RETURNING id, ordering
+        ",
+        )
+        .bind(self.program_id)
+        .bind(self.movement_id)
+        .bind(self.day)
+        .bind(self.reps)
+        .bind(self.reps_is_minimum)
+        .bind(self.description.as_ref())
+        .bind(self.amount)
+        .bind(self.percentage_of_max)
+        .bind(self.id)
+        .fetch_optional(executor)
+        .await
+        .with_context(|| format!("failed to update set with id={}", self.id))?;
+
+        if let Some((id, ordering)) = opt {
+            Ok(Some(Set {
+                id,
+                program_id: self.program_id,
+                movement_id: self.movement_id,
+                day: self.day,
+                ordering,
+                reps: self.reps,
+                reps_is_minimum: self.reps_is_minimum,
+                description: self.description,
+                amount: self.amount,
+                percentage_of_max: self.percentage_of_max,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+}

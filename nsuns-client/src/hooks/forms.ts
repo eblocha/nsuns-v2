@@ -98,9 +98,20 @@ type ControlValues<R extends Record<string, Control<unknown>>> = {
   [K in keyof R]: ControlValue<R[K]>;
 };
 
+export type ControlGroup<R extends Record<string, Control<any>>> = {
+  controls: R;
+  dirty: Accessor<boolean>;
+  touched: Accessor<boolean>;
+  errors: Accessor<void>;
+  hasErrors: Accessor<boolean>;
+  showErrors: Accessor<boolean>;
+  value: () => ControlValues<R>;
+  reset: (values?: Partial<ControlValues<R>> | undefined) => void;
+};
+
 export const createControlGroup = <R extends Record<string, Control<any>>>(
   controls: R
-) => {
+): ControlGroup<R> => {
   const dirty = createMemo(
     () => !Object.values(controls).every((control) => !control.dirty())
   );

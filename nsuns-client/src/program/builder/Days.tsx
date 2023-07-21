@@ -1,8 +1,9 @@
 import { Component, For, Show, createMemo, createSignal } from "solid-js";
-import { Movement, ProgramSet } from "../../api";
+import { Day, Movement, ProgramSet } from "../../api";
 import { Plus } from "../../icons/Plus";
 import { NewSet } from "./NewSet";
 import { useMovementsQuery } from "../../hooks/queries/movements";
+import { SetComponent } from "./Set";
 
 const dayNames = [
   "Sunday",
@@ -14,31 +15,7 @@ const dayNames = [
   "Saturday",
 ];
 
-const plural = (value: number) => (value === 1 ? "" : "s");
-
-const displaySet = (set: ProgramSet, movements: Movement[]) => {
-  const movement = movements.find((m) => m.id === set.movementId);
-  const percentOfMax = set.percentageOfMax
-    ? movements.find((m) => m.id === set.percentageOfMax)
-    : null;
-
-  const amountStr = set.amount.toFixed(0);
-
-  const nameComponent = movement ? movement.name : "";
-
-  const weightComponent = percentOfMax?.name
-    ? ` ${amountStr}% of ${percentOfMax.name} max`
-    : ` ${amountStr} lb${plural(set.amount)}`;
-
-  const repsComponent =
-    set.reps != null
-      ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${
-          set.repsIsMinimum ? "s" : plural(set.reps)
-        }`
-      : "";
-
-  return `${nameComponent}${weightComponent}${repsComponent}`;
-};
+const EMPTY: never[] = [];
 
 export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
   props
@@ -54,7 +31,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
     return m;
   });
 
-  const movements = () => query.data ?? [];
+  const movements = () => query.data ?? EMPTY;
 
   return (
     <ul>
@@ -71,8 +48,13 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
               <ul>
                 <For each={setMap()[day]}>
                   {(set) => (
-                    <li class="rounded p-2 border border-gray-700 mb-2">
-                      {displaySet(set, movements())}
+                    <li class="rounded border border-gray-700 mb-2">
+                      <SetComponent
+                        set={set}
+                        movements={movements()}
+                        dayIndex={index() as Day}
+                        programId={props.programId}
+                      />
                     </li>
                   )}
                 </For>
