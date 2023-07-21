@@ -1,7 +1,7 @@
 import { Component, Show, createSignal } from "solid-js";
 import { Program, deleteProgram } from "../api/program";
 import styles from "./Program.module.css";
-import { A, useNavigate, useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { Plus } from "../icons/Plus";
 import { Play } from "../icons/Play";
 import { Trash } from "../icons/Trash";

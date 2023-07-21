@@ -4,7 +4,6 @@ import { getProfilePrograms } from "../api/program";
 import { AddProgram, LoadingProgram, ProgramItem } from "./Program";
 import { createQuery } from "@tanstack/solid-query";
 import { ProfileGreeting } from "./ProfileGreeting";
-import { Spinner } from "../icons/Spinner";
 import { createDelayedLatch } from "../hooks/createDelayedLatch";
 import { RefreshButton } from "../components/RefreshButton";
 
