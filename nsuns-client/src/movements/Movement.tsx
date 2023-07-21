@@ -7,7 +7,7 @@ export const Movement: Component<{
 }> = (props) => {
   return (
     <li
-      class="border rounded border-gray-400 p-2 my-1 cursor-default select-none flex flex-row items-center justify-between"
+      class="border rounded border-gray-400 p-2 my-1 flex flex-row items-center justify-between"
     >
       <div>
         <p>{props.name}</p>
