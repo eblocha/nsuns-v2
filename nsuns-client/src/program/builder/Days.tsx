@@ -66,7 +66,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
   props
 ) => {
   const [addSetTo, setAddSetTo] = createSignal<number | null>(null);
-  const [expanded, setExpanded] = createSignal(dayNames.map(() => false));
+  const [expanded, setExpanded] = createSignal(dayNames.map(() => true));
   const query = useMovementsQuery();
 
   const setMap = createMemo(() => {
