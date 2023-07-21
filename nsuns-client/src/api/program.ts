@@ -1,5 +1,4 @@
-import axios from "axios";
-import { baseHeaders } from "./util";
+import { baseHeaders, del, get, post, put } from "./util";
 import { ProgramSet } from "./sets";
 
 export type Program = {
@@ -20,36 +19,26 @@ export type ProgramSummary = {
 
 const path = "/api/programs";
 
-export const getProfilePrograms = async (id: string): Promise<Program[]> => {
-  return (
-    await axios.get(path, {
-      params: { profileId: id },
-    })
-  ).data;
-};
+export const getProfilePrograms = async (id: string): Promise<Program[]> =>
+  get(`${path}?profileId=${encodeURIComponent(id)}`);
 
-export const createProgram = async (
-  program: CreateProgram
-): Promise<Program> => {
-  return (
-    await axios.post(path, program, {
-      headers: baseHeaders,
-    })
-  ).data;
-};
+export const createProgram = async (program: CreateProgram): Promise<Program> =>
+  post(path, {
+    body: JSON.stringify(program),
+    headers: baseHeaders,
+  });
 
 export const getProgramSummary = async (
   programId: number | string
-): Promise<ProgramSummary> => {
-  return (await axios.get(`${path}/${programId}`)).data;
-};
+): Promise<ProgramSummary> => get(`${path}/${programId}`);
 
 export const updateProgram = async (
   program: Omit<Program, "createdOn">
-): Promise<Program> => {
-  return (await axios.put(path, program)).data;
-};
+): Promise<Program> =>
+  put(path, {
+    body: JSON.stringify(program),
+    headers: baseHeaders,
+  });
 
-export const deleteProgram = async (id: number | string): Promise<void> => {
-  return await axios.delete(`${path}/${id}`);
-};
+export const deleteProgram = async (id: number | string): Promise<void> =>
+  del(`${path}/${id}`);

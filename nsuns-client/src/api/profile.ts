@@ -1,5 +1,4 @@
-import axios from "axios";
-import { baseHeaders } from "./util";
+import { baseHeaders, del, get, post, put } from "./util";
 
 export type Profile = {
   id: string;
@@ -10,28 +9,22 @@ export type CreateProfile = Omit<Profile, "id">;
 
 const path = "/api/profiles";
 
-export const getProfiles = async (): Promise<Profile[]> => {
-  return (await axios.get(path)).data;
-};
+export const getProfiles = async (): Promise<Profile[]> => get(path);
 
-export const getProfile = async (id: string): Promise<Profile> => {
-  return (await axios.get(`${path}/${id}`)).data;
-};
+export const getProfile = async (id: string): Promise<Profile> =>
+  get(`${path}/${id}`);
 
-export const createProfile = async (profile: CreateProfile): Promise<Profile> => {
-  return (await axios.post(path, profile, {
+export const createProfile = async (profile: CreateProfile): Promise<Profile> =>
+  post(path, {
+    body: JSON.stringify(profile),
     headers: baseHeaders,
-  })).data;
-};
+  });
 
-export const updateProfile = async (profile: Profile): Promise<Profile> => {
-  return (
-    await axios.put(path, profile, {
-      headers: baseHeaders,
-    })
-  ).data;
-};
+export const updateProfile = async (profile: Profile): Promise<Profile> =>
+  put(path, {
+    body: JSON.stringify(profile),
+    headers: baseHeaders,
+  });
 
-export const deleteProfile = async (id: string): Promise<void> => {
-  return axios.delete(`${path}/${id}`);
-};
+export const deleteProfile = async (id: string): Promise<void> =>
+  del(`${path}/${id}`);

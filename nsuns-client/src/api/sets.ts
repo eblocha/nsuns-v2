@@ -1,4 +1,4 @@
-import axios from "axios";
+import { baseHeaders, post } from "./util";
 
 export type Day = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -19,6 +19,8 @@ export type CreateProgramSet = Omit<ProgramSet, "id" | "ordering">;
 
 const path = "/api/sets";
 
-export const createSet = async (set: CreateProgramSet): Promise<ProgramSet> => {
-  return (await axios.post(path, set)).data;
-};
+export const createSet = async (set: CreateProgramSet): Promise<ProgramSet> =>
+  post(path, {
+    body: JSON.stringify(set),
+    headers: baseHeaders,
+  });
