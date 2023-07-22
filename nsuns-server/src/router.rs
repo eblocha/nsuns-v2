@@ -7,8 +7,9 @@ use tower_http::{
 use tracing::Level;
 
 use crate::{
-    db::Pool, movements::router::movements_router, profiles::router::profiles_router,
-    program::router::programs_router, sets::router::sets_router, settings::Settings,
+    db::Pool, maxes::router::maxes_router, movements::router::movements_router,
+    profiles::router::profiles_router, program::router::programs_router, sets::router::sets_router,
+    settings::Settings,
 };
 
 pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
@@ -17,6 +18,7 @@ pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
         .nest("/api/programs", programs_router())
         .nest("/api/sets", sets_router())
         .nest("/api/movements", movements_router())
+        .nest("/api/maxes", maxes_router())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
