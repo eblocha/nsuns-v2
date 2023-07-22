@@ -1,13 +1,7 @@
-import {
-  Component,
-  For,
-  Setter,
-  Show,
-  createMemo,
-  createSignal,
-} from "solid-js";
+import { Component, For, Setter, Show, createMemo } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
 import { Dumbbell } from "../../icons/Dumbbell";
+import { useMovementMap } from "../../hooks/useMovementMap";
 
 type Section = {
   movement: Movement;
@@ -42,16 +36,19 @@ export const SetList: Component<{
   movements?: Movement[];
   day: string;
 }> = (props) => {
+  const movementMap = useMovementMap(() => props.movements ?? []);
+
   const sections = createMemo(() => {
     const sections: Section[] = [];
+    const movements = movementMap();
 
-    if (!props.sets || !props.movements) return sections;
+    if (!props.sets) return sections;
 
     let currentSection: Section | null = null;
     let index = -1;
     for (const set of props.sets) {
       index++;
-      const movement = props.movements.find((m) => m.id === set.movementId);
+      const movement = movements[set.movementId];
       if (!movement) continue;
 
       if (!currentSection || currentSection.movement.id !== movement.id) {
