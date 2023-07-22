@@ -106,7 +106,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
                     when={addSetTo() === index()}
                     fallback={
                       <button
-                        class="text-button text-sm border border-gray-700 flex flex-row items-center justify-center gap-2"
+                        class="text-button-outline text-sm flex flex-row items-center justify-center gap-2"
                         disabled={addSetTo() !== null}
                         onClick={() => setAddSetTo(index())}
                       >

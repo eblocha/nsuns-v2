@@ -104,10 +104,10 @@ export const LoadingProgram: Component = () => {
 
 export const AddProgram: Component = () => {
   return (
-    <A href="program/new" class={`hover:bg-gray-700 ${styles.program}`}>
-      <div class="flex flex-row items-center justify-start">
+    <A href="program/new" class="text-button-outline">
+      <div class="flex flex-row items-center justify-start gap-2">
         <Plus />
-        <span class="mx-4">Create New</span>
+        <span>New Program</span>
       </div>
     </A>
   );

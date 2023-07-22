@@ -70,9 +70,10 @@ export const Graph: Component<{
 
   const shifted = createMemo(() => {
     const { minX, maxX, minY, maxY } = bounds();
+    console.log(bounds())
     return mergedProps.data.map((point) => ({
-      x: ((point.x - minX) / (maxX - minX)) * 100,
-      y: ((minY - point.y + (maxY - minY)) / (maxY - minY)) * 100,
+      x: maxX === minX ? 50 : ((point.x - minX) / (maxX - minX)) * 100,
+      y: maxY === minY ? 50 : ((minY - point.y + (maxY - minY)) / (maxY - minY)) * 100,
     }));
   });
 

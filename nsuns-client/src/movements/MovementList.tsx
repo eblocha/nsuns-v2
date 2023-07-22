@@ -37,11 +37,11 @@ export const MovementList: Component = () => {
                 when={showForm()}
                 fallback={
                   <button
-                    class="text-button border border-gray-600 flex flex-row items-center mb-2"
+                    class="text-button-outline flex flex-row items-center mb-2 gap-2"
                     onClick={() => setShowForm(true)}
                   >
                     <Plus />
-                    <span class="ml-2">Add Movement</span>
+                    <span>Add Movement</span>
                   </button>
                 }
               >

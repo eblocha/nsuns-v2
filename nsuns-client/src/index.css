@@ -66,6 +66,10 @@ a {
   @apply p-2 rounded bg-transparent hover:bg-gray-800 active:bg-gray-700 disabled:bg-transparent disabled:opacity-50;
 }
 
+.text-button-outline {
+  @apply text-button border border-gray-600;
+}
+
 .circle-text-button {
   @apply p-2 rounded-full bg-transparent hover:bg-gray-800 active:bg-gray-700 disabled:bg-transparent disabled:opacity-50;
 }
