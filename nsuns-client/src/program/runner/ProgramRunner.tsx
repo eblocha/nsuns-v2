@@ -70,10 +70,6 @@ export const ProgramRunner: Component = () => {
     )
   );
 
-  createEffect(() => {
-    console.log(movementsToMaxesMap());
-  });
-
   return (
     <div class="w-full h-full overflow-hidden flex flex-col">
       <div class="w-full flex-shrink-0 flex flex-row">
