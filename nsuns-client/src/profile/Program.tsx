@@ -76,7 +76,7 @@ export const ProgramItem: Component<{
             {props.program.name ?? `Program ${props.index}`}
           </span>
           <button
-            class="text-button mr-2"
+            class="text-button mr-2 hover:text-red-500 focus:text-red-500 hover:transition-colors focus:transition-colors"
             onClick={(e) => {
               e.preventDefault();
               setShowDeleteModal(true);

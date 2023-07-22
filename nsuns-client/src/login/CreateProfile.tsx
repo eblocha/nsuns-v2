@@ -2,7 +2,6 @@ import { Component, Show } from "solid-js";
 import { Input } from "../forms/Input";
 import { A } from "@solidjs/router";
 import { createProfile } from "../api";
-import styles from "./CreateProfile.module.css";
 import { createMutation, useQueryClient } from "@tanstack/solid-query";
 import { Spinner } from "../icons/Spinner";
 import { useNavigateToProfileHome } from "../hooks/navigation";

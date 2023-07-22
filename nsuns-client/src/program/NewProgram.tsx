@@ -1,5 +1,4 @@
 import { Component, Show } from "solid-js";
-import styles from "./NewProgram.module.css";
 import { Input } from "../forms/Input";
 import { A, useParams } from "@solidjs/router";
 import { Spinner } from "../icons/Spinner";

@@ -64,8 +64,13 @@ export const SetForm: Component<{
   const error = () =>
     props.mutationCreate?.error || props.mutationUpdate?.error;
 
+  const disableSubmit = () =>
+    isLoading() ||
+    props.group.hasErrors() ||
+    (props.mutationUpdate && !props.group.dirty());
+
   const onSubmit = () => {
-    if (props.group.hasErrors() || isLoading()) return;
+    if (disableSubmit()) return;
     const value = props.group.value();
 
     if (!value.amount || !value.movementId) return;
@@ -198,12 +203,7 @@ export const SetForm: Component<{
         <button
           type="submit"
           class="primary-button w-20 flex flex-row items-center justify-center h-full"
-          disabled={
-            isLoading() ||
-            isDeleting() ||
-            props.group.hasErrors() ||
-            !props.group.dirty()
-          }
+          disabled={disableSubmit()}
         >
           <Show when={!isLoading()} fallback={<Spinner class="animate-spin" />}>
             Confirm

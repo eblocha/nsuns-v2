@@ -1,6 +1,0 @@
-.form {
-  grid-template-columns: repeat(2, max-content);
-}
-.form label {
-  text-align: right;
-}

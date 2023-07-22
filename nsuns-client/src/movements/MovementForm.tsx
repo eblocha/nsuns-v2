@@ -1,5 +1,4 @@
 import { Component, Show } from "solid-js";
-import styles from "./MovementForm.module.css";
 import { Input } from "../forms/Input";
 import { Control, ControlGroup } from "../hooks/forms";
 import { ErrorMessages } from "../forms/ErrorMessages";
@@ -37,8 +36,13 @@ export const MovementForm: Component<{
   const error = () =>
     props.mutationCreate?.error || props.mutationUpdate?.error;
 
+  const disableSubmit = () =>
+    isLoading() ||
+    props.group.hasErrors() ||
+    (props.mutationUpdate && !props.group.dirty());
+
   const onSubmit = () => {
-    if (props.group.hasErrors() || isLoading()) return;
+    if (disableSubmit()) return;
     const value = props.group.value();
 
     if (!value.name) return;
@@ -62,7 +66,6 @@ export const MovementForm: Component<{
         e.preventDefault();
         onSubmit();
       }}
-      classList={{ [styles.form]: true }}
     >
       <label for="movement-name">
         <span class="text-red-500">*</span>Name
@@ -97,9 +100,7 @@ export const MovementForm: Component<{
         <button
           type="submit"
           class="primary-button w-40 flex flex-row items-center justify-center h-10"
-          disabled={
-            isLoading() || props.group.hasErrors() || !props.group.dirty()
-          }
+          disabled={disableSubmit()}
         >
           <Show when={!isLoading()} fallback={<Spinner class="animate-spin" />}>
             {props.confirmText}

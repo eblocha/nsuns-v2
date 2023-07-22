@@ -39,10 +39,6 @@ a {
   @apply focus:outline-none focus:ring focus:ring-blue-500;
 }
 
-.label-left {
-  @apply flex flex-row items-center justify-end;
-}
-
 .input {
   @apply p-1 rounded bg-black border border-gray-700 focus:outline-none focus:ring focus:ring-blue-500;
 }
