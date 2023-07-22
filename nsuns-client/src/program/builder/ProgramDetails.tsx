@@ -46,7 +46,7 @@ export const ProgramDetails: Component<{
       }}
     >
       <div class="flex flex-row items-center justify-between">
-        <div class="flex flex-col items-end">
+        <div class="flex flex-col items-end text-2xl">
           <Input control={name} class="ghost-input" required={true} />
           <ErrorMessages control={name} />
         </div>

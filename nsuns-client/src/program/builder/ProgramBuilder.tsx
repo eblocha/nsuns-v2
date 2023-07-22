@@ -38,7 +38,6 @@ export const ProgramBuilder: Component = () => {
   return (
     <div class="w-full min-h-full overflow-visible border-l border-gray-700 grid grid-cols-4 gap-5 p-5 relative">
       <div class="col-span-3 flex flex-col overflow-visible relative">
-        <h2 class="mb-4 text-xl">Program Details</h2>
         <div class="flex-grow flex flex-col overflow-visible relative">
           <Switch>
             <Match when={query.isLoading}>
