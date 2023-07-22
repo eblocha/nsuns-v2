@@ -6,8 +6,10 @@ import styles from "./CreateProfile.module.css";
 import { createMutation, useQueryClient } from "@tanstack/solid-query";
 import { Spinner } from "../icons/Spinner";
 import { useNavigateToProfileHome } from "../hooks/navigation";
-import { createControl } from "../hooks/forms";
+import { createControl, required } from "../hooks/forms";
 import { ErrorMessages } from "../forms/ErrorMessages";
+import { Warning } from "../icons/Warning";
+import { displayError } from "../util/errors";
 
 export const CreateProfile: Component = () => {
   const queryClient = useQueryClient();
@@ -23,7 +25,7 @@ export const CreateProfile: Component = () => {
     },
   });
 
-  const name = createControl("");
+  const name = createControl<string>("", { validators: [required()] });
 
   const onSubmit = async () => {
     if (mutation.isLoading || name.hasErrors()) return;
@@ -40,50 +42,55 @@ export const CreateProfile: Component = () => {
           e.preventDefault();
           await onSubmit();
         }}
-        class="mx-3 grid gap-y-2 gap-x-4"
-        classList={{ [styles.form]: true }}
+        class="flex flex-col w-80 gap-4"
       >
-        <h2 class="col-span-2 text-lg mb-4">Create Profile</h2>
-        <label for="name" class="label-left">
+        <h2 class="text-lg">Create Profile</h2>
+        <label for="name" class="flex flex-row items-center gap-2">
           <span class="text-red-500">*</span>Name
-        </label>
-        <div class="flex flex-col items-end">
-          <Input
-            control={name}
-            class="ml-3 input"
-            name="name"
-            required={true}
-          />
-          <ErrorMessages control={name} />
-        </div>
-        <div class="col-span-2 mt-4">
-          <div class="float-right flex flex-row items-center justify-end w-full">
-            <A href="/" class="text-button text-center mr-2">
-              Home
-            </A>
-            <button
-              type="button"
-              onClick={() => name.reset()}
-              class="secondary-button mr-2"
-              disabled={!name.dirty() || mutation.isLoading}
-            >
-              Reset
-            </button>
-            <button
-              type="submit"
-              class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-400 w-32 flex flex-row items-center justify-center"
-              disabled={mutation.isLoading || name.hasErrors()}
-            >
-              <Show
-                when={!mutation.isLoading}
-                fallback={<Spinner class="animate-spin my-1" />}
-              >
-                Create Profile
-              </Show>
-            </button>
+          <div class="flex flex-col items-end flex-grow">
+            <Input
+              control={name}
+              class="ml-3 input w-full"
+              name="name"
+              required={true}
+            />
+            <ErrorMessages control={name} />
           </div>
-          <Show when={mutation.isError}>{`${mutation.error}`}</Show>
+        </label>
+
+        <div class="float-right flex flex-row items-center justify-end w-full gap-2">
+          <A href="/" class="text-button text-center">
+            Home
+          </A>
+          <button
+            type="button"
+            onClick={() => name.reset()}
+            class="secondary-button"
+            disabled={!name.dirty() || mutation.isLoading}
+          >
+            Reset
+          </button>
+          <button
+            type="submit"
+            class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-400 w-32 flex flex-row items-center justify-center"
+            disabled={mutation.isLoading || name.hasErrors()}
+          >
+            <Show
+              when={!mutation.isLoading}
+              fallback={<Spinner class="animate-spin my-1" />}
+            >
+              Create Profile
+            </Show>
+          </button>
         </div>
+        <Show when={mutation.isError}>
+          <div class="w-full flex flex-row items-center justify-end gap-4">
+            <span>
+              <Warning class="text-red-500" />
+            </span>
+            {displayError(mutation.error, "create profile")}
+          </div>
+        </Show>
       </form>
     </div>
   );

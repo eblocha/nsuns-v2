@@ -31,7 +31,7 @@ export const MovementList: Component = () => {
           </Match>
           <Match when={query.isError}>
             <div class="h-full w-full flex flex-col items-center">
-              Error fetching movements: {`${query.error}`}
+              Failed to fetch movements: {`${query.error}`}
             </div>
           </Match>
           <Match when={query.isSuccess}>

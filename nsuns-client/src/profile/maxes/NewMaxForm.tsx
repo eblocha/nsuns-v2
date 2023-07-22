@@ -1,9 +1,11 @@
-import { Component } from "solid-js";
+import { Component, Show } from "solid-js";
 import { useMovementsQuery } from "../../hooks/queries/movements";
 import { useCreateMaxMutation } from "../../hooks/queries/maxes";
 import { createControl, createControlGroup, required } from "../../hooks/forms";
 import { Input } from "../../forms/Input";
 import { Select } from "../../forms/Select";
+import { Warning } from "../../icons/Warning";
+import { displayError } from "../../util/errors";
 
 export const NewMaxForm: Component<{ profileId: string; close: () => void }> = (
   props
@@ -51,13 +53,13 @@ export const NewMaxForm: Component<{ profileId: string; close: () => void }> = (
       />
       <div class="flex flex-row items-center gap-2 col-span-2">
         <div class="flex-grow">
-        <Input
-          control={group.controls.amount}
-          name="max-amount"
-          type="number"
-          class="input w-full"
-          step={5}
-        />
+          <Input
+            control={group.controls.amount}
+            name="max-amount"
+            type="number"
+            class="input w-full"
+            step={5}
+          />
         </div>
         <span>lbs</span>
       </div>
@@ -65,10 +67,21 @@ export const NewMaxForm: Component<{ profileId: string; close: () => void }> = (
         <button class="secondary-button" type="button" onClick={props.close}>
           Cancel
         </button>
-        <button class="primary-button border border-transparent" disabled={disableSubmit()}>
+        <button
+          class="primary-button border border-transparent"
+          disabled={disableSubmit()}
+        >
           Log
         </button>
       </div>
+      <Show when={mutation.isError}>
+        <div class="col-span-7 flex flex-row items-center justify-end gap-4">
+          <span>
+            <Warning class="text-red-500" />
+          </span>
+          {displayError(mutation.error, "log max")}
+        </div>
+      </Show>
     </form>
   );
 };

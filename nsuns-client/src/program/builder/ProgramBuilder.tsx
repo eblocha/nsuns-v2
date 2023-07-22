@@ -24,7 +24,7 @@ const Loading: Component = () => {
 const Error: Component<{ message: string }> = (props) => {
   return (
     <div class="w-full h-full flex flex-col items-center justify-center">
-      <div>Error fetching program details:</div>
+      <div>Failed to fetch program details:</div>
       <div>{props.message}</div>
     </div>
   );

@@ -46,7 +46,7 @@ export const ProfileHome: Component = () => {
               <Match when={programsQuery.isError}>
                 <div class="flex flex-col items-center justify-center my-10">
                   <div class="mb-2">
-                    Error fetching programs: {`${programsQuery.error}`}
+                    Failed to fetch programs: {`${programsQuery.error}`}
                   </div>
                 </div>
               </Match>

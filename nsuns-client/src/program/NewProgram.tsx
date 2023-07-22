@@ -7,6 +7,8 @@ import { useCreateProgram } from "../hooks/queries/programs";
 import { useNavigateToProgram } from "../hooks/navigation";
 import { createControl, required } from "../hooks/forms";
 import { ErrorMessages } from "../forms/ErrorMessages";
+import { Warning } from "../icons/Warning";
+import { displayError } from "../util/errors";
 
 export const NewProgram: Component = () => {
   const params = useParams<{ profileId: string }>();
@@ -30,29 +32,31 @@ export const NewProgram: Component = () => {
   };
 
   return (
-    <div class="w-full h-full px-14 py-60 border-l border-gray-700">
+    <div class="w-full h-full p-14 border-l border-gray-700 flex flex-col items-start justify-center gap-4">
       <h2 class="text-2xl">Create New Program</h2>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
           await onSubmit();
         }}
-        class="grid gap-y-2 gap-x-4 mt-10"
-        classList={{ [styles.form]: true }}
+        class="flex flex-col w-80 gap-4"
       >
-        <label for="program-name" class="label-left">
-          <span class="text-red-500">*</span>Title
+        <label for="program-name" class="flex flex-row items-center gap-2">
+          <div>
+            <span class="text-red-500">*</span>Title
+          </div>
+          <div class="flex flex-col items-end flex-grow">
+            <Input
+              control={name}
+              class="ml-3 input w-full"
+              name="program-name"
+              required={true}
+            />
+            <ErrorMessages control={name} />
+          </div>
         </label>
-        <div class="flex flex-col items-end">
-          <Input
-            control={name}
-            class="ml-3 input"
-            name="program-name"
-            required={true}
-          />
-          <ErrorMessages control={name} />
-        </div>
-        <div class="col-span-2 flex flex-row items-center justify-end mt-4">
+
+        <div class="flex flex-row items-center justify-end">
           <A href="../.." class="text-button">
             Cancel
           </A>
@@ -68,6 +72,14 @@ export const NewProgram: Component = () => {
             </Show>
           </button>
         </div>
+        <Show when={mutation.isError}>
+          <div class="w-full flex flex-row items-center justify-end gap-4">
+            <span>
+              <Warning class="text-red-500" />
+            </span>
+            {displayError(mutation.error, "create program")}
+          </div>
+        </Show>
       </form>
     </div>
   );

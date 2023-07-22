@@ -8,8 +8,12 @@ import { Graph } from "../../graph/Graph";
 import { plural } from "../../util/setDisplay";
 
 const displayAmount = (amount?: number) => {
-  return amount !== undefined ? `${amount} lb${plural(amount)}` : "None"
-}
+  return amount !== undefined ? `${amount} lb${plural(amount)}` : "None";
+};
+
+const Loading = () => {
+  return <div class="shimmer w-full h-20" />;
+};
 
 export const MaxList: Component<{ profileId: string }> = (props) => {
   const maxesQuery = useMaxesQuery(() => props.profileId);
@@ -17,6 +21,8 @@ export const MaxList: Component<{ profileId: string }> = (props) => {
 
   const isLoading = () => movementsQuery.isLoading || maxesQuery.isLoading;
   const isSuccess = () => movementsQuery.isSuccess && maxesQuery.isSuccess;
+  const isError = () => movementsQuery.isError || maxesQuery.isError;
+  const error = () => movementsQuery.error || maxesQuery.error;
 
   const movementToMaxesMap = useMovementsToMaxesMap(
     () => maxesQuery.data ?? []
@@ -36,12 +42,19 @@ export const MaxList: Component<{ profileId: string }> = (props) => {
   return (
     <ul>
       <Switch>
-        <Match when={isLoading()}>Loading...</Match>
+        <Match when={isLoading()}>
+          <li>
+            <Loading />
+          </li>
+        </Match>
+        <Match when={isError()}>Failed to fetch maxes: {`${error()}`}</Match>
         <Match when={isSuccess()}>
           <For each={maxesData()}>
             {(entry) => (
               <li class="w-full grid grid-cols-4 h-20 gap-4 mt-2">
-                <div class="flex flex-col items-center justify-center">{entry.movement.name}</div>
+                <div class="flex flex-col items-center justify-center">
+                  {entry.movement.name}
+                </div>
                 <div class="col-span-2 h-20 text-blue-500 border-l border-b border-gray-600 p-1">
                   <Graph
                     data={entry.maxes.map((max, index) => ({
@@ -54,7 +67,9 @@ export const MaxList: Component<{ profileId: string }> = (props) => {
                 </div>
                 <div class="flex flex-col items-center justify-center">
                   <p>Current:</p>
-                  <p>{displayAmount(entry.maxes[entry.maxes.length - 1]?.amount)}</p>
+                  <p>
+                    {displayAmount(entry.maxes[entry.maxes.length - 1]?.amount)}
+                  </p>
                 </div>
               </li>
             )}

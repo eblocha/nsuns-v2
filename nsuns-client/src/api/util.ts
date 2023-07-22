@@ -7,7 +7,7 @@ export type FetchParams = Parameters<typeof fetch>;
 export const processResponse = async (res: Response): Promise<Response> => {
   if (!res.ok) {
     throw new Error(
-      `HTTP Error ${res.status} (${res.statusText}): ${await res.text()}`
+      `HTTP Status ${res.status} (${res.statusText})`
     );
   }
 

@@ -13,6 +13,8 @@ import {
 } from "../../api";
 import { Spinner } from "../../icons/Spinner";
 import { Input } from "../../forms/Input";
+import { Warning } from "../../icons/Warning";
+import { displayError } from "../../util/errors";
 
 export type SetFormControls = ControlGroup<{
   movementId: Control<string>;
@@ -52,9 +54,15 @@ export const SetForm: Component<{
   movements?: Movement[];
 }> = (props) => {
   const isLoading = () =>
-    props.mutationCreate?.isLoading || props.mutationUpdate?.isLoading;
+    props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
 
-  const isDeleting = () => props.mutationDelete?.isLoading;
+  const isDeleting = () => !!props.mutationDelete?.isLoading;
+
+  const isError = () =>
+    props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
+
+  const error = () =>
+    props.mutationCreate?.error || props.mutationUpdate?.error;
 
   const onSubmit = () => {
     if (props.group.hasErrors() || isLoading()) return;
@@ -80,7 +88,7 @@ export const SetForm: Component<{
     } else if (props.id && props.mutationUpdate) {
       props.mutationUpdate.mutate({ ...base, id: props.id });
     }
-    props.onSubmit?.()
+    props.onSubmit?.();
   };
 
   const movementOptions = createMemo<SelectOption[] | undefined>(() =>
@@ -171,7 +179,11 @@ export const SetForm: Component<{
 
       <div class="col-span-2 flex flex-row items-center justify-end gap-2">
         <Show when={props.mutationDelete}>
-          <button type="button" class="danger-button w-16 flex flex-row items-center justify-center h-full" onClick={onDelete}>
+          <button
+            type="button"
+            class="danger-button w-16 flex flex-row items-center justify-center h-full"
+            onClick={onDelete}
+          >
             <Show
               when={!isDeleting()}
               fallback={<Spinner class="animate-spin" />}
@@ -186,13 +198,26 @@ export const SetForm: Component<{
         <button
           type="submit"
           class="primary-button w-20 flex flex-row items-center justify-center h-full"
-          disabled={isLoading() || isDeleting() || props.group.hasErrors()}
+          disabled={
+            isLoading() ||
+            isDeleting() ||
+            props.group.hasErrors() ||
+            !props.group.dirty()
+          }
         >
           <Show when={!isLoading()} fallback={<Spinner class="animate-spin" />}>
             Confirm
           </Show>
         </button>
       </div>
+      <Show when={isError()}>
+        <div class="col-span-2 flex flex-row items-center justify-end gap-4 mt-2">
+          <span>
+            <Warning class="text-red-500" />
+          </span>
+          {displayError(error(), "save set")}
+        </div>
+      </Show>
     </form>
   );
 };

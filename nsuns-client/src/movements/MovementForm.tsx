@@ -7,6 +7,8 @@ import { TextArea } from "../forms/TextArea";
 import { CreateMutationResult } from "@tanstack/solid-query";
 import { CreateMovement, Movement } from "../api";
 import { Spinner } from "../icons/Spinner";
+import { Warning } from "../icons/Warning";
+import { displayError } from "../util/errors";
 
 export type MovementFormControls = ControlGroup<{
   name: Control<string>;
@@ -29,6 +31,11 @@ export const MovementForm: Component<{
 }> = (props) => {
   const isLoading = () =>
     props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
+
+  const isError = () =>
+    props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
+  const error = () =>
+    props.mutationCreate?.error || props.mutationUpdate?.error;
 
   const onSubmit = () => {
     if (props.group.hasErrors() || isLoading()) return;
@@ -90,13 +97,23 @@ export const MovementForm: Component<{
         <button
           type="submit"
           class="primary-button w-40 flex flex-row items-center justify-center h-10"
-          disabled={isLoading() || props.group.hasErrors() || !props.group.dirty()}
+          disabled={
+            isLoading() || props.group.hasErrors() || !props.group.dirty()
+          }
         >
           <Show when={!isLoading()} fallback={<Spinner class="animate-spin" />}>
             {props.confirmText}
           </Show>
         </button>
       </div>
+      <Show when={isError()}>
+        <div class="w-full flex flex-row items-center justify-end gap-4 mt-2">
+          <span>
+            <Warning class="text-red-500" />
+          </span>
+          {displayError(error(), "save movement")}
+        </div>
+      </Show>
     </form>
   );
 };
