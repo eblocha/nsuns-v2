@@ -8,7 +8,7 @@ import { RefreshButton } from "../components/RefreshButton";
 export const Login: Component = () => {
   const query = createQuery(() => ["profiles"], getProfiles);
 
-  const isFetching = createDelayedLatch(() => query.isFetching, 500);
+  const isFetching = createDelayedLatch(() => query.isFetching, 200);
 
   return (
     <div class="h-full w-full overflow-hidden p-10 flex flex-col items-center justify-center">

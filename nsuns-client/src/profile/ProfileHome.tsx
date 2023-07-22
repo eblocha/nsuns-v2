@@ -7,8 +7,6 @@ import { RefreshButton } from "../components/RefreshButton";
 import { useProgramsQuery } from "../hooks/queries/programs";
 import { useNavigateToNewProgram } from "../hooks/navigation";
 import { MaxList } from "./maxes/MaxList";
-import { Plus } from "../icons/Plus";
-import { NewMaxForm } from "./maxes/NewMaxForm";
 import { AddMax } from "./maxes/AddMax";
 
 export const ProfileHome: Component = () => {
@@ -22,7 +20,7 @@ export const ProfileHome: Component = () => {
     }
   });
 
-  const isFetching = createDelayedLatch(() => programsQuery.isFetching, 400);
+  const isFetching = createDelayedLatch(() => programsQuery.isFetching, 200);
 
   return (
     <div class="h-full grid grid-cols-3 gap-10 overflow-hidden">
