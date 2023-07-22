@@ -12,7 +12,7 @@ const displayAmount = (amount?: number) => {
 }
 
 export const MaxList: Component<{ profileId: string }> = (props) => {
-  const maxesQuery = useMaxesQuery(props.profileId);
+  const maxesQuery = useMaxesQuery(() => props.profileId);
   const movementsQuery = useMovementsQuery();
 
   const isLoading = () => movementsQuery.isLoading || maxesQuery.isLoading;

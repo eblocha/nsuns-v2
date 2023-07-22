@@ -22,6 +22,7 @@
   width: 100%;
   z-index: 1;
   animation: shimmer 0.7s infinite;
+  pointer-events: none;
 }
 
 @keyframes shimmer {

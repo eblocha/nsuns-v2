@@ -25,9 +25,9 @@ import {
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
 
-  const summaryQuery = useProgramSummaryQuery(params.programId);
+  const summaryQuery = useProgramSummaryQuery(() => params.programId);
   const movementsQuery = useMovementsQuery();
-  const maxesQuery = useMaxesQuery(params.profileId);
+  const maxesQuery = useMaxesQuery(() => params.profileId);
 
   const isLoading = () =>
     summaryQuery.isLoading || movementsQuery.isLoading || maxesQuery.isLoading;

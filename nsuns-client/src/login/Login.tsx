@@ -15,7 +15,7 @@ export const Login: Component = () => {
       <h2 class="text-lg">Select a profile</h2>
       <Switch>
         <Match when={query.isLoading}>
-          <ul class="my-8 flex flex-row items-center">
+          <ul class="my-8 flex flex-row items-center gap-4">
             <For each={[1, 2, 3]}>
               {() => (
                 <li>

@@ -13,12 +13,13 @@ import {
   getProgramSummary,
   updateSet,
 } from "../../api";
+import { Accessor } from "solid-js";
 
-export const useProgramSummaryQuery = (programId: string) => {
+export const useProgramSummaryQuery = (programId: Accessor<string>) => {
   return createQuery({
-    queryKey: () => ["programs", programId],
-    queryFn: () => getProgramSummary(programId),
-    enabled: !!programId,
+    queryKey: () => ["programs", programId()],
+    queryFn: () => getProgramSummary(programId()),
+    enabled: !!programId(),
   });
 };
 

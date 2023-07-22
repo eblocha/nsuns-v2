@@ -9,7 +9,7 @@ export const NewMaxForm: Component<{ profileId: string; close: () => void }> = (
   props
 ) => {
   const movementsQuery = useMovementsQuery();
-  const mutation = useCreateMaxMutation(props.profileId, {
+  const mutation = useCreateMaxMutation(() => props.profileId, {
     onSuccess: () => props.close(),
   });
 

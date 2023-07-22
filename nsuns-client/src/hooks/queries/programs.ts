@@ -13,6 +13,8 @@ import {
   getProfilePrograms,
   updateProgram,
 } from "../../api";
+import { Accessor } from "solid-js";
+import { updateInArray } from "./util";
 
 export const useProgramsQuery = (profileId: string) => {
   const programsQuery = createQuery({
@@ -24,7 +26,7 @@ export const useProgramsQuery = (profileId: string) => {
 };
 
 export const useCreateProgram = <TError = unknown, TContext = unknown>(
-  profileId: string,
+  profileId: Accessor<string>,
   options?: Partial<
     CreateMutationOptions<Program, TError, CreateProgram, TContext>
   >
@@ -33,15 +35,20 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
   const mutation = createMutation({
     ...options,
     mutationFn: createProgram,
-    onSuccess: (...args) => {
-      queryClient.invalidateQueries(["programs", profileId]);
-      options?.onSuccess?.(...args);
+    onSuccess: (program, ...args) => {
+      queryClient.setQueryData(
+        ["programs", profileId()],
+        (programs?: Program[]) =>
+          programs ? [...programs, program] : undefined
+      );
+      options?.onSuccess?.(program, ...args);
     },
   });
   return mutation;
 };
 
 export const useUpdateProgram = <TError = unknown, TContext = unknown>(
+  profileId: Accessor<string>,
   options?: Partial<
     CreateMutationOptions<Program, TError, UpdateProgram, TContext>
   >
@@ -50,15 +57,20 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
   const mutation = createMutation({
     ...options,
     mutationFn: updateProgram,
-    onSuccess: (...args) => {
-      queryClient.invalidateQueries(["programs"]);
-      options?.onSuccess?.(...args);
+    onSuccess: (program, ...args) => {
+      queryClient.setQueryData(
+        ["programs", profileId()],
+        (programs?: Program[]) =>
+          updateInArray(programs, program, (p) => p.id === program.id)
+      );
+      options?.onSuccess?.(program, ...args);
     },
   });
   return mutation;
 };
 
 export const useDeleteProgram = <TError = unknown, TContext = unknown>(
+  profileId: Accessor<string>,
   options?: Partial<
     CreateMutationOptions<void, TError, string | number, TContext>
   >
@@ -67,9 +79,14 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
   const mutation = createMutation({
     ...options,
     mutationFn: deleteProgram,
-    onSuccess: (...args) => {
+    onSuccess: (program, id, ...args) => {
+      queryClient.setQueryData(
+        ["programs", profileId()],
+        (programs?: Program[]) => programs?.filter((p) => p.id !== id)
+      );
+
       queryClient.invalidateQueries(["programs"]);
-      options?.onSuccess?.(...args);
+      options?.onSuccess?.(program, id, ...args);
     },
   });
   return mutation;

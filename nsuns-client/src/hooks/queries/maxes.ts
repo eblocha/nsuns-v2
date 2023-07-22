@@ -11,17 +11,19 @@ import {
   getMaxes,
   updateMax,
 } from "../../api/maxes";
+import { Accessor } from "solid-js";
+import { updateInArray } from "./util";
 
-export const useMaxesQuery = (profileId: string) => {
+export const useMaxesQuery = (profileId: Accessor<string>) => {
   return createQuery({
-    queryKey: () => ["maxes", profileId],
-    queryFn: () => getMaxes(profileId),
-    enabled: !!profileId,
+    queryKey: () => ["maxes", profileId()],
+    queryFn: () => getMaxes(profileId()),
+    enabled: !!profileId(),
   });
 };
 
 export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
-  profileId: string,
+  profileId: Accessor<string>,
   options?: Partial<CreateMutationOptions<Max, TError, CreateMax, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -29,7 +31,7 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: createMax,
     onSuccess: (max, ...args) => {
-      queryClient.setQueryData(["maxes", profileId], (maxes?: Max[]) => {
+      queryClient.setQueryData(["maxes", profileId()], (maxes?: Max[]) => {
         return maxes && [...maxes, max];
       });
       options?.onSuccess?.(max, ...args);
@@ -39,7 +41,7 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
 };
 
 export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
-  profileId: string,
+  profileId: Accessor<string>,
   options?: Partial<CreateMutationOptions<Max, TError, Max, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -47,17 +49,9 @@ export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: updateMax,
     onSuccess: (max, ...args) => {
-      queryClient.setQueryData(["maxes", profileId], (maxes?: Max[]) => {
-        if (!maxes) return maxes;
-
-        const index = maxes.findIndex((m) => m.id === max.id);
-        if (index === -1) return maxes;
-
-        const newMaxes = [...maxes];
-        newMaxes.splice(index, 1, max);
-
-        return newMaxes;
-      });
+      queryClient.setQueryData(["maxes", profileId()], (maxes?: Max[]) =>
+        updateInArray(maxes, max, (m) => m.id === max.id)
+      );
       options?.onSuccess?.(max, ...args);
     },
   });

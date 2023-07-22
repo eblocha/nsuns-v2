@@ -7,28 +7,23 @@ import { useUpdateProgram } from "../../hooks/queries/programs";
 import { createControl, required } from "../../hooks/forms";
 import { ErrorMessages } from "../../forms/ErrorMessages";
 
-export const ProgramDetails: Component<Program> = (props) => {
-  const name = createControl(props.name, { validators: [required()] });
+export const ProgramDetails: Component<{program: Program, profileId: string}> = (props) => {
+  const name = createControl(props.program.name, { validators: [required()] });
 
-  const mutation = useUpdateProgram();
+  const mutation = useUpdateProgram(() => props.profileId);
 
   const onSubmit = async () => {
     if (mutation.isLoading || name.hasErrors()) return;
 
     mutation.mutate({
-      id: props.id,
+      id: props.program.id,
       name: name.value(),
     });
   };
 
-  createRenderEffect(
-    on(
-      () => props.name,
-      () => {
-        name.reset(props.name);
-      }
-    )
-  );
+  createRenderEffect(() => {
+    name.reset(props.program.name);
+  });
 
   const isLoading = createDelayedLatch(() => mutation.isLoading, 200);
 

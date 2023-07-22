@@ -15,10 +15,10 @@ const DeleteProgram: Component<{
   close: () => void;
   program: Program;
 }> = (props) => {
-  const params = useParams<{ programId?: string }>();
+  const params = useParams<{ programId?: string, profileId: string }>();
   const navigateToProfileHome = useNavigateToProfileHome();
 
-  const mutation = useDeleteProgram({
+  const mutation = useDeleteProgram(() => params.profileId, {
     onSuccess: () => {
       props.close();
       if (params.programId === props.program.id.toString()) {

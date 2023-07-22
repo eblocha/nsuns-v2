@@ -1,7 +1,5 @@
 import { useParams } from "@solidjs/router";
-import { createQuery } from "@tanstack/solid-query";
 import { Component, Match, Switch } from "solid-js";
-import { getProgramSummary } from "../../api";
 import { MovementList } from "../../movements/MovementList";
 import { Days } from "./Days";
 import { ProgramDetails } from "./ProgramDetails";
@@ -35,7 +33,7 @@ const Error: Component<{ message: string }> = (props) => {
 export const ProgramBuilder: Component = () => {
   const params = useParams<{ profileId: string; programId: string }>();
 
-  const query = useProgramSummaryQuery(params.programId);
+  const query = useProgramSummaryQuery(() => params.programId);
 
   return (
     <div class="w-full min-h-full overflow-visible border-l border-gray-700 grid grid-cols-4 gap-5 p-5 relative">
@@ -51,7 +49,10 @@ export const ProgramBuilder: Component = () => {
             </Match>
             <Match when={query.isSuccess}>
               <div class="mb-8 border-b border-gray-700 flex-shrink-0">
-                <ProgramDetails {...query.data!.program} />
+                <ProgramDetails
+                  program={query.data!.program}
+                  profileId={params.profileId}
+                />
               </div>
               <div class="flex-grow overflow-visible">
                 <Days

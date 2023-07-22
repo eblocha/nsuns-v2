@@ -1,6 +1,4 @@
-import { createQuery } from "@tanstack/solid-query";
 import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
-import { getMovements } from "../api";
 import { CreateMovement } from "./CreateMovement";
 import { Plus } from "../icons/Plus";
 import { Movement } from "./Movement";
@@ -30,6 +28,11 @@ export const MovementList: Component = () => {
         <Switch>
           <Match when={query.isLoading}>
             <Loading />
+          </Match>
+          <Match when={query.isError}>
+            <div class="h-full w-full flex flex-col items-center">
+              Error fetching movements: {`${query.error}`}
+            </div>
           </Match>
           <Match when={query.isSuccess}>
             <div class="flex flex-col">
