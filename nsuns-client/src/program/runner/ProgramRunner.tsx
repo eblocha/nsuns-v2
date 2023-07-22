@@ -4,23 +4,15 @@ import { useProgramSummaryQuery } from "../../hooks/queries/sets";
 import { useSetMap } from "../../hooks/useSetMap";
 import { useMovementsQuery } from "../../hooks/queries/movements";
 import { ArrowRight } from "../../icons/ArrowRight";
-import {
-  currentSet,
-  dayName,
-  decrementDay,
-  incrementDay,
-  setCurrentSet,
-} from "./state";
+import { dayName, decrementDay, incrementDay, setCurrentSet } from "./state";
 import { AnimatedSetList } from "./AnimatedSetList";
-import { LoadingTitle, SetTitle } from "./SetTitle";
+import { LoadingTitle, TitleBanner } from "./SetTitle";
 import { useMovementMap } from "../../hooks/useMovementMap";
 import { useMaxesQuery } from "../../hooks/queries/maxes";
-import {
-  getLatestMax,
-  useMovementsToMaxesMap,
-} from "../../hooks/useMovementsToMaxesMap";
+import { useMovementsToMaxesMap } from "../../hooks/useMovementsToMaxesMap";
 import { Edit } from "../../icons/Edit";
 import { User } from "../../icons/User";
+import { Tools } from "./Tools";
 
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
@@ -39,26 +31,6 @@ export const ProgramRunner: Component = () => {
   const movementsToMaxesMap = useMovementsToMaxesMap(
     () => maxesQuery.data ?? []
   );
-
-  const currentProgramSet = () => setMap()[dayName()]?.[currentSet()];
-  const currentMovement = () => {
-    const set = currentProgramSet();
-    return set && movementMap()[set.movementId];
-  };
-  const currentMax = () => {
-    const set = currentProgramSet();
-    return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
-  };
-
-  const nextProgramSet = () => setMap()[dayName()]?.[currentSet() + 1];
-  const nextMovement = () => {
-    const set = nextProgramSet();
-    return set && movementMap()[set.movementId];
-  };
-  const nextMax = () => {
-    const set = nextProgramSet();
-    return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
-  };
 
   createEffect(
     on(
@@ -86,13 +58,10 @@ export const ProgramRunner: Component = () => {
               <LoadingTitle />
             </Match>
             <Match when={isSuccess()}>
-              <SetTitle
-                current={currentProgramSet()}
-                currentMovement={currentMovement()}
-                currentMax={currentMax()}
-                next={nextProgramSet()}
-                nextMovement={nextMovement()}
-                nextMax={nextMax()}
+              <TitleBanner
+                setMap={setMap()}
+                movementMap={movementMap()}
+                movementsToMaxesMap={movementsToMaxesMap()}
               />
             </Match>
           </Switch>
@@ -119,6 +88,10 @@ export const ProgramRunner: Component = () => {
           >
             <ArrowRight />
           </button>
+        </div>
+        <div class="col-span-2 h-full flex flex-col gap-4">
+          <div class="flex-grow w-full"></div>
+          <Tools nSets={setMap()[dayName()].length ?? 0} />
         </div>
       </div>
     </div>
