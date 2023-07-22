@@ -61,8 +61,8 @@ export const MaxList: Component<{ profileId: string }> = (props) => {
                       x: index,
                       y: max.amount,
                     }))}
-                    weight={5}
-                    style="line"
+                    weight={4}
+                    fillOpacity="10%"
                   />
                 </div>
                 <div class="flex flex-col items-center justify-center">

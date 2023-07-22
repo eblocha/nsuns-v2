@@ -1,13 +1,4 @@
-import {
-  Component,
-  For,
-  JSX,
-  Match,
-  Show,
-  Switch,
-  createMemo,
-  mergeProps,
-} from "solid-js";
+import { Component, JSX, Show, createMemo, mergeProps } from "solid-js";
 
 export type Point = {
   x: number;
@@ -29,14 +20,14 @@ const getBounds = (data: Point[]): Bounds => {
     : 0;
   const maxX = data.length
     ? data.reduce((maxX, point) => Math.max(point.x, maxX), -Infinity)
-    : 1;
+    : 0;
 
   const minY = data.length
     ? data.reduce((minY, point) => Math.min(point.y, minY), Infinity)
     : 0;
   const maxY = data.length
     ? data.reduce((maxY, point) => Math.max(point.y, maxY), -Infinity)
-    : 1;
+    : 0;
 
   return {
     minX,
@@ -48,7 +39,6 @@ const getBounds = (data: Point[]): Bounds => {
 
 export const Graph: Component<{
   data?: Point[];
-  style?: GraphStyle;
   svgProps?: JSX.SvgSVGAttributes<SVGSVGElement>;
   weight?: number;
   width?: string;
@@ -58,7 +48,6 @@ export const Graph: Component<{
   const mergedProps = mergeProps(
     {
       data: [] as Point[],
-      style: "scatter" as GraphStyle,
       weight: 5,
       width: "100%",
       height: "100%",
@@ -72,7 +61,10 @@ export const Graph: Component<{
     const { minX, maxX, minY, maxY } = bounds();
     return mergedProps.data.map((point) => ({
       x: maxX === minX ? 50 : ((point.x - minX) / (maxX - minX)) * 100,
-      y: maxY === minY ? 50 : ((minY - point.y + (maxY - minY)) / (maxY - minY)) * 100,
+      y:
+        maxY === minY
+          ? 50
+          : ((minY - point.y + (maxY - minY)) / (maxY - minY)) * 100,
     }));
   });
 
@@ -80,42 +72,37 @@ export const Graph: Component<{
     <svg
       xmlns="http://www.w3.org/2000/svg"
       {...props.svgProps}
+      preserveAspectRatio={mergedProps.data.length <= 1 ? undefined : "none"}
       height={mergedProps.height}
       width={mergedProps.width}
       viewBox={`${-mergedProps.weight / 2} ${-mergedProps.weight / 2} ${
         100 + mergedProps.weight
       } ${100 + mergedProps.weight}`}
     >
-      <Switch>
-        <Match
-          when={mergedProps.style === "scatter" || mergedProps.data.length <= 1}
-        >
-          <Scatter data={shifted()} weight={mergedProps.weight} />
-        </Match>
-        <Match when={mergedProps.style === "line"}>
-          <Line
-            data={shifted()}
-            weight={mergedProps.weight}
-            fillOpacity={props.fillOpacity}
-          />
-        </Match>
-      </Switch>
+      <Show
+        when={mergedProps.data.length > 1}
+        fallback={
+          <SinglePoint point={{ x: 50, y: 50 }} weight={mergedProps.weight} />
+        }
+      >
+        <Line
+          data={shifted()}
+          weight={mergedProps.weight}
+          fillOpacity={props.fillOpacity}
+        />
+      </Show>
     </svg>
   );
 };
 
-const Scatter: Component<{ data: Point[]; weight: number }> = (props) => {
+const SinglePoint: Component<{ point: Point; weight: number }> = (props) => {
   return (
-    <For each={props.data}>
-      {(point) => (
-        <circle
-          cx={point.x}
-          cy={point.y}
-          r={props.weight / 2}
-          fill="currentColor"
-        />
-      )}
-    </For>
+    <circle
+      cx={props.point.x}
+      cy={props.point.y}
+      r={props.weight}
+      fill="currentColor"
+    />
   );
 };
 
@@ -146,35 +133,28 @@ const Line: Component<{
       (maxX, point) => Math.max(point.x, maxX),
       -Infinity
     );
+    const minX = props.data.reduce(
+      (x, point) => Math.min(point.x, x),
+      Infinity
+    );
     const maxY = props.data.reduce(
       (maxY, point) => Math.max(point.y, maxY),
       -Infinity
     );
 
-    path += ` L ${maxX} ${maxY}`;
+    path += ` L ${maxX} ${maxY} L ${minX} ${maxY}`;
     return path;
   });
 
-  const firstPoint = () => props.data[0];
-  const lastPoint = () => props.data[props.data.length - 1];
-
   return (
     <>
-      <Show when={firstPoint()}>
-        <circle
-          cx={firstPoint().x}
-          cy={firstPoint().y}
-          r={props.weight / 2}
-          fill="currentColor"
-        />
-      </Show>
-
       <path
         d={instructions() || undefined}
         stroke="currentColor"
         fill="none"
         stroke-linejoin="round"
         stroke-width={props.weight}
+        vector-effect="non-scaling-stroke"
       />
       <Show when={props.fillOpacity}>
         <path
@@ -182,14 +162,7 @@ const Line: Component<{
           stroke="none"
           fill="currentColor"
           fill-opacity={props.fillOpacity}
-        />
-      </Show>
-      <Show when={lastPoint()}>
-        <circle
-          cx={lastPoint().x}
-          cy={lastPoint().y}
-          r={props.weight / 2}
-          fill="currentColor"
+          vector-effect="non-scaling-stroke"
         />
       </Show>
     </>
