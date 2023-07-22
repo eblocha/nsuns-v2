@@ -1,4 +1,4 @@
-import { Component, For, Setter, Show, createMemo } from "solid-js";
+import { Component, For, JSX, Setter, Show, createMemo } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
 import { Dumbbell } from "../../icons/Dumbbell";
 import {
@@ -9,7 +9,7 @@ import {
 import { Max } from "../../api/maxes";
 import { day, goToToday, today } from "./state";
 
-export const displaySet = (set: ProgramSet, max?: number) => {
+export const displaySet = (set: ProgramSet, max?: number): JSX.Element => {
   const repsComponent =
     set.reps != null
       ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${
@@ -19,7 +19,11 @@ export const displaySet = (set: ProgramSet, max?: number) => {
 
   const weightComponent = resolvedWeightDisplay(set, max);
 
-  return set.amount ? `${weightComponent}${repsComponent}` : set.description;
+  return set.amount
+    ? `${weightComponent}${repsComponent}`
+    : set.description || (
+        <span class="italic text-gray-200">No description</span>
+      );
 };
 
 export const SetList: Component<{

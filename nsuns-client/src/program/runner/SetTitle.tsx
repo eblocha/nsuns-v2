@@ -7,7 +7,7 @@ const displaySet = (set: ProgramSet, movement: Movement, max?: number) => {
   const repsComponent = repsDisplay(set);
 
   const description =
-    !weightComponent && !repsComponent ? `: ${set.description}` : "";
+    !weightComponent && !repsComponent && set.description ? `: ${set.description}` : "";
 
   return `${movement.name}${weightComponent}${repsComponent}${description}`;
 };
