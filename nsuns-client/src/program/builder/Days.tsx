@@ -13,16 +13,8 @@ import { useMovementsQuery } from "../../hooks/queries/movements";
 import { SetComponent } from "./Set";
 import { SetSummary } from "./SetSummary";
 import { ChevronDown } from "../../icons/ChevronDown";
-
-const dayNames = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
+import { dayNames } from "../../util/days";
+import { useSetMap } from "../../hooks/useSetMap";
 
 const EMPTY: never[] = [];
 
@@ -69,13 +61,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
   const [expanded, setExpanded] = createSignal(dayNames.map(() => true));
   const query = useMovementsQuery();
 
-  const setMap = createMemo(() => {
-    const m: Record<string, ProgramSet[]> = {};
-    dayNames.forEach((name, index) => {
-      m[name] = props.sets.filter((set) => set.day === index);
-    });
-    return m;
-  });
+  const setMap = useSetMap(() => props.sets);
 
   const movements = () => query.data ?? EMPTY;
 
