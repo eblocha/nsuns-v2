@@ -1,7 +1,5 @@
 import { A, useParams } from "@solidjs/router";
 import { Component, Match, Switch, createEffect, on } from "solid-js";
-import { Home } from "../../icons/Home";
-import { ChevronDown } from "../../icons/ChevronDown";
 import { useProgramSummaryQuery } from "../../hooks/queries/sets";
 import { useSetMap } from "../../hooks/useSetMap";
 import { useMovementsQuery } from "../../hooks/queries/movements";
@@ -21,6 +19,8 @@ import {
   getLatestMax,
   useMovementsToMaxesMap,
 } from "../../hooks/useMovementsToMaxesMap";
+import { Edit } from "../../icons/Edit";
+import { User } from "../../icons/User";
 
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
@@ -74,10 +74,10 @@ export const ProgramRunner: Component = () => {
       <div class="w-full flex-shrink-0 flex flex-row">
         <nav class="flex flex-col items-center p-2 flex-shrink-0 gap-2">
           <A href="/" class="text-button">
-            <Home />
+            <User />
           </A>
           <A href="../" class="text-button">
-            <ChevronDown class="rotate-90" />
+            <Edit />
           </A>
         </nav>
         <div class="px-6 flex-grow">

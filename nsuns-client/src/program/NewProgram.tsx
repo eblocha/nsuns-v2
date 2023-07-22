@@ -47,7 +47,7 @@ export const NewProgram: Component = () => {
           <div class="flex flex-col items-end flex-grow">
             <Input
               control={name}
-              class="ml-3 input w-full"
+              class="input w-full"
               name="program-name"
               required={true}
             />
