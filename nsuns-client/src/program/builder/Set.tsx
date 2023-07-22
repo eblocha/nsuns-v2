@@ -1,8 +1,7 @@
 import { Component, Show, createSignal } from "solid-js";
 import { Day, Movement, ProgramSet } from "../../api";
 import { EditSet } from "./EditSet";
-
-const plural = (value: number) => (value === 1 ? "" : "s");
+import { plural, repsDisplay } from "../../util/setDisplay";
 
 export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const movement = movements.find((m) => m.id === set.movementId);
@@ -22,17 +21,12 @@ export const displaySet = (set: ProgramSet, movements: Movement[]) => {
         ? " of max"
         : ` of ${percentOfMax?.name} max`;
 
-    weightComponent = ` ${amountStr}%${weightOfComponent}`
+    weightComponent = ` ${amountStr}%${weightOfComponent}`;
   } else {
     weightComponent = set.amount ? ` ${amountStr} lb${plural(set.amount)}` : "";
   }
 
-  const repsComponent =
-    set.reps != null
-      ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${
-          set.repsIsMinimum ? "s" : plural(set.reps)
-        }`
-      : "";
+  const repsComponent = repsDisplay(set);
 
   return `${nameComponent}${weightComponent}${repsComponent}`;
 };

@@ -2,13 +2,7 @@ import { Component, For, Setter, Show, createMemo } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
 import { Dumbbell } from "../../icons/Dumbbell";
 import { useMovementMap } from "../../hooks/useMovementMap";
-
-type Section = {
-  movement: Movement;
-  sets: { set: ProgramSet; index: number }[];
-};
-
-const plural = (value: number) => (value === 1 ? "" : "s");
+import { getSections, plural, resolvedWeightDisplay, round } from "../../util/setDisplay";
 
 export const displaySet = (set: ProgramSet, max: number) => {
   const repsComponent =
@@ -18,13 +12,7 @@ export const displaySet = (set: ProgramSet, max: number) => {
         }`
       : "";
 
-  let weightComponent: string;
-
-  if (set.percentageOfMax) {
-    weightComponent = `${(set.amount / 100) * max} lbs`;
-  } else {
-    weightComponent = `${set.amount} lbs`;
-  }
+  const weightComponent = resolvedWeightDisplay(set, max);
 
   return set.amount ? `${weightComponent}${repsComponent}` : set.description;
 };
@@ -38,34 +26,7 @@ export const SetList: Component<{
 }> = (props) => {
   const movementMap = useMovementMap(() => props.movements ?? []);
 
-  const sections = createMemo(() => {
-    const sections: Section[] = [];
-    const movements = movementMap();
-
-    if (!props.sets) return sections;
-
-    let currentSection: Section | null = null;
-    let index = -1;
-    for (const set of props.sets) {
-      index++;
-      const movement = movements[set.movementId];
-      if (!movement) continue;
-
-      if (!currentSection || currentSection.movement.id !== movement.id) {
-        if (currentSection) sections.push(currentSection);
-
-        currentSection = {
-          movement: movement,
-          sets: [{ set, index }],
-        };
-      } else if (currentSection.movement.id === movement.id) {
-        currentSection.sets.push({ set, index });
-      }
-    }
-    if (currentSection) sections.push(currentSection);
-
-    return sections;
-  });
+  const sections = createMemo(() => getSections(props.sets ?? [], movementMap()));
 
   return (
     <div class="w-full h-full flex flex-col border rounded border-gray-700 overflow-hidden">
@@ -106,7 +67,7 @@ export const SetList: Component<{
                             "primary-button": props.currentSet === index,
                           }}
                         >
-                          {displaySet(set, 100)}
+                          {displaySet(set, 202)}
                         </button>
                       </li>
                     )}

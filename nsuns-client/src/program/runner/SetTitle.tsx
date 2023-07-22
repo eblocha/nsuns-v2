@@ -1,38 +1,39 @@
 import { Component } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
+import { repsDisplay, resolvedWeightDisplay } from "../../util/setDisplay";
 
-const displaySet = (set: ProgramSet, movement: Movement) => {
-  const amountComponent = set.amount ? ` ${set.amount} lbs` : "";
+const displaySet = (set: ProgramSet, movement: Movement, max?: number) => {
+  const weightComponent = resolvedWeightDisplay(set, max);
+  const repsComponent = repsDisplay(set);
 
-  const reps = set.reps
-    ? ` for ${set.reps} rep${set.reps === 1 ? "" : "s"}`
-    : "";
+  const description =
+    !weightComponent && !repsComponent ? `: ${set.description}` : "";
 
-  const description = !amountComponent && !reps ? `: ${set.description}` : "";
-
-  return `${movement.name}${amountComponent}${reps}${description}`;
+  return `${movement.name}${weightComponent}${repsComponent}${description}`;
 };
 
 export const SetTitle: Component<{
   current?: ProgramSet;
   currentMovement?: Movement;
+  currentMax?: number;
   next?: ProgramSet;
   nextMovement?: Movement;
+  nextMax?: number;
 }> = (props) => {
   return (
     <>
       <h1 class="text-8xl mb-4">
         {(props.current &&
           props.currentMovement &&
-          displaySet(props.current, props.currentMovement)) ||
-          "None"}
+          displaySet(props.current, props.currentMovement, props.currentMax)) ||
+          "Rest"}
       </h1>
       <h2 class="text-5xl text-gray-400">
         Next:{" "}
         {(props.next &&
           props.nextMovement &&
-          "Next: " + displaySet(props.next, props.nextMovement)) ||
-          " None"}
+          displaySet(props.next, props.nextMovement, props.nextMax)) ||
+          " Rest"}
       </h2>
     </>
   );
