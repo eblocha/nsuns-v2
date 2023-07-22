@@ -186,7 +186,7 @@ export const SetForm: Component<{
         <Show when={props.mutationDelete}>
           <button
             type="button"
-            class="danger-button w-16 flex flex-row items-center justify-center h-full"
+            class="danger-button w-16 flex flex-row items-center justify-center h-full mr-auto"
             onClick={onDelete}
           >
             <Show
