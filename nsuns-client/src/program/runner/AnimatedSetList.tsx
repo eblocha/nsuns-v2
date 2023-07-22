@@ -18,7 +18,7 @@ const dayNameOut = () => (direction() < 0 ? nextDayName() : prevDayName());
 export const AnimatedSetList: Component<{
   setMap: Record<string, ProgramSet[]>;
   movementMap?: Record<number, Movement>;
-  movementsToMaxesMap?: Record<number, Max>;
+  movementsToMaxesMap?: Record<number, Max[]>;
 }> = (props) => {
   let timeout: number;
 

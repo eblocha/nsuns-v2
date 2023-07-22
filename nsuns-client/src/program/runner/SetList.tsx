@@ -8,6 +8,7 @@ import {
 } from "../../util/setDisplay";
 import { Max } from "../../api/maxes";
 import { day, goToToday, today } from "./state";
+import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
 
 export const displaySet = (set: ProgramSet, max?: number): JSX.Element => {
   const repsComponent =
@@ -31,7 +32,7 @@ export const SetList: Component<{
   currentSet: number;
   setCurrentSet: Setter<number>;
   movementMap?: Record<number, Movement>;
-  movementsToMaxesMap?: Record<number, Max>;
+  movementsToMaxesMap?: Record<number, Max[]>;
   day: string;
 }> = (props) => {
   const sections = createMemo(() =>
@@ -86,10 +87,9 @@ export const SetList: Component<{
                         >
                           {displaySet(
                             set,
-                            set.percentageOfMax
-                              ? props.movementsToMaxesMap?.[set.percentageOfMax]
-                                  ?.amount
-                              : undefined
+                            props.movementsToMaxesMap &&
+                              getLatestMax(props.movementsToMaxesMap, set)
+                                ?.amount
                           )}
                         </button>
                       </li>

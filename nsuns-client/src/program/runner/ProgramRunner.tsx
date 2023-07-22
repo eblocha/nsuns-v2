@@ -17,7 +17,10 @@ import { AnimatedSetList } from "./AnimatedSetList";
 import { LoadingTitle, SetTitle } from "./SetTitle";
 import { useMovementMap } from "../../hooks/useMovementMap";
 import { useMaxesQuery } from "../../hooks/queries/maxes";
-import { useMovementsToMaxesMap } from "../../hooks/useMovementsToMaxesMap";
+import {
+  getLatestMax,
+  useMovementsToMaxesMap,
+} from "../../hooks/useMovementsToMaxesMap";
 
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
@@ -44,9 +47,7 @@ export const ProgramRunner: Component = () => {
   };
   const currentMax = () => {
     const set = currentProgramSet();
-    return set?.percentageOfMax
-      ? movementsToMaxesMap()[set.percentageOfMax]?.amount
-      : undefined;
+    return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
 
   const nextProgramSet = () => setMap()[dayName()]?.[currentSet() + 1];
@@ -56,9 +57,7 @@ export const ProgramRunner: Component = () => {
   };
   const nextMax = () => {
     const set = nextProgramSet();
-    return set?.percentageOfMax
-      ? movementsToMaxesMap()[set.percentageOfMax]?.amount
-      : undefined;
+    return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
 
   createEffect(

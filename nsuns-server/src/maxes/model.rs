@@ -23,7 +23,7 @@ impl Max {
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Self>> {
         sqlx::query_as::<_, Self>(
-            "SELECT * FROM maxes WHERE profile_id = $1 ORDER BY timestamp DESC",
+            "SELECT * FROM maxes WHERE profile_id = $1 ORDER BY timestamp",
         )
         .bind(profile_id)
         .fetch_all(executor)
