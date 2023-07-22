@@ -31,10 +31,10 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: createMax,
     onSuccess: (max, ...args) => {
+      options?.onSuccess?.(max, ...args);
       queryClient.setQueryData(["maxes", profileId()], (maxes?: Max[]) => {
         return maxes && [...maxes, max];
       });
-      options?.onSuccess?.(max, ...args);
     },
   });
   return mutation;
@@ -49,10 +49,10 @@ export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: updateMax,
     onSuccess: (max, ...args) => {
+      options?.onSuccess?.(max, ...args);
       queryClient.setQueryData(["maxes", profileId()], (maxes?: Max[]) =>
         updateInArray(maxes, max, (m) => m.id === max.id)
       );
-      options?.onSuccess?.(max, ...args);
     },
   });
   return mutation;

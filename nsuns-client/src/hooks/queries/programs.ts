@@ -36,12 +36,12 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: createProgram,
     onSuccess: (program, ...args) => {
+      options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
         ["programs", profileId()],
         (programs?: Program[]) =>
           programs ? [...programs, program] : undefined
       );
-      options?.onSuccess?.(program, ...args);
     },
   });
   return mutation;
@@ -58,12 +58,12 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: updateProgram,
     onSuccess: (program, ...args) => {
+      options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
         ["programs", profileId()],
         (programs?: Program[]) =>
           updateInArray(programs, program, (p) => p.id === program.id)
       );
-      options?.onSuccess?.(program, ...args);
     },
   });
   return mutation;
@@ -80,13 +80,11 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: deleteProgram,
     onSuccess: (program, id, ...args) => {
+      options?.onSuccess?.(program, id, ...args);
       queryClient.setQueryData(
         ["programs", profileId()],
         (programs?: Program[]) => programs?.filter((p) => p.id !== id)
       );
-
-      queryClient.invalidateQueries(["programs"]);
-      options?.onSuccess?.(program, id, ...args);
     },
   });
   return mutation;

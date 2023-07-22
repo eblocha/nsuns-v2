@@ -14,6 +14,7 @@ import {
   updateSet,
 } from "../../api";
 import { Accessor } from "solid-js";
+import { updateInArray } from "./util";
 
 export const useProgramSummaryQuery = (programId: Accessor<string>) => {
   return createQuery({
@@ -33,6 +34,7 @@ export const useCreateSet = (
     ...options,
     mutationFn: createSet,
     onSuccess: (set, ...args) => {
+      options?.onSuccess?.(set, ...args);
       queryClient.setQueryData(
         ["programs", set.programId.toString()],
         (summary?: ProgramSummary) => {
@@ -44,7 +46,6 @@ export const useCreateSet = (
           };
         }
       );
-      options?.onSuccess?.(set, ...args);
     },
   });
 
@@ -61,25 +62,20 @@ export const useEditSet = (
     ...options,
     mutationFn: updateSet,
     onSuccess: (set, ...args) => {
+      options?.onSuccess?.(set, ...args);
       queryClient.setQueryData(
         ["programs", set.programId.toString()],
         (summary?: ProgramSummary) => {
           if (!summary) return;
 
-          const index = summary.sets.findIndex((s) => s.id === set.id);
-
-          if (index === -1) return;
-
-          const newSets = [...summary.sets];
-          newSets.splice(index, 1, set);
-
           return {
             program: summary.program,
-            sets: newSets,
+            sets:
+              updateInArray(summary.sets, set, (s) => s.id === set.id) ??
+              summary.sets,
           };
         }
       );
-      options?.onSuccess?.(set, ...args);
     },
   });
 
@@ -97,6 +93,7 @@ export const useDeleteSet = (
     ...options,
     mutationFn: deleteSet,
     onSuccess: (v, id, ...args) => {
+      options?.onSuccess?.(v, id, ...args);
       queryClient.setQueryData(
         ["programs", programId],
         (summary?: ProgramSummary) => {
@@ -107,7 +104,6 @@ export const useDeleteSet = (
           };
         }
       );
-      options?.onSuccess?.(v, id, ...args);
     },
   });
   return mutation;

@@ -11,6 +11,7 @@ import {
   getMovements,
   updateMovement,
 } from "../../api";
+import { updateInArray } from "./util";
 
 export const useMovementsQuery = () => {
   const query = createQuery({
@@ -48,20 +49,10 @@ export const useUpdateMovement = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: updateMovement,
     onSuccess: (movement, ...args) => {
-      queryClient.setQueryData(["movements"], (movements?: Movement[]) => {
-        if (!movements) return;
-
-        const index = movements.findIndex((mv) => mv.id === movement.id);
-
-        if (index === -1) return;
-
-        const newMovements = [...movements];
-
-        newMovements.splice(index, 1, movement);
-
-        return newMovements;
-      });
       options?.onSuccess?.(movement, ...args);
+      queryClient.setQueryData(["movements"], (movements?: Movement[]) =>
+        updateInArray(movements, movement, (m) => m.id === movement.id)
+      );
     },
   });
   return mutation;
