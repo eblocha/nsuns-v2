@@ -1,9 +1,10 @@
-import { Component } from "solid-js";
+import { Component, Match, Switch } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
 import { repsDisplay, resolvedWeightDisplay } from "../../util/setDisplay";
 import { Max } from "../../api/maxes";
 import { currentSet, dayName } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
+import { useProgram } from "./context/ProgramProvider";
 
 const displaySet = (set: ProgramSet, movement: Movement, max?: number) => {
   const weightComponent = resolvedWeightDisplay(set, max);
@@ -57,40 +58,44 @@ export const LoadingTitle: Component = () => {
   );
 };
 
-export const TitleBanner: Component<{
-  setMap: Record<string, ProgramSet[]>;
-  movementMap: Record<number, Movement>;
-  movementsToMaxesMap: Record<number, Max[]>;
-}> = (props) => {
+export const TitleBanner: Component = () => {
+  const { setMap, movementMap, movementsToMaxesMap, queryState } = useProgram();
 
-  const currentProgramSet = () => props.setMap[dayName()]?.[currentSet()];
+  const currentProgramSet = () => setMap()[dayName()]?.[currentSet()];
   const currentMovement = () => {
     const set = currentProgramSet();
-    return set && props.movementMap[set.movementId];
+    return set && movementMap()[set.movementId];
   };
   const currentMax = () => {
     const set = currentProgramSet();
-    return set ? getLatestMax(props.movementsToMaxesMap, set)?.amount : undefined;
+    return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
 
-  const nextProgramSet = () => props.setMap[dayName()]?.[currentSet() + 1];
+  const nextProgramSet = () => setMap()[dayName()]?.[currentSet() + 1];
   const nextMovement = () => {
     const set = nextProgramSet();
-    return set && props.movementMap[set.movementId];
+    return set && movementMap()[set.movementId];
   };
   const nextMax = () => {
     const set = nextProgramSet();
-    return set ? getLatestMax(props.movementsToMaxesMap, set)?.amount : undefined;
+    return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
 
   return (
-    <SetTitle
-      current={currentProgramSet()}
-      currentMovement={currentMovement()}
-      currentMax={currentMax()}
-      next={nextProgramSet()}
-      nextMovement={nextMovement()}
-      nextMax={nextMax()}
-    />
+    <Switch>
+      <Match when={queryState.isLoading()}>
+        <LoadingTitle />
+      </Match>
+      <Match when={queryState.isSuccess()}>
+        <SetTitle
+          current={currentProgramSet()}
+          currentMovement={currentMovement()}
+          currentMax={currentMax()}
+          next={nextProgramSet()}
+          nextMovement={nextMovement()}
+          nextMax={nextMax()}
+        />
+      </Match>
+    </Switch>
   );
 };

@@ -1,10 +1,9 @@
-import { Component, createEffect } from "solid-js";
+import { Component } from "solid-js";
 import { Forward } from "../../icons/Forward";
-import { currentSet, setCurrentSet } from "./state";
+import { currentSet, dayName, setCurrentSet } from "./state";
+import { useProgram } from "./context/ProgramProvider";
 
 const NextSet: Component<{ nSets: number }> = (props) => {
-  createEffect(() => console.log(props.nSets));
-
   return (
     <button
       class="text-button"
@@ -34,11 +33,13 @@ const PrevSet: Component = () => {
   );
 };
 
-export const Tools: Component<{ nSets: number }> = (props) => {
+export const Tools: Component = () => {
+  const { setMap } = useProgram();
+
   return (
     <div class="flex flex-row items-center">
       <PrevSet />
-      <NextSet nSets={props.nSets} />
+      <NextSet nSets={setMap()[dayName()].length ?? 0} />
     </div>
   );
 };
