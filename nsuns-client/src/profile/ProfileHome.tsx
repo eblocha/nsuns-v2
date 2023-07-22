@@ -23,9 +23,9 @@ export const ProfileHome: Component = () => {
   const isFetching = createDelayedLatch(() => programsQuery.isFetching, 200);
 
   return (
-    <div class="h-full grid grid-cols-3 gap-10 overflow-hidden">
-      <div class="h-full flex flex-col items-center justify-center py-12 px-24 overflow-auto gap-8">
-        <section class="w-full">
+    <div class="2xl:h-full grid grid-rows-2 2xl:grid-rows-1 2xl:grid-cols-3 gap-10 2xl:overflow-hidden">
+      <div class="2xl:h-full flex flex-col items-center justify-center py-12 px-24 2xl:overflow-auto gap-8">
+        <div class="w-full">
           <div class="mb-4">
             <ProfileGreeting id={params.profileId} />
           </div>
@@ -83,16 +83,16 @@ export const ProfileHome: Component = () => {
               </A>
             </div>
           </div>
-        </section>
-        <section class="w-full flex flex-col gap-4">
+        </div>
+        <div class="w-full flex flex-col gap-4">
           <h3 class="text-xl">Your Maxes</h3>
           <MaxList profileId={params.profileId} />
           <div>
             <AddMax profileId={params.profileId} />
           </div>
-        </section>
+        </div>
       </div>
-      <div class="h-full col-span-2 overflow-auto">
+      <div class="2xl:h-full 2xl:col-span-2 2xl:overflow-auto">
         <Outlet />
       </div>
     </div>
