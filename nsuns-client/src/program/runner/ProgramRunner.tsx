@@ -49,7 +49,7 @@ export const ProgramRunner: Component = () => {
           </div>
           <div class="col-span-2 h-full flex flex-col gap-4 overflow-hidden">
             <div class="grid grid-cols-2">
-              <div class="text-2xl">Maxes</div>
+              <div class="text-2xl">Program Maxes</div>
               {/* <div class="text-2xl">Reps</div> */}
             </div>
             <div class="flex-grow w-full overflow-auto">

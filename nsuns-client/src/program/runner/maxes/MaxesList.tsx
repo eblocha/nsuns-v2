@@ -13,11 +13,16 @@ const MaxCard: Component<{ maxes: Max[]; movement: Movement }> = (props) => {
         {props.movement.name}
       </div>
       <div class="flex-grow flex flex-col items-center justify-center p-6 text-4xl">
-        {lastMax()?.amount}
+        {lastMax()?.amount ?? <span class="italic text-gray-500">None</span>}
       </div>
     </div>
   );
 };
+
+type MaxRowData = {
+  movement: Movement;
+  maxes: Max[]
+}
 
 export const MaxesList: Component = () => {
   const {
@@ -26,13 +31,13 @@ export const MaxesList: Component = () => {
     relevantMovements: movementsWithMaxInProgram,
   } = useProgram();
 
-  const maxesToShow = createMemo(() => {
+  const maxesToShow = createMemo<MaxRowData[]>(() => {
     const mm = movementMap();
     const m2m = movementsToMaxesMap();
 
     return movementsWithMaxInProgram().map((movementId) => ({
       movement: mm[movementId],
-      maxes: m2m[movementId],
+      maxes: m2m[movementId] ?? [],
     }));
   });
 
@@ -44,7 +49,7 @@ export const MaxesList: Component = () => {
             <MaxCard maxes={maxes} movement={movement} />
             <div class="col-span-5 h-32 text-blue-500 p-1 mt-auto">
               <Graph
-                data={maxes.map((max, index) => ({
+                data={maxes?.map((max, index) => ({
                   x: index,
                   y: max.amount,
                 }))}

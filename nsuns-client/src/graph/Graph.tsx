@@ -82,7 +82,9 @@ export const Graph: Component<{
       <Show
         when={mergedProps.data.length > 1}
         fallback={
-          <SinglePoint point={{ x: 50, y: 50 }} weight={mergedProps.weight} />
+          <Show when={mergedProps.data.length}>
+            <SinglePoint point={{ x: 50, y: 50 }} weight={mergedProps.weight} />
+          </Show>
         }
       >
         <Line
