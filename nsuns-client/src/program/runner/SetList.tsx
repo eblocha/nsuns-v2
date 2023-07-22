@@ -7,6 +7,7 @@ import {
   resolvedWeightDisplay,
 } from "../../util/setDisplay";
 import { Max } from "../../api/maxes";
+import { day, goToToday, today } from "./state";
 
 export const displaySet = (set: ProgramSet, max?: number) => {
   const repsComponent =
@@ -35,9 +36,16 @@ export const SetList: Component<{
 
   return (
     <div class="w-full h-full flex flex-col border rounded border-gray-700 overflow-hidden">
-      <h2 class="text-xl border-b border-gray-700 p-2 bg-gray-800">
-        {props.day}
-      </h2>
+      <div class="flex flex-row items-center border-b border-gray-700 p-2 bg-gray-900">
+        <h2 class="text-xl">{props.day}</h2>
+        <button
+          class="text-button ml-auto text-sm"
+          onClick={goToToday}
+          disabled={day() === today()}
+        >
+          Go To Today
+        </button>
+      </div>
       <div class="overflow-hidden flex-grow">
         <div class="h-full w-full overflow-auto">
           <ul class="p-2">
@@ -75,7 +83,8 @@ export const SetList: Component<{
                           {displaySet(
                             set,
                             set.percentageOfMax
-                              ? props.movementsToMaxesMap?.[set.percentageOfMax]?.amount
+                              ? props.movementsToMaxesMap?.[set.percentageOfMax]
+                                  ?.amount
                               : undefined
                           )}
                         </button>
