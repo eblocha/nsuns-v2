@@ -6,6 +6,7 @@ import { Movement } from "../../api";
 import { Max } from "../../api/maxes";
 import { Graph } from "../../graph/Graph";
 import { plural } from "../../util/setDisplay";
+import { combineQueries } from "../../hooks/queries/util";
 
 const displayAmount = (amount?: number) => {
   return amount !== undefined ? `${amount} lb${plural(amount)}` : "None";
@@ -19,10 +20,10 @@ export const MaxList: Component<{ profileId: string }> = (props) => {
   const maxesQuery = useMaxesQuery(() => props.profileId);
   const movementsQuery = useMovementsQuery();
 
-  const isLoading = () => movementsQuery.isLoading || maxesQuery.isLoading;
-  const isSuccess = () => movementsQuery.isSuccess && maxesQuery.isSuccess;
-  const isError = () => movementsQuery.isError || maxesQuery.isError;
-  const error = () => movementsQuery.error || maxesQuery.error;
+  const { isLoading, isSuccess, isError, error } = combineQueries(
+    movementsQuery,
+    maxesQuery
+  );
 
   const movementToMaxesMap = useMovementsToMaxesMap(
     () => maxesQuery.data ?? []

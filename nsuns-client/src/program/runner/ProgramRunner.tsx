@@ -13,6 +13,7 @@ import { useMovementsToMaxesMap } from "../../hooks/useMovementsToMaxesMap";
 import { Edit } from "../../icons/Edit";
 import { User } from "../../icons/User";
 import { Tools } from "./Tools";
+import { combineQueries } from "../../hooks/queries/util";
 
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
@@ -21,10 +22,11 @@ export const ProgramRunner: Component = () => {
   const movementsQuery = useMovementsQuery();
   const maxesQuery = useMaxesQuery(() => params.profileId);
 
-  const isLoading = () =>
-    summaryQuery.isLoading || movementsQuery.isLoading || maxesQuery.isLoading;
-  const isSuccess = () =>
-    summaryQuery.isSuccess && movementsQuery.isSuccess && maxesQuery.isSuccess;
+  const { isLoading, isSuccess } = combineQueries(
+    summaryQuery,
+    movementsQuery,
+    maxesQuery
+  );
 
   const setMap = useSetMap(() => summaryQuery.data?.sets ?? []);
   const movementMap = useMovementMap(() => movementsQuery.data ?? []);
