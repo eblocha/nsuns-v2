@@ -1,4 +1,4 @@
-import { baseHeaders, get, json, post } from "./util";
+import { baseHeaders, get, json, post, put } from "./util";
 
 export type Max = {
   id: number;
@@ -16,6 +16,12 @@ export const getMaxes = async (profileId: string): Promise<Max[]> =>
 
 export const createMax = async (max: CreateMax): Promise<Max> =>
   post(path, {
+    body: JSON.stringify(max),
+    headers: baseHeaders,
+  }).then(json());
+
+export const updateMax = async (max: Max): Promise<Max> =>
+  put(path, {
     body: JSON.stringify(max),
     headers: baseHeaders,
   }).then(json());

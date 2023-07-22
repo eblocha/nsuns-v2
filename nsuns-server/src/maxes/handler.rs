@@ -6,7 +6,11 @@ use axum::{
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{db::Pool, error::LogError, util::created};
+use crate::{
+    db::Pool,
+    error::LogError,
+    util::{created, or_404},
+};
 
 use super::model::{CreateMax, Max};
 
@@ -31,5 +35,12 @@ pub async fn create_max(State(pool): State<Pool>, Json(max): Json<CreateMax>) ->
         .await
         .map(Json)
         .map(created)
+        .log_error()
+}
+
+pub async fn update_max(State(pool): State<Pool>, Json(max): Json<Max>) -> impl IntoResponse {
+    max.update_one(&pool)
+        .await
+        .map(or_404::<_, Json<_>>)
         .log_error()
 }

@@ -31,6 +31,27 @@ impl Max {
         .with_context(|| format!("failed to select maxes for profile_id={}", profile_id))
         .into_result()
     }
+
+    pub async fn update_one(
+        self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> Result<Option<Self>> {
+        sqlx::query("UPDATE maxes SET profile_id = $1, movement_id = $2, amount = $3 WHERE id = $4")
+            .bind(self.profile_id)
+            .bind(self.movement_id)
+            .bind(self.amount)
+            .execute(executor)
+            .await
+            .with_context(|| format!("failed to update max with id={}", self.id))
+            .map(|result| {
+                if result.rows_affected() == 0 {
+                    None
+                } else {
+                    Some(self)
+                }
+            })
+            .into_result()
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
