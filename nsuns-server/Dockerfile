@@ -8,4 +8,5 @@ RUN apt-get update & apt-get install -y extra-runtime-dependencies & rm -rf /var
 COPY --from=builder /usr/local/cargo/bin/nsuns-server /usr/local/bin/nsuns-server
 COPY ./config ./config
 COPY ./db ./db
+COPY ./static ./static
 CMD ["nsuns-server"]
