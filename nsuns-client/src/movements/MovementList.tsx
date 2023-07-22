@@ -51,12 +51,7 @@ export const MovementList: Component = () => {
               </Show>
               <ul class="flex-grow">
                 <For each={query.data}>
-                  {(movement) => (
-                    <Movement
-                      name={movement.name}
-                      description={movement.description}
-                    />
-                  )}
+                  {(movement) => <Movement {...movement} />}
                 </For>
               </ul>
             </div>

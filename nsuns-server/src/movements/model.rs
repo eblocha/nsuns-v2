@@ -23,6 +23,27 @@ impl Movement {
             .with_context(|| "failed to select movements")
             .into_result()
     }
+
+    pub async fn update_one(
+        self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> Result<Option<Self>> {
+        sqlx::query("UPDATE movements SET name = $1, description = $2 WHERE id = $3")
+            .bind(&self.name)
+            .bind(self.description.as_ref())
+            .bind(self.id)
+            .execute(executor)
+            .await
+            .with_context(|| format!("failed to update movement with id={}", self.id))
+            .map(|result| {
+                if result.rows_affected() == 0 {
+                    None
+                } else {
+                    Some(self)
+                }
+            })
+            .into_result()
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

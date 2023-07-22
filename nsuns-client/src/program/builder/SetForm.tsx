@@ -13,7 +13,6 @@ import {
 } from "../../api";
 import { Spinner } from "../../icons/Spinner";
 import { Input } from "../../forms/Input";
-import { displaySet } from "./Set";
 
 export type SetFormControls = ControlGroup<{
   movementId: Control<string>;
@@ -81,6 +80,7 @@ export const SetForm: Component<{
     } else if (props.id && props.mutationUpdate) {
       props.mutationUpdate.mutate({ ...base, id: props.id });
     }
+    props.onSubmit?.()
   };
 
   const movementOptions = createMemo<SelectOption[] | undefined>(() =>
@@ -99,7 +99,7 @@ export const SetForm: Component<{
       class="grid grid-cols-2 gap-y-4 gap-x-2"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit?.();
+        onSubmit();
       }}
     >
       <h3 class="col-span-2 text-lg mb-2">{props.title}</h3>
