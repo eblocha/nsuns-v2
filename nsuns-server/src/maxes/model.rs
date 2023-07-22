@@ -14,7 +14,7 @@ pub struct Max {
     pub id: i32,
     pub profile_id: Uuid,
     pub movement_id: i32,
-    pub amount: Option<f64>,
+    pub amount: f64,
 }
 
 impl Max {
@@ -59,7 +59,7 @@ impl Max {
 pub struct CreateMax {
     pub profile_id: Uuid,
     pub movement_id: i32,
-    pub amount: Option<f64>,
+    pub amount: f64,
 }
 
 impl CreateMax {

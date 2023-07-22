@@ -44,7 +44,7 @@ CREATE TABLE maxes (
   profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
   timestamp TIMESTAMP DEFAULT now(),
-  amount DOUBLE PRECISION
+  amount DOUBLE PRECISION NOT NULL CHECK (amount >= 0)
 );
 CREATE INDEX maxes_by_profile_id ON maxes(profile_id);
 CREATE TABLE reps (

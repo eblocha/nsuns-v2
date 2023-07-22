@@ -11,12 +11,14 @@ import {
 } from "./state";
 import { SetList } from "./SetList";
 import style from "./AnimatedSetList.module.css";
+import { Max } from "../../api/maxes";
 
 const dayNameOut = () => (direction() < 0 ? nextDayName() : prevDayName());
 
 export const AnimatedSetList: Component<{
   setMap: Record<string, ProgramSet[]>;
-  movements?: Movement[];
+  movementMap?: Record<number, Movement>;
+  movementsToMaxesMap?: Record<number, Max>;
 }> = (props) => {
   let timeout: number;
 
@@ -43,7 +45,8 @@ export const AnimatedSetList: Component<{
             currentSet={currentSet()}
             setCurrentSet={setCurrentSet}
             day={dayNameOut()}
-            movements={props.movements}
+            movementMap={props.movementMap}
+            movementsToMaxesMap={props.movementsToMaxesMap}
           />
         </div>
       </Show>
@@ -61,7 +64,8 @@ export const AnimatedSetList: Component<{
           currentSet={currentSet()}
           setCurrentSet={setCurrentSet}
           day={dayName()}
-          movements={props.movements}
+          movementMap={props.movementMap}
+          movementsToMaxesMap={props.movementsToMaxesMap}
         />
       </div>
     </>

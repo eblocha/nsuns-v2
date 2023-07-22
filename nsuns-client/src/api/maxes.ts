@@ -4,7 +4,7 @@ export type Max = {
   id: number;
   profileId: string;
   movementId: number;
-  amount: number | null;
+  amount: number;
 };
 
 export type CreateMax = Omit<Max, "id">;

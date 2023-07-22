@@ -1,10 +1,14 @@
 import { Component, For, Setter, Show, createMemo } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
 import { Dumbbell } from "../../icons/Dumbbell";
-import { useMovementMap } from "../../hooks/useMovementMap";
-import { getSections, plural, resolvedWeightDisplay, round } from "../../util/setDisplay";
+import {
+  getSections,
+  plural,
+  resolvedWeightDisplay,
+} from "../../util/setDisplay";
+import { Max } from "../../api/maxes";
 
-export const displaySet = (set: ProgramSet, max: number) => {
+export const displaySet = (set: ProgramSet, max?: number) => {
   const repsComponent =
     set.reps != null
       ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${
@@ -21,12 +25,13 @@ export const SetList: Component<{
   sets?: ProgramSet[];
   currentSet: number;
   setCurrentSet: Setter<number>;
-  movements?: Movement[];
+  movementMap?: Record<number, Movement>;
+  movementsToMaxesMap?: Record<number, Max>;
   day: string;
 }> = (props) => {
-  const movementMap = useMovementMap(() => props.movements ?? []);
-
-  const sections = createMemo(() => getSections(props.sets ?? [], movementMap()));
+  const sections = createMemo(() =>
+    getSections(props.sets ?? [], props.movementMap ?? {})
+  );
 
   return (
     <div class="w-full h-full flex flex-col border rounded border-gray-700 overflow-hidden">
@@ -67,7 +72,12 @@ export const SetList: Component<{
                             "primary-button": props.currentSet === index,
                           }}
                         >
-                          {displaySet(set, 202)}
+                          {displaySet(
+                            set,
+                            set.percentageOfMax
+                              ? props.movementsToMaxesMap?.[set.percentageOfMax]?.amount
+                              : undefined
+                          )}
                         </button>
                       </li>
                     )}

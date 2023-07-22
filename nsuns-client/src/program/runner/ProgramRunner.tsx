@@ -16,27 +16,49 @@ import {
 import { AnimatedSetList } from "./AnimatedSetList";
 import { LoadingTitle, SetTitle } from "./SetTitle";
 import { useMovementMap } from "../../hooks/useMovementMap";
+import { useMaxesQuery } from "../../hooks/queries/maxes";
+import { useMovementsToMaxesMap } from "../../hooks/useMovementsToMaxesMap";
 
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
 
   const summaryQuery = useProgramSummaryQuery(params.programId);
   const movementsQuery = useMovementsQuery();
+  const maxesQuery = useMaxesQuery(params.profileId);
+
+  const isLoading = () =>
+    summaryQuery.isLoading || movementsQuery.isLoading || maxesQuery.isLoading;
+  const isSuccess = () =>
+    summaryQuery.isSuccess && movementsQuery.isSuccess && maxesQuery.isSuccess;
 
   const setMap = useSetMap(() => summaryQuery.data?.sets ?? []);
-
   const movementMap = useMovementMap(() => movementsQuery.data ?? []);
+  const movementsToMaxesMap = useMovementsToMaxesMap(
+    () => maxesQuery.data ?? []
+  );
 
   const currentProgramSet = () => setMap()[dayName()]?.[currentSet()];
   const currentMovement = () => {
     const set = currentProgramSet();
     return set && movementMap()[set.movementId];
   };
+  const currentMax = () => {
+    const set = currentProgramSet();
+    return set?.percentageOfMax
+      ? movementsToMaxesMap()[set.percentageOfMax]?.amount
+      : undefined;
+  };
 
   const nextProgramSet = () => setMap()[dayName()]?.[currentSet() + 1];
   const nextMovement = () => {
     const set = nextProgramSet();
     return set && movementMap()[set.movementId];
+  };
+  const nextMax = () => {
+    const set = nextProgramSet();
+    return set?.percentageOfMax
+      ? movementsToMaxesMap()[set.percentageOfMax]?.amount
+      : undefined;
   };
 
   createEffect(
@@ -47,6 +69,10 @@ export const ProgramRunner: Component = () => {
       }
     )
   );
+
+  createEffect(() => {
+    console.log(movementsToMaxesMap());
+  });
 
   return (
     <div class="w-full h-full overflow-hidden flex flex-col">
@@ -61,15 +87,17 @@ export const ProgramRunner: Component = () => {
         </nav>
         <div class="px-6 flex-grow">
           <Switch>
-            <Match when={summaryQuery.isLoading || movementsQuery.isLoading}>
+            <Match when={isLoading()}>
               <LoadingTitle />
             </Match>
-            <Match when={summaryQuery.isSuccess && movementsQuery.isSuccess}>
+            <Match when={isSuccess()}>
               <SetTitle
                 current={currentProgramSet()}
                 currentMovement={currentMovement()}
+                currentMax={currentMax()}
                 next={nextProgramSet()}
                 nextMovement={nextMovement()}
+                nextMax={nextMax()}
               />
             </Match>
           </Switch>
@@ -86,7 +114,8 @@ export const ProgramRunner: Component = () => {
           <div class="flex-grow overflow-hidden h-full relative">
             <AnimatedSetList
               setMap={setMap()}
-              movements={movementsQuery.data}
+              movementMap={movementMap()}
+              movementsToMaxesMap={movementsToMaxesMap()}
             />
           </div>
           <button
