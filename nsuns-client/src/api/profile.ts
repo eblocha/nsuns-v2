@@ -1,4 +1,4 @@
-import { acceptJson, bothJson, del, get, json, noContent, post, put } from "./util";
+import { acceptJson, bothJson, del, get, json, post, put } from "./util";
 
 export type Profile = {
   id: string;
@@ -27,5 +27,7 @@ export const updateProfile = async (profile: Profile): Promise<Profile> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const deleteProfile = async (id: string): Promise<void> =>
-  del(`${path}/${id}`).then(noContent);
+export const deleteProfile = async (id: string): Promise<Profile> =>
+  del(`${path}/${id}`, {
+    headers: acceptJson().headers,
+  }).then(json());

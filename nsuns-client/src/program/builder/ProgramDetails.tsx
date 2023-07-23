@@ -15,7 +15,7 @@ export const ProgramDetails: Component<{
   const name = createControl(props.program.name, { validators: [required()] });
   const reset = () => name.reset(props.program.name);
 
-  const mutation = useUpdateProgram(() => props.profileId, {
+  const mutation = useUpdateProgram({
     onSuccess: () => {
       name.setDirty(false);
       name.setTouched(false);
@@ -28,6 +28,7 @@ export const ProgramDetails: Component<{
     mutation.mutate({
       id: props.program.id,
       name: name.value(),
+      description: null,
     });
   };
 

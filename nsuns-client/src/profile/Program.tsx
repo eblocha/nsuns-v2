@@ -18,7 +18,7 @@ const DeleteProgram: Component<{
   const params = useParams<{ programId?: string, profileId: string }>();
   const navigateToProfileHome = useNavigateToProfileHome();
 
-  const mutation = useDeleteProgram(() => params.profileId, {
+  const mutation = useDeleteProgram({
     onSuccess: () => {
       props.close();
       if (params.programId === props.program.id.toString()) {

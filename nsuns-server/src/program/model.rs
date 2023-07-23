@@ -93,19 +93,12 @@ impl UpdateProgram {
     }
 }
 
-pub async fn delete_one(id: Uuid, executor: impl Executor<'_, Database = DB>) -> Result<Option<()>> {
-    sqlx::query("DELETE FROM programs WHERE id = $1")
+pub async fn delete_one(id: Uuid, executor: impl Executor<'_, Database = DB>) -> Result<Option<Program>> {
+    sqlx::query_as::<_, Program>("DELETE FROM programs WHERE id = $1 RETURNING *")
         .bind(id)
-        .execute(executor)
+        .fetch_optional(executor)
         .await
         .with_context(|| format!("failed to delete program with id={}", id))
-        .map(|result| {
-            if result.rows_affected() == 0 {
-                None
-            } else {
-                Some(())
-            }
-        })
         .into_result()
 }
 

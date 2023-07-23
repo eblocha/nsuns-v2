@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool},
     error::LogError,
-    util::{no_content_or_404, or_404},
+    util::{created, or_404},
 };
 
 use super::model::{CreateProfile, Profile};
@@ -29,7 +29,7 @@ pub async fn create_profile(
     Json(profile): Json<CreateProfile>,
 ) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
-    let res = profile.create_one(&mut tx).await.map(Json);
+    let res = profile.create_one(&mut tx).await.map(Json).map(created);
     commit_ok(res, tx).await.log_error()
 }
 
@@ -45,6 +45,6 @@ pub async fn update_profile(
 pub async fn delete_profile(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     Profile::delete_one(&pool, &id)
         .await
-        .map(no_content_or_404)
+        .map(or_404::<_, Json<_>>)
         .log_error()
 }

@@ -30,7 +30,6 @@ export const useProgramsQuery = (profileId: Accessor<string>) => {
 };
 
 export const useCreateProgram = <TError = unknown, TContext = unknown>(
-  profileId: Accessor<string>,
   options?: Partial<
     CreateMutationOptions<Program, TError, CreateProgram, TContext>
   >
@@ -42,7 +41,7 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
     onSuccess: (program, ...args) => {
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
-        QueryKeys.programs.list(profileId()),
+        QueryKeys.programs.list(program.owner),
         (programs?: ProgramsQueryData) =>
           programs ? [...programs, program] : undefined
       );
@@ -52,7 +51,6 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
 };
 
 export const useUpdateProgram = <TError = unknown, TContext = unknown>(
-  profileId: Accessor<string>,
   options?: Partial<
     CreateMutationOptions<Program, TError, UpdateProgram, TContext>
   >
@@ -64,7 +62,7 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
     onSuccess: (program, ...args) => {
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
-        QueryKeys.programs.list(profileId()),
+        QueryKeys.programs.list(program.owner),
         (programs?: ProgramsQueryData) =>
           updateInArray(programs, program, (p) => p.id === program.id)
       );
@@ -82,19 +80,16 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
 };
 
 export const useDeleteProgram = <TError = unknown, TContext = unknown>(
-  profileId: Accessor<string>,
-  options?: Partial<
-    CreateMutationOptions<void, TError, string, TContext>
-  >
+  options?: Partial<CreateMutationOptions<Program, TError, string, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({
     ...options,
     mutationFn: deleteProgram,
-    onSuccess: (v, id, ...args) => {
-      options?.onSuccess?.(v, id, ...args);
+    onSuccess: (program, id, ...args) => {
+      options?.onSuccess?.(program, id, ...args);
       queryClient.setQueryData(
-        QueryKeys.programs.list(profileId()),
+        QueryKeys.programs.list(program.owner),
         (programs?: ProgramsQueryData) => programs?.filter((p) => p.id !== id)
       );
       queryClient.invalidateQueries(QueryKeys.programs.summary(id));

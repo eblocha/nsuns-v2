@@ -1,27 +1,20 @@
-import {
-  acceptJson,
-  bothJson,
-  del,
-  get,
-  json,
-  noContent,
-  post,
-  put,
-} from "./util";
+import { acceptJson, bothJson, del, get, json, post, put } from "./util";
 import { ProgramSet } from "./sets";
 
 export type Program = {
   id: string;
   name: string;
-  createdOn: number;
+  description: string | null;
+  owner: string;
 };
 
 export type CreateProgram = {
   name: string;
+  description: string | null;
   owner: string;
 };
 
-export type UpdateProgram = Omit<Program, "createdOn">;
+export type UpdateProgram = Omit<Program, "owner">;
 
 export type ProgramSummary = {
   program: Program;
@@ -51,5 +44,7 @@ export const updateProgram = async (program: UpdateProgram): Promise<Program> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const deleteProgram = async (id: string): Promise<void> =>
-  del(`${path}/${id}`).then(noContent);
+export const deleteProgram = async (id: string): Promise<Program> =>
+  del(`${path}/${id}`, {
+    headers: acceptJson().headers,
+  }).then(json());

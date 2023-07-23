@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool},
     error::{IntoResult, LogError},
-    util::{created, no_content_or_404, or_404},
+    util::{created, or_404},
 };
 
 use super::model::{delete_one, gather_program_summary, CreateProgram, Program, UpdateProgram};
@@ -58,7 +58,7 @@ pub async fn update_program(
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     delete_one(id, &pool)
         .await
-        .map(no_content_or_404)
+        .map(or_404::<_, Json<_>>)
         .into_result()
         .log_error()
 }

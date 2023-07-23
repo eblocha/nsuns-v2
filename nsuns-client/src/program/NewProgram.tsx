@@ -15,7 +15,7 @@ export const NewProgram: Component = () => {
 
   const name = createControl("", { validators: [required()] });
 
-  const mutation = useCreateProgram(() => params.profileId, {
+  const mutation = useCreateProgram({
     onSuccess: (program) => {
       navigateToProgram(program.id);
     },
@@ -27,6 +27,7 @@ export const NewProgram: Component = () => {
     mutation.mutate({
       name: name.value(),
       owner: params.profileId,
+      description: null,
     });
   };
 

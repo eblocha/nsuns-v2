@@ -56,19 +56,12 @@ impl Profile {
     pub async fn delete_one(
         executor: impl Executor<'_, Database = DB>,
         id: &Uuid,
-    ) -> Result<Option<()>> {
-        sqlx::query("DELETE FROM profiles WHERE id = $1")
+    ) -> Result<Option<Profile>> {
+        sqlx::query_as::<_, Profile>("DELETE FROM profiles WHERE id = $1 RETURNING *")
             .bind(id)
-            .execute(executor)
+            .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to delete profile with id={}", id))
-            .map(|result| {
-                if result.rows_affected() == 0 {
-                    None
-                } else {
-                    Some(())
-                }
-            })
             .into_result()
     }
 }
