@@ -38,6 +38,7 @@ impl Reps {
             .bind(self.profile_id)
             .bind(self.movement_id)
             .bind(self.amount)
+            .bind(self.id)
             .execute(executor)
             .await
             .with_context(|| format!("failed to update reps with id={}", self.id))
