@@ -64,7 +64,7 @@ pub struct CreateReps {
 impl CreateReps {
     pub async fn insert_one(self, executor: impl Executor<'_, Database = DB>) -> Result<Reps> {
         sqlx::query_as::<_, (i32,)>(
-            "INSERT INTO maxes (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id",
+            "INSERT INTO reps (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id",
         )
         .bind(self.profile_id)
         .bind(self.movement_id)

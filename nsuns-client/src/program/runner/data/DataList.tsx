@@ -1,8 +1,8 @@
 import {
   Component,
   For,
-  JSX,
-  createEffect,
+  Match,
+  Switch,
   createMemo,
   createRenderEffect,
 } from "solid-js";
@@ -13,54 +13,44 @@ import { Movement } from "../../../api";
 import { Reps } from "../../../api/reps";
 import { createControl } from "../../../hooks/forms";
 import { Input } from "../../../forms/Input";
-import { useUpdateMaxMutation } from "../../../hooks/queries/maxes";
-import { useUpdateRepsMutation } from "../../../hooks/queries/reps";
+import {
+  useCreateMaxMutation,
+  useUpdateMaxMutation,
+} from "../../../hooks/queries/maxes";
+import {
+  useCreateRepsMutation,
+  useUpdateRepsMutation,
+} from "../../../hooks/queries/reps";
+import { createMutation } from "@tanstack/solid-query";
 
-type Stats =
-  | {
-      stats: Max[];
-      title: string;
-      type: "max";
-    }
-  | {
-      stats: Reps[];
-      title: string;
-      type: "reps";
-    };
-
-type EditableStatProps =
-  | {
-      title: string;
-      stat: Max;
-      type: "max";
-    }
-  | {
-      title: string;
-      stat: Reps;
-      type: "reps";
-    };
-
-const StatCard: Component<{
-  title: string;
-  children?: JSX.Element;
-  loading?: boolean;
-}> = (props) => {
-  return (
-    <div class="rounded flex flex-col border border-gray-600 text-xl">
-      <div class="text-center flex-shrink-0 p-3 border-b border-gray-600 bg-gray-900">
-        {props.title}
-      </div>
-      <div
-        class="flex-grow flex flex-col items-center justify-center p-3 text-4xl"
-        classList={{
-          shimmer: props.loading,
-        }}
-      >
-        {props.children}
-      </div>
-    </div>
-  );
+type CommonProps = {
+  movement: Movement;
+  profileId: string;
 };
+
+type StatsProps = CommonProps &
+  (
+    | {
+        stats: Max[];
+        type: "max";
+      }
+    | {
+        stats: Reps[];
+        type: "reps";
+      }
+  );
+
+type EditableStatProps = CommonProps &
+  (
+    | {
+        stat?: Max;
+        type: "max";
+      }
+    | {
+        stat?: Reps;
+        type: "reps";
+      }
+  );
 
 const EditableCard: Component<EditableStatProps> = (props) => {
   const amount = createControl(props.stat?.amount.toString() || "");
@@ -71,59 +61,102 @@ const EditableCard: Component<EditableStatProps> = (props) => {
 
   createRenderEffect(reset);
 
-  const maxesMutation = useUpdateMaxMutation(() => props.stat?.profileId, {
-    onError: () => reset(),
-  });
-  const repsMutation = useUpdateRepsMutation(() => props.stat?.profileId, {
-    onError: () => reset(),
-  });
+  const profileId = () => props.profileId;
+  const options = {
+    onError: reset,
+  };
 
-  const mutation = () => (props.type === "max" ? maxesMutation : repsMutation);
+  const updateMax = useUpdateMaxMutation(profileId, options);
+  const createMax = useCreateMaxMutation(profileId, options);
+
+  const updateReps = useUpdateRepsMutation(profileId, options);
+  const createReps = useCreateRepsMutation(profileId, options);
+
+  const mutation = createMutation({
+    mutationFn: async (amount: number) => {
+      if (props.stat && props.type === "max") {
+        updateMax.mutate({
+          ...props.stat,
+          amount,
+        });
+      } else if (props.stat && props.type === "reps") {
+        updateReps.mutate({
+          ...props.stat,
+          amount,
+        });
+      } else if (props.type === "max") {
+        createMax.mutate({
+          amount,
+          movementId: props.movement.id,
+          profileId: props.profileId,
+        });
+      } else if (props.type === "reps") {
+        createReps.mutate({
+          amount,
+          movementId: props.movement.id,
+          profileId: props.profileId,
+        });
+      }
+    },
+  });
 
   const onSubmit = () => {
     const amt = amount.value();
-    if (mutation().isLoading || !amt) return;
+    if (mutation.isLoading || !amt) return;
 
     const parsed = parseInt(amt);
 
     if (parsed === props.stat?.amount) return;
 
-    mutation().mutate({
-      ...props.stat,
-      amount: parsed,
-    });
+    mutation.mutate(parsed);
   };
 
   return (
-    <StatCard title={props.title} loading={mutation().isLoading}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onSubmit();
+    <div class="rounded flex flex-col border border-gray-600 text-xl">
+      <div class="text-center flex-shrink-0 p-3 border-b border-gray-600 bg-gray-900">
+        {props.movement?.name}
+      </div>
+      <div
+        class="flex-grow flex flex-col items-center justify-center p-3 text-4xl"
+        classList={{
+          shimmer: mutation.isLoading,
         }}
       >
-        <Input
-          control={amount}
-          required={true}
-          type="number"
-          min={0}
-          class="w-full h-full ghost-input text-center"
-          placeholder="Edit"
-          disabled={mutation().isLoading}
-          onBlur={reset}
-        />
-      </form>
-    </StatCard>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmit();
+          }}
+        >
+          <Input
+            control={amount}
+            type="number"
+            min={0}
+            class="w-full h-full ghost-input text-center"
+            placeholder="Edit"
+            disabled={mutation.isLoading}
+            onBlur={reset}
+          />
+        </form>
+      </div>
+    </div>
   );
 };
 
-const LastAmountCard: Component<Stats> = (props) => {
+const LastAmountCard: Component<StatsProps> = (props) => {
   const last = () => props.stats[props.stats.length - 1];
 
-  return <EditableCard title={props.title} stat={last()} type={props.type} />;
+  return (
+    <EditableCard
+      stat={last()}
+      type={props.type}
+      movement={props.movement}
+      profileId={props.profileId}
+    />
+  );
 };
 
-const StatRow: Component<Stats> = (props) => {
+const StatRow: Component<StatsProps> = (props) => {
   const points = createMemo(() =>
     props.stats?.map((stat, index) => ({
       x: index,
@@ -153,6 +186,8 @@ export const DataList: Component = () => {
     movementsToRepsMap,
     movementMap,
     relevantMovements,
+    profileId,
+    queryState: { isLoading, isSuccess },
   } = useProgram();
 
   const maxesToShow = createMemo<MaxRowData[]>(() => {
@@ -169,14 +204,45 @@ export const DataList: Component = () => {
 
   return (
     <ul>
-      <For each={maxesToShow()}>
-        {({ movement, maxes, reps }) => (
-          <li class="w-full grid grid-cols-2 gap-4 mt-2">
-            <StatRow title={movement?.name} stats={maxes} type="max" />
-            <StatRow title={movement?.name} stats={reps} type="reps" />
-          </li>
-        )}
-      </For>
+      <Switch>
+        <Match when={isLoading()}>
+          <Loading />
+        </Match>
+        <Match when={isSuccess()}>
+          <For each={maxesToShow()}>
+            {({ movement, maxes, reps }) => (
+              <li class="w-full grid grid-cols-2 gap-4 mt-2">
+                <StatRow
+                  movement={movement}
+                  stats={maxes}
+                  type="max"
+                  profileId={profileId()}
+                />
+                <StatRow
+                  movement={movement}
+                  stats={reps}
+                  type="reps"
+                  profileId={profileId()}
+                />
+              </li>
+            )}
+          </For>
+        </Match>
+      </Switch>
     </ul>
   );
 };
+
+const Loading: Component = () => {
+  return (
+    <For each={[1, 2, 3, 4]}>
+      {() => (
+        <li class="w-full grid grid-cols-2 gap-4 mt-4">
+          <div class="rounded shimmer h-32" />
+          <div class="rounded shimmer h-32" />
+        </li>
+      )}
+    </For>
+  );
+};
+ 
