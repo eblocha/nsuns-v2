@@ -15,7 +15,7 @@ export const EditSet: Component<{
     onSuccess: props.close,
   });
 
-  const deleteMutation = useDeleteSet(() => props.programId, {
+  const deleteMutation = useDeleteSet({
     onSuccess: props.close,
   });
 

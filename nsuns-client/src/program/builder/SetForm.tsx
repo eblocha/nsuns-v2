@@ -31,23 +31,18 @@ export const SetForm: Component<{
   onClose: () => void;
   title: string;
   mutationCreate?: CreateMutationResult<
-    ProgramSet,
+    unknown,
     unknown,
     CreateProgramSet,
     unknown
   >;
   mutationUpdate?: CreateMutationResult<
-    ProgramSet,
+    unknown,
     unknown,
     UpdateProgramSet,
     unknown
   >;
-  mutationDelete?: CreateMutationResult<
-    void,
-    unknown,
-    string,
-    unknown
-  >;
+  mutationDelete?: CreateMutationResult<unknown, unknown, string, unknown>;
   id?: string;
   programId: string;
   dayIndex: Day;
@@ -80,9 +75,7 @@ export const SetForm: Component<{
       day: props.dayIndex,
       description: value.description ?? null,
       movementId: value.movementId,
-      percentageOfMax: value.maxMovementId
-        ? value.maxMovementId
-        : null,
+      percentageOfMax: value.maxMovementId ? value.maxMovementId : null,
       programId: props.programId,
       reps: value.reps ? parseInt(value.reps) : null,
       repsIsMinimum: value.repsIsMinimum,

@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool},
     error::{IntoResult, LogError},
-    util::{created, no_content_or_404, or_404},
+    util::{created, or_404},
 };
 
 use super::model::{delete_one, CreateSet, UpdateSet};
@@ -36,7 +36,7 @@ pub async fn delete_set(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl 
     let mut tx = transaction(&pool).await.log_error()?;
     let res = delete_one(id, &mut tx)
         .await
-        .map(no_content_or_404)
+        .map(or_404::<_, Json<_>>)
         .into_result();
 
     commit_ok(res, tx).await.log_error()

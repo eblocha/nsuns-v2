@@ -1,4 +1,4 @@
-import { bothJson, del, json, noContent, post, put } from "./util";
+import { acceptJson, bothJson, del, json, post, put } from "./util";
 
 export type Day = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -33,5 +33,7 @@ export const updateSet = async (set: UpdateProgramSet): Promise<ProgramSet> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const deleteSet = async (id: string): Promise<void> =>
-  del(`${path}/${id}`).then(noContent);
+export const deleteSet = async (id: string): Promise<ProgramSet> =>
+  del(`${path}/${id}`, {
+    headers: acceptJson().headers,
+  }).then(json());

@@ -81,19 +81,18 @@ export const useEditSet = <TError = unknown, TContext = unknown>(
 };
 
 export const useDeleteSet = <TError = unknown, TContext = unknown>(
-  programId: Accessor<string>,
   options?: Partial<
-    CreateMutationOptions<void, TError, string, TContext>
+    CreateMutationOptions<ProgramSet, TError, string, TContext>
   >
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({
     ...options,
     mutationFn: deleteSet,
-    onSuccess: (v, id, ...args) => {
-      options?.onSuccess?.(v, id, ...args);
+    onSuccess: (set, id, ...args) => {
+      options?.onSuccess?.(set, id, ...args);
       queryClient.setQueryData(
-        QueryKeys.programs.summary(programId()),
+        QueryKeys.programs.summary(set.programId),
         (summary?: ProgramSummaryQueryData) =>
           summary && {
             ...summary,
