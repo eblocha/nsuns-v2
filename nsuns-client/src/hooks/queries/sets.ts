@@ -7,7 +7,6 @@ import {
 import {
   CreateProgramSet,
   ProgramSet,
-  ProgramSummary,
   createSet,
   deleteSet,
   getProgramSummary,
@@ -82,8 +81,9 @@ export const useEditSet = <TError = unknown, TContext = unknown>(
 };
 
 export const useDeleteSet = <TError = unknown, TContext = unknown>(
+  programId: Accessor<string>,
   options?: Partial<
-    CreateMutationOptions<void, TError, string | number, TContext>
+    CreateMutationOptions<void, TError, string, TContext>
   >
 ) => {
   const queryClient = useQueryClient();
@@ -93,7 +93,7 @@ export const useDeleteSet = <TError = unknown, TContext = unknown>(
     onSuccess: (v, id, ...args) => {
       options?.onSuccess?.(v, id, ...args);
       queryClient.setQueryData(
-        QueryKeys.programs.summary(id),
+        QueryKeys.programs.summary(programId()),
         (summary?: ProgramSummaryQueryData) =>
           summary && {
             ...summary,

@@ -31,8 +31,8 @@ export const SetList: Component<{
   sets?: ProgramSet[];
   currentSet: number;
   setCurrentSet: Setter<number>;
-  movementMap?: Record<number, Movement>;
-  movementsToMaxesMap?: Record<number, Max[]>;
+  movementMap?: Record<string, Movement>;
+  movementsToMaxesMap?: Record<string, Max[]>;
   day: string;
 }> = (props) => {
   const sections = createMemo(() =>

@@ -27,7 +27,6 @@ export const useMaxesQuery = (profileId: Accessor<string>) => {
 };
 
 export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
-  profileId: Accessor<string>,
   options?: Partial<CreateMutationOptions<Max, TError, CreateMax, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -37,7 +36,7 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
     onSuccess: (max, ...args) => {
       options?.onSuccess?.(max, ...args);
       queryClient.setQueryData(
-        QueryKeys.maxes(profileId()),
+        QueryKeys.maxes(max.profileId),
         (maxes?: MaxesQueryData) => {
           return maxes && [...maxes, max];
         }
@@ -48,7 +47,6 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
 };
 
 export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
-  profileId: Accessor<string>,
   options?: Partial<CreateMutationOptions<Max, TError, UpdateMax, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -57,7 +55,7 @@ export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
     mutationFn: updateMax,
     onSuccess: (max, ...args) => {
       options?.onSuccess?.(max, ...args);
-      queryClient.setQueryData(QueryKeys.maxes(profileId()), (maxes?: MaxesQueryData) =>
+      queryClient.setQueryData(QueryKeys.maxes(max.profileId), (maxes?: MaxesQueryData) =>
         updateInArray(maxes, max, (m) => m.id === max.id)
       );
     },

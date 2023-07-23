@@ -11,9 +11,10 @@ use crate::{
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Reps {
-    pub id: i32,
+    #[serde(with = "crate::serde_display")]
+    pub id: i64,
     pub profile_id: Uuid,
-    pub movement_id: i32,
+    pub movement_id: Uuid,
     pub amount: Option<i32>,
 }
 
@@ -53,7 +54,7 @@ impl Reps {
     }
 
     pub async fn select_latest(
-        movement_id: i32,
+        movement_id: Uuid,
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Option<Self>> {
@@ -71,13 +72,13 @@ impl Reps {
 #[serde(rename_all = "camelCase")]
 pub struct CreateReps {
     pub profile_id: Uuid,
-    pub movement_id: i32,
+    pub movement_id: Uuid,
     pub amount: Option<i32>,
 }
 
 impl CreateReps {
     pub async fn insert_one(self, executor: impl Executor<'_, Database = DB>) -> Result<Reps> {
-        sqlx::query_as::<_, (i32,)>(
+        sqlx::query_as::<_, (i64,)>(
             "INSERT INTO reps (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id",
         )
         .bind(self.profile_id)
@@ -99,7 +100,8 @@ impl CreateReps {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateReps {
-    pub id: i32,
+    #[serde(with = "crate::serde_display")]
+    pub id: i64,
     pub amount: Option<i32>,
 }
 
@@ -120,10 +122,10 @@ impl UpdateReps {
 
 pub async fn delete_latest_reps(
     profile_id: Uuid,
-    movement_id: i32,
+    movement_id: Uuid,
     executor: impl Executor<'_, Database = DB>,
-) -> Result<Option<i32>> {
-    sqlx::query_as::<_, (i32,)>(
+) -> Result<Option<i64>> {
+    sqlx::query_as::<_, (i64,)>(
         "DELETE FROM reps WHERE id = any(
         array(SELECT id FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1)
     ) RETURNING id",)

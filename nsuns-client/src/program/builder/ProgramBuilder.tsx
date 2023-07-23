@@ -56,7 +56,7 @@ export const ProgramBuilder: Component = () => {
               <div class="flex-grow overflow-visible">
                 <Days
                   sets={query.data?.sets ?? []}
-                  programId={parseInt(params.programId)}
+                  programId={params.programId}
                 />
               </div>
             </Match>

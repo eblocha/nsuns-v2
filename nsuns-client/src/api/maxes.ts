@@ -1,16 +1,16 @@
 import { acceptJson, bothJson, get, json, post, put } from "./util";
 
 export type Max = {
-  id: number;
+  id: string;
   profileId: string;
-  movementId: number;
+  movementId: string;
   amount: number;
 };
 
 export type CreateMax = Omit<Max, "id">;
 
 export type UpdateMax = {
-  id: number;
+  id: string;
   amount: number;
 };
 

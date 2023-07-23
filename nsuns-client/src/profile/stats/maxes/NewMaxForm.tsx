@@ -1,7 +1,11 @@
 import { Component, Show } from "solid-js";
 import { useMovementsQuery } from "../../../hooks/queries/movements";
 import { useCreateMaxMutation } from "../../../hooks/queries/maxes";
-import { createControl, createControlGroup, required } from "../../../hooks/forms";
+import {
+  createControl,
+  createControlGroup,
+  required,
+} from "../../../hooks/forms";
 import { Input } from "../../../forms/Input";
 import { Select } from "../../../forms/Select";
 import { Warning } from "../../../icons/Warning";
@@ -11,8 +15,8 @@ export const NewMaxForm: Component<{ profileId: string; close: () => void }> = (
   props
 ) => {
   const movementsQuery = useMovementsQuery();
-  const mutation = useCreateMaxMutation(() => props.profileId, {
-    onSuccess: () => props.close(),
+  const mutation = useCreateMaxMutation({
+    onSuccess: props.close,
   });
 
   const group = createControlGroup({
@@ -30,7 +34,7 @@ export const NewMaxForm: Component<{ profileId: string; close: () => void }> = (
     mutation.mutate({
       profileId: props.profileId,
       amount: parseFloat(value.amount),
-      movementId: parseInt(value.movementId),
+      movementId: value.movementId,
     });
   };
 

@@ -7,7 +7,7 @@ import { DayName } from "../../../util/days";
 import { StatsProvider, useStats } from "../../../stats/StatsProvider";
 
 type ProgramContextData = ReturnType<typeof useStats> & {
-  programId: Accessor<number>;
+  programId: Accessor<string>;
   /**
    * Name of the day to the list of set definitions for the day.
    */
@@ -15,7 +15,7 @@ type ProgramContextData = ReturnType<typeof useStats> & {
   /**
    * Unique movement ids that are referenced by this program.
    */
-  relevantMovements: Accessor<number[]>;
+  relevantMovements: Accessor<string[]>;
   queryState: MergedQueryState;
 };
 
@@ -43,7 +43,7 @@ const InnerProvider: Component<{
   const setMap = useSetMap(sets);
 
   const relevantMovements = () => {
-    const uniqueIds: number[] = [];
+    const uniqueIds: string[] = [];
     for (const set of sets()) {
       if (!uniqueIds.includes(set.movementId)) {
         uniqueIds.push(set.movementId);
@@ -62,7 +62,7 @@ const InnerProvider: Component<{
     <ProgramContext.Provider
       value={{
         ...stats,
-        programId: () => parseInt(props.programId),
+        programId: () => props.programId,
         setMap,
         relevantMovements,
         queryState,

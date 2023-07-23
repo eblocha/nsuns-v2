@@ -1,7 +1,7 @@
 import { acceptJson, bothJson, get, json, post, put } from "./util";
 
 export type Movement = {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
 };

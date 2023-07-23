@@ -7,7 +7,6 @@ import {
 import {
   CreateProgram,
   Program,
-  ProgramSummary,
   UpdateProgram,
   createProgram,
   deleteProgram,
@@ -85,7 +84,7 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
 export const useDeleteProgram = <TError = unknown, TContext = unknown>(
   profileId: Accessor<string>,
   options?: Partial<
-    CreateMutationOptions<void, TError, string | number, TContext>
+    CreateMutationOptions<void, TError, string, TContext>
   >
 ) => {
   const queryClient = useQueryClient();

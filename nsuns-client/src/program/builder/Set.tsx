@@ -35,7 +35,7 @@ export const SetComponent: Component<{
   set: ProgramSet;
   movements: Movement[];
   dayIndex: Day;
-  programId: number;
+  programId: string;
 }> = (props) => {
   const [isEditing, setIsEditing] = createSignal(false);
 

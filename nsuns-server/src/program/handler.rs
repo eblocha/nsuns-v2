@@ -55,7 +55,7 @@ pub async fn update_program(
         .log_error()
 }
 
-pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<i32>) -> impl IntoResponse {
+pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     delete_one(id, &pool)
         .await
         .map(no_content_or_404)
@@ -63,7 +63,7 @@ pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<i32>) -> im
         .log_error()
 }
 
-pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<i32>) -> impl IntoResponse {
+pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
     let res = gather_program_summary(id, &mut tx)
         .await

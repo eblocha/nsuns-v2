@@ -7,12 +7,11 @@ import {
   noContent,
   post,
   put,
-  sendJson,
 } from "./util";
 import { ProgramSet } from "./sets";
 
 export type Program = {
-  id: number;
+  id: string;
   name: string;
   createdOn: number;
 };
@@ -43,7 +42,7 @@ export const createProgram = async (program: CreateProgram): Promise<Program> =>
   }).then(json());
 
 export const getProgramSummary = async (
-  programId: number | string
+  programId: string
 ): Promise<ProgramSummary> => get(`${path}/${programId}`).then(json());
 
 export const updateProgram = async (program: UpdateProgram): Promise<Program> =>
@@ -52,5 +51,5 @@ export const updateProgram = async (program: UpdateProgram): Promise<Program> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const deleteProgram = async (id: number | string): Promise<void> =>
+export const deleteProgram = async (id: string): Promise<void> =>
   del(`${path}/${id}`).then(noContent);

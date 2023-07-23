@@ -45,11 +45,11 @@ export const SetForm: Component<{
   mutationDelete?: CreateMutationResult<
     void,
     unknown,
-    string | number,
+    string,
     unknown
   >;
-  id?: number;
-  programId: number;
+  id?: string;
+  programId: string;
   dayIndex: Day;
   movements?: Movement[];
 }> = (props) => {
@@ -79,9 +79,9 @@ export const SetForm: Component<{
       amount: parseFloat(value.amount),
       day: props.dayIndex,
       description: value.description ?? null,
-      movementId: parseInt(value.movementId),
+      movementId: value.movementId,
       percentageOfMax: value.maxMovementId
-        ? parseInt(value.maxMovementId)
+        ? value.maxMovementId
         : null,
       programId: props.programId,
       reps: value.reps ? parseInt(value.reps) : null,

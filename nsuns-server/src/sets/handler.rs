@@ -3,6 +3,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use uuid::Uuid;
 
 use crate::{
     db::{commit_ok, transaction, Pool},
@@ -31,7 +32,7 @@ pub async fn update_set(State(pool): State<Pool>, Json(set): Json<UpdateSet>) ->
         .log_error()
 }
 
-pub async fn delete_set(State(pool): State<Pool>, Path(id): Path<i32>) -> impl IntoResponse {
+pub async fn delete_set(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
     let res = delete_one(id, &mut tx)
         .await

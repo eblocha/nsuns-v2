@@ -16,6 +16,7 @@ pub mod profiles;
 pub mod program;
 pub mod reps;
 pub mod router;
+mod serde_display;
 pub mod sets;
 pub mod settings;
 pub mod updates;

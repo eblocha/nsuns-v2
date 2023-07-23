@@ -3,7 +3,7 @@ import { Reps } from "../api/reps";
 
 export const useMovementsToRepsMap = (repsList: Accessor<Reps[]>) => {
   return createMemo(() => {
-    const m: Record<number, Reps[]> = {};
+    const m: Record<string, Reps[]> = {};
     for (const reps of repsList()) {
       const current = m[reps.movementId];
 

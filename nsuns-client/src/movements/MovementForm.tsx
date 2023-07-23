@@ -23,7 +23,7 @@ export const MovementForm: Component<{
     unknown
   >;
   mutationUpdate?: CreateMutationResult<Movement, unknown, Movement, unknown>;
-  id?: number;
+  id?: string;
   confirmText: string;
   onSubmit?: () => void;
   onClose: () => void;

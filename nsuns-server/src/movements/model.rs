@@ -1,6 +1,7 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
+use uuid::Uuid;
 
 use crate::{
     db::DB,
@@ -10,7 +11,7 @@ use crate::{
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Movement {
-    pub id: i32,
+    pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
 }

@@ -14,7 +14,7 @@ use crate::{
 #[serde(rename_all = "camelCase")]
 pub struct Updates {
     pub profile_id: Uuid,
-    pub movement_ids: Vec<i32>,
+    pub movement_ids: Vec<Uuid>,
 }
 
 #[derive(Debug, Serialize)]
@@ -79,26 +79,29 @@ pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> 
 }
 
 #[derive(Debug, Serialize)]
+pub struct DeletedId(#[serde(with = "crate::serde_display")] i64);
+
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Removed {
-    pub maxes: Vec<i32>,
-    pub reps: Vec<i32>,
+    pub maxes: Vec<DeletedId>,
+    pub reps: Vec<DeletedId>,
 }
 
 async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<Removed> {
-    let mut maxes = Vec::<i32>::with_capacity(updates.movement_ids.len());
-    let mut reps = Vec::<i32>::with_capacity(updates.movement_ids.len());
+    let mut maxes = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());
+    let mut reps = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());
 
     for movement_id in updates.movement_ids {
         if let Some(rep_id) = delete_latest_reps(updates.profile_id, movement_id, &mut **tx).await?
         {
-            reps.push(rep_id);
+            reps.push(DeletedId(rep_id));
         }
 
         if let Some(max_id) =
             delete_latest_maxes(updates.profile_id, movement_id, &mut **tx).await?
         {
-            maxes.push(max_id);
+            maxes.push(DeletedId(max_id));
         }
     }
     Ok(Removed { maxes, reps })

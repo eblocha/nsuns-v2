@@ -1,16 +1,16 @@
 import { acceptJson, bothJson, get, json, post, put } from "./util";
 
 export type Reps = {
-  id: number;
+  id: string;
   profileId: string;
-  movementId: number;
+  movementId: string;
   amount: number | null;
 };
 
 export type CreateReps = Omit<Reps, "id">;
 
 export type UpdateReps = {
-  id: number;
+  id: string;
   amount: number | null;
 };
 

@@ -37,7 +37,7 @@ export type Section = {
 
 export const getSections = (
   sets: ProgramSet[],
-  movements: Record<number, Movement>
+  movements: Record<string, Movement>
 ) => {
   const sections: Section[] = [];
 

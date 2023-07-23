@@ -4,7 +4,7 @@ import { bothJson, del, json, post } from "./util";
 
 export type UpdateRequest = {
   profileId: string;
-  movementIds: number[];
+  movementIds: string[];
 };
 
 export type UpdateResponse = {
@@ -13,8 +13,8 @@ export type UpdateResponse = {
 };
 
 export type UndoResponse = {
-  maxes: number[];
-  reps: number[];
+  maxes: string[];
+  reps: string[];
 };
 
 const path = "/api/updates";

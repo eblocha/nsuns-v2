@@ -4,7 +4,7 @@ import { ProgramSet } from "../api";
 
 export const useMovementsToMaxesMap = (maxes: Accessor<Max[]>) => {
   return createMemo(() => {
-    const m: Record<number, Max[]> = {};
+    const m: Record<string, Max[]> = {};
     for (const max of maxes()) {
       const current = m[max.movementId];
       // maxes are in ascending timestamp order
@@ -19,7 +19,7 @@ export const useMovementsToMaxesMap = (maxes: Accessor<Max[]>) => {
 };
 
 export const getLatestMax = (
-  movementsToMaxesMap: Record<number, Max[]>,
+  movementsToMaxesMap: Record<string, Max[]>,
   set: ProgramSet
 ): Max | undefined => {
   if (set.percentageOfMax) {

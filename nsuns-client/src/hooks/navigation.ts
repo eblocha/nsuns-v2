@@ -25,7 +25,7 @@ export const useNavigateToProgram = () => {
   const params = useParams<{ profileId?: string; programId?: string }>();
   const navigate = useNavigate();
 
-  return (programId?: string | number) => {
+  return (programId?: string) => {
     if (params.profileId) {
       const id = programId || params.programId;
       if (id) {

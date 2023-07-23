@@ -3,7 +3,7 @@ import { Edit } from "../icons/Edit";
 import { UpdateMovement } from "./UpdateMovement";
 
 export const Movement: Component<{
-  id: number;
+  id: string;
   name: string;
   description: string | null;
 }> = (props) => {

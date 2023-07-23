@@ -1,6 +1,7 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
+use uuid::Uuid;
 
 use crate::{
     db::DB,
@@ -10,21 +11,21 @@ use crate::{
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Set {
-    pub id: i32,
-    pub program_id: i32,
-    pub movement_id: i32,
-    pub day: i32,
+    pub id: Uuid,
+    pub program_id: Uuid,
+    pub movement_id: Uuid,
+    pub day: i16,
     pub ordering: i32,
     pub reps: Option<i32>,
     pub reps_is_minimum: bool,
     pub description: Option<String>,
     pub amount: f64,
-    pub percentage_of_max: Option<i32>,
+    pub percentage_of_max: Option<Uuid>,
 }
 
 impl Set {
     pub async fn select_for_program(
-        program_id: i32,
+        program_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Set>> {
         sqlx::query_as::<_, Self>(
@@ -41,17 +42,17 @@ impl Set {
 #[derive(Debug, Deserialize, Serialize, Clone, validator::Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateSet {
-    pub program_id: i32,
-    pub movement_id: i32,
+    pub program_id: Uuid,
+    pub movement_id: Uuid,
     #[validate(range(min = 0, max = 6))]
-    pub day: i32,
+    pub day: i16,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
     #[serde(default)]
     pub reps_is_minimum: bool,
     pub description: Option<String>,
     pub amount: f64,
-    pub percentage_of_max: Option<i32>,
+    pub percentage_of_max: Option<Uuid>,
 }
 
 impl CreateSet {
@@ -74,7 +75,7 @@ impl CreateSet {
         .map(|value| value + 1)
         .unwrap_or(0);
 
-        let id = sqlx::query_as::<_, (i32,)>(
+        let id = sqlx::query_as::<_, (Uuid,)>(
             "INSERT INTO program_sets (
             program_id, movement_id, day, ordering, reps, reps_is_minimum, description, amount, percentage_of_max
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
@@ -108,8 +109,8 @@ impl CreateSet {
     }
 }
 
-pub async fn delete_one(id: i32, tx: &mut Transaction<'_, DB>) -> Result<Option<()>> {
-    let opt = sqlx::query_as::<_, (i32, i32, i32)>(
+pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> Result<Option<()>> {
+    let opt = sqlx::query_as::<_, (i32, Uuid, i16)>(
         "DELETE FROM program_sets WHERE id = $1 RETURNING ordering, program_id, day",
     )
     .bind(id)
@@ -135,18 +136,18 @@ pub async fn delete_one(id: i32, tx: &mut Transaction<'_, DB>) -> Result<Option<
 #[derive(Debug, Deserialize, Serialize, Clone, validator::Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSet {
-    pub id: i32,
-    pub program_id: i32,
-    pub movement_id: i32,
+    pub id: Uuid,
+    pub program_id: Uuid,
+    pub movement_id: Uuid,
     #[validate(range(min = 0, max = 6))]
-    pub day: i32,
+    pub day: i16,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
     #[serde(default)]
     pub reps_is_minimum: bool,
     pub description: Option<String>,
     pub amount: f64,
-    pub percentage_of_max: Option<i32>,
+    pub percentage_of_max: Option<Uuid>,
 }
 
 impl UpdateSet {
@@ -154,7 +155,7 @@ impl UpdateSet {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Option<Set>> {
-        let opt = sqlx::query_as::<_, (i32, i32)>(
+        let opt = sqlx::query_as::<_, (Uuid, i32)>(
             "UPDATE program_sets SET
             program_id = $1,
             movement_id = $2,

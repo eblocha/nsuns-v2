@@ -27,7 +27,6 @@ export const useRepsQuery = (profileId: Accessor<string>) => {
 };
 
 export const useCreateRepsMutation = <TError = unknown, TContext = unknown>(
-  profileId: Accessor<string>,
   options?: Partial<CreateMutationOptions<Reps, TError, CreateReps, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -36,16 +35,18 @@ export const useCreateRepsMutation = <TError = unknown, TContext = unknown>(
     mutationFn: createReps,
     onSuccess: (reps, ...args) => {
       options?.onSuccess?.(reps, ...args);
-      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: RepsQueryData) => {
-        return repsList && [...repsList, reps];
-      });
+      queryClient.setQueryData(
+        QueryKeys.reps(reps.profileId),
+        (repsList?: RepsQueryData) => {
+          return repsList && [...repsList, reps];
+        }
+      );
     },
   });
   return mutation;
 };
 
 export const useUpdateRepsMutation = <TError = unknown, TContext = unknown>(
-  profileId: Accessor<string>,
   options?: Partial<CreateMutationOptions<Reps, TError, UpdateReps, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -54,8 +55,10 @@ export const useUpdateRepsMutation = <TError = unknown, TContext = unknown>(
     mutationFn: updateReps,
     onSuccess: (reps, ...args) => {
       options?.onSuccess?.(reps, ...args);
-      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: RepsQueryData) =>
-        updateInArray(repsList, reps, (r) => r.id === reps.id)
+      queryClient.setQueryData(
+        QueryKeys.reps(reps.profileId),
+        (repsList?: RepsQueryData) =>
+          updateInArray(repsList, reps, (r) => r.id === reps.id)
       );
     },
   });

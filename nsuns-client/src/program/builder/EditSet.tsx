@@ -8,14 +8,14 @@ export const EditSet: Component<{
   close: () => void;
   set: ProgramSet;
   dayIndex: Day;
-  programId: number;
+  programId: string;
   movements?: Movement[];
 }> = (props) => {
   const mutation = useEditSet({
     onSuccess: props.close,
   });
 
-  const deleteMutation = useDeleteSet({
+  const deleteMutation = useDeleteSet(() => props.programId, {
     onSuccess: props.close,
   });
 

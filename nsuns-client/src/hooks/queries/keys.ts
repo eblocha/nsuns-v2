@@ -4,7 +4,7 @@ export const QueryKeys = {
   programs: {
     // profile ids are uuids, so no collisions
     list: (profileId: string) => ["programs", profileId],
-    summary: (programId: string | number) => ["programs", programId.toString()],
+    summary: (programId: string) => ["programs", programId],
   },
   reps: (profileId: string) => ["reps", profileId]
 } as const;

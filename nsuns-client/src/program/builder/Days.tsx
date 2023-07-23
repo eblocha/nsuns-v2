@@ -47,7 +47,7 @@ const TitleRow: Component<{
   );
 };
 
-export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
+export const Days: Component<{ sets: ProgramSet[]; programId: string }> = (
   props
 ) => {
   const [addSetTo, setAddSetTo] = createSignal<number | null>(null);

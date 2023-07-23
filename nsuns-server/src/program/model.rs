@@ -12,7 +12,7 @@ use crate::{
 #[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Program {
-    pub id: i32,
+    pub id: Uuid,
     pub name: Option<String>,
     pub description: Option<String>,
     pub owner: Uuid,
@@ -32,7 +32,7 @@ impl Program {
     }
 
     pub async fn select_one(
-        id: i32,
+        id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Option<Self>> {
         sqlx::query_as::<_, Self>("SELECT * from programs WHERE id = $1")
@@ -70,7 +70,7 @@ impl CreateProgram {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateProgram {
-    pub id: i32,
+    pub id: Uuid,
     pub name: Option<String>,
     pub description: Option<String>,
 }
@@ -93,7 +93,7 @@ impl UpdateProgram {
     }
 }
 
-pub async fn delete_one(id: i32, executor: impl Executor<'_, Database = DB>) -> Result<Option<()>> {
+pub async fn delete_one(id: Uuid, executor: impl Executor<'_, Database = DB>) -> Result<Option<()>> {
     sqlx::query("DELETE FROM programs WHERE id = $1")
         .bind(id)
         .execute(executor)
@@ -117,7 +117,7 @@ pub struct ProgramSummary {
 }
 
 pub async fn gather_program_summary(
-    id: i32,
+    id: Uuid,
     tx: &mut Transaction<'_, DB>,
 ) -> Result<Option<ProgramSummary>> {
     let program_opt = Program::select_one(id, &mut **tx).await?;

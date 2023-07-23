@@ -15,15 +15,15 @@ type StatsContextData = {
   /**
    * Movement id to Movement.
    */
-  movementMap: Accessor<Record<number, Movement>>;
+  movementMap: Accessor<Record<string, Movement>>;
   /**
    * Movement id to time-ordered (earliest first) maxes for that movement.
    */
-  movementsToMaxesMap: Accessor<Record<number, Max[]>>;
+  movementsToMaxesMap: Accessor<Record<string, Max[]>>;
   /**
    * Movement id to time-ordered (earliest first) reps for that movement.
    */
-  movementsToRepsMap: Accessor<Record<number, Reps[]>>;
+  movementsToRepsMap: Accessor<Record<string, Reps[]>>;
   queryState: MergedQueryState;
 };
 

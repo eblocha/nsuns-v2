@@ -7,7 +7,7 @@ import { SetForm } from "./SetForm";
 export const NewSet: Component<{
   close: () => void;
   dayIndex: number;
-  programId: number;
+  programId: string;
   movements?: Movement[];
 }> = (props) => {
   const mutation = useCreateSet({

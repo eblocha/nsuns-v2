@@ -3,16 +3,16 @@ import { bothJson, del, json, noContent, post, put } from "./util";
 export type Day = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export type ProgramSet = {
-  id: number;
-  programId: number;
-  movementId: number;
+  id: string;
+  programId: string;
+  movementId: string;
   day: Day;
   ordering: number;
   reps: number | null;
   repsIsMinimum: boolean;
   description: string | null;
   amount: number;
-  percentageOfMax: number | null;
+  percentageOfMax: string | null;
 };
 
 export type CreateProgramSet = Omit<ProgramSet, "id" | "ordering">;
@@ -33,5 +33,5 @@ export const updateSet = async (set: UpdateProgramSet): Promise<ProgramSet> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const deleteSet = async (id: number | string): Promise<void> =>
+export const deleteSet = async (id: string): Promise<void> =>
   del(`${path}/${id}`).then(noContent);

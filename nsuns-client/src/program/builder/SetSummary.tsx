@@ -3,7 +3,7 @@ import { ProgramSet } from "../../api";
 
 export const SetSummary: Component<{ sets: ProgramSet[] }> = (props) => {
   const nUnique = createMemo(() => {
-    const s = new Set<number>();
+    const s = new Set<string>();
     for (const set of props.sets) {
       s.add(set.movementId);
     }

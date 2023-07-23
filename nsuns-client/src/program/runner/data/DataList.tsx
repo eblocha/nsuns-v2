@@ -61,16 +61,15 @@ const EditableCard: Component<EditableStatProps> = (props) => {
 
   createRenderEffect(reset);
 
-  const profileId = () => props.profileId;
   const options = {
     onError: reset,
   };
 
-  const updateMax = useUpdateMaxMutation(profileId, options);
-  const createMax = useCreateMaxMutation(profileId, options);
+  const updateMax = useUpdateMaxMutation(options);
+  const createMax = useCreateMaxMutation(options);
 
-  const updateReps = useUpdateRepsMutation(profileId, options);
-  const createReps = useCreateRepsMutation(profileId, options);
+  const updateReps = useUpdateRepsMutation(options);
+  const createReps = useCreateRepsMutation(options);
 
   const mutation = createMutation({
     mutationFn: async ({
