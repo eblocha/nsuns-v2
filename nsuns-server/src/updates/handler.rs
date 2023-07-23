@@ -38,8 +38,8 @@ async fn run_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<U
             let inc = match latest_reps {
                 Some(reps) => match reps.amount {
                     Some(amt) if amt >= 6 => 15_f64,
-                    Some(amt) if amt >= 4 && amt <= 5 => 10_f64,
-                    Some(amt) if amt >= 2 && amt <= 3 => 5_f64,
+                    Some(amt) if (4..=5).contains(&amt) => 10_f64,
+                    Some(amt) if (2..=3).contains(&amt) => 5_f64,
                     _ => 0_f64,
                 },
                 _ => 0_f64,
