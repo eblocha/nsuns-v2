@@ -18,6 +18,7 @@ pub mod reps;
 pub mod router;
 pub mod sets;
 pub mod settings;
+pub mod updates;
 pub mod util;
 pub mod validation;
 

@@ -51,6 +51,20 @@ impl Max {
             })
             .into_result()
     }
+
+    pub async fn select_latest(
+        movement_id: i32,
+        profile_id: Uuid,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> Result<Option<Self>> {
+        sqlx::query_as::<_, Self>("SELECT * FROM maxes WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1")
+            .bind(movement_id)
+            .bind(profile_id)
+            .fetch_optional(executor)
+            .await
+            .with_context(|| format!("failed to fetch latest max for profile_id={} and movement_id={}", profile_id, movement_id))
+            .into_result()
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
