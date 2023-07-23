@@ -8,6 +8,9 @@ import { MergedQueryState, combineQueries } from "../../../hooks/queries/util";
 import { useSetMap } from "../../../hooks/useSetMap";
 import { useMovementMap } from "../../../hooks/useMovementMap";
 import { useMovementsToMaxesMap } from "../../../hooks/useMovementsToMaxesMap";
+import { Reps } from "../../../api/reps";
+import { useMovementsToRepsMap } from "../../../hooks/useMovementsToRepsMap";
+import { useRepsQuery } from "../../../hooks/queries/reps";
 
 type ProgramContextData = {
   programId: Accessor<number>;
@@ -24,6 +27,10 @@ type ProgramContextData = {
    * Movement id to time-ordered (earliest first) maxes for that movement.
    */
   movementsToMaxesMap: Accessor<Record<number, Max[]>>;
+  /**
+   * Movement id to time-ordered (earliest first) reps for that movement.
+   */
+  movementsToRepsMap: Accessor<Record<number, Reps[]>>;
   /**
    * Unique movement ids that have a max-percentage reference or a direct reference in this program.
    */
@@ -43,18 +50,21 @@ export const ProgramProvider: Component<{
   const summaryQuery = useProgramSummaryQuery(() => props.programId);
   const movementsQuery = useMovementsQuery();
   const maxesQuery = useMaxesQuery(() => props.profileId);
+  const repsQuery = useRepsQuery(() => props.profileId);
 
   const queryState = combineQueries(summaryQuery, movementsQuery, maxesQuery);
 
   const sets = () => summaryQuery.data?.sets ?? EMPTY;
   const movements = () => movementsQuery.data ?? EMPTY;
   const maxes = () => maxesQuery.data ?? EMPTY;
+  const reps = () => repsQuery.data ?? EMPTY;
 
   const setMap = useSetMap(sets);
   const movementMap = useMovementMap(movements);
   const movementsToMaxesMap = useMovementsToMaxesMap(maxes);
+  const movementsToRepsMap = useMovementsToRepsMap(reps);
 
-  const movementsWithMaxInProgram = () => {
+  const relevantMovements = () => {
     const uniqueIds: number[] = [];
     for (const set of sets()) {
       if (!uniqueIds.includes(set.movementId)) {
@@ -78,7 +88,8 @@ export const ProgramProvider: Component<{
         setMap,
         movementMap,
         movementsToMaxesMap,
-        relevantMovements: movementsWithMaxInProgram,
+        movementsToRepsMap,
+        relevantMovements,
         queryState,
       }}
     >

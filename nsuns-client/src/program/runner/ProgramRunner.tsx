@@ -8,7 +8,7 @@ import { Edit } from "../../icons/Edit";
 import { User } from "../../icons/User";
 import { Tools } from "./Tools";
 import { ProgramProvider } from "./context/ProgramProvider";
-import { MaxesList } from "./maxes/MaxesList";
+import { DataList } from "./data/DataList";
 
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
@@ -48,12 +48,12 @@ export const ProgramRunner: Component = () => {
             </button>
           </div>
           <div class="col-span-2 h-full flex flex-col gap-4 overflow-hidden">
-            <div class="grid grid-cols-2">
-              <div class="text-2xl">Program Maxes</div>
-              {/* <div class="text-2xl">Reps</div> */}
+            <div class="grid grid-cols-2 gap-4">
+              <div class="text-2xl">Maxes</div>
+              <div class="text-2xl">Reps</div>
             </div>
             <div class="flex-grow w-full overflow-auto">
-              <MaxesList />
+              <DataList />
             </div>
             <Tools />
           </div>

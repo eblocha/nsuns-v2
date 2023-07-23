@@ -9,6 +9,7 @@ import {
 import { Max } from "../../api/maxes";
 import { day, goToToday, today } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
+import { Moon } from "../../icons/Moon";
 
 export const displaySet = (set: ProgramSet, max?: number): JSX.Element => {
   const repsComponent =
@@ -59,7 +60,7 @@ export const SetList: Component<{
               fallback={
                 <div class="w-full flex flex-col items-center justify-center text-lg">
                   <span class="italic">Rest day</span>
-                  <Dumbbell class="mt-4 text-2xl" />
+                  <Moon class="mt-4 text-2xl" />
                 </div>
               }
             >
