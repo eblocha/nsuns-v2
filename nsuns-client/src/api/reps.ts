@@ -4,14 +4,14 @@ export type Reps = {
   id: number;
   profileId: string;
   movementId: number;
-  amount: number;
+  amount: number | null;
 };
 
 export type CreateReps = Omit<Reps, "id">;
 
 export type UpdateReps = {
   id: number;
-  amount: number;
+  amount: number | null;
 };
 
 const path = "/api/reps";

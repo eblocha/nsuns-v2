@@ -53,10 +53,10 @@ type EditableStatProps = CommonProps &
   );
 
 const EditableCard: Component<EditableStatProps> = (props) => {
-  const amount = createControl(props.stat?.amount.toString() || "");
+  const amount = createControl(props.stat?.amount?.toString() || "");
 
   const reset = () => {
-    amount.reset(props.stat?.amount.toString());
+    amount.reset(props.stat?.amount?.toString());
   };
 
   createRenderEffect(reset);
@@ -77,10 +77,10 @@ const EditableCard: Component<EditableStatProps> = (props) => {
       amount,
       movement,
     }: {
-      amount: number;
+      amount: number | null;
       movement: Movement;
     }) => {
-      if (props.stat && props.type === "max") {
+      if (props.stat && props.type === "max" && amount !== null) {
         updateMax.mutate({
           id: props.stat.id,
           amount,
@@ -90,7 +90,7 @@ const EditableCard: Component<EditableStatProps> = (props) => {
           id: props.stat.id,
           amount,
         });
-      } else if (props.type === "max") {
+      } else if (props.type === "max" && amount !== null) {
         createMax.mutate({
           amount,
           movementId: movement.id,
@@ -108,9 +108,9 @@ const EditableCard: Component<EditableStatProps> = (props) => {
 
   const onSubmit = () => {
     const amt = amount.value();
-    if (mutation.isLoading || !amt || !props.movement) return;
+    if (mutation.isLoading || !props.movement) return;
 
-    const parsed = parseInt(amt);
+    const parsed = amt ? parseInt(amt) : null;
 
     if (parsed === props.stat?.amount) return;
 
@@ -153,6 +153,7 @@ const LastAmountCard: Component<StatsProps> = (props) => {
   const last = () => props.stats[props.stats.length - 1];
 
   return (
+    // @ts-ignore: complaining about tagged union types
     <EditableCard
       stat={last()}
       type={props.type}
@@ -166,7 +167,7 @@ const StatRow: Component<StatsProps> = (props) => {
   const points = createMemo(() =>
     props.stats?.map((stat, index) => ({
       x: index,
-      y: stat.amount,
+      y: stat.amount ?? 0,
     }))
   );
 
@@ -218,6 +219,7 @@ export const DataList: Component = () => {
           <For each={maxesToShow()}>
             {({ movement, maxes, reps }) => (
               <li class="w-full grid grid-cols-2 gap-4 mt-2">
+                {/* @ts-ignore: complaining about tagged union types */}
                 <StatRow
                   movement={movement}
                   stats={maxes}

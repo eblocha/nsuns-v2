@@ -52,6 +52,6 @@ CREATE TABLE reps (
   profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   movement_id INTEGER NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
   timestamp TIMESTAMP DEFAULT now(),
-  amount INTEGER NOT NULL CHECK (amount >= 0)
+  amount INTEGER CHECK (amount IS NULL OR amount >= 0)
 );
 CREATE INDEX reps_by_profile_id ON reps(profile_id);

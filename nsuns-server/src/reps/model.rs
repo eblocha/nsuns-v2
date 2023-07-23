@@ -14,7 +14,7 @@ pub struct Reps {
     pub id: i32,
     pub profile_id: Uuid,
     pub movement_id: i32,
-    pub amount: i32,
+    pub amount: Option<i32>,
 }
 
 impl Reps {
@@ -72,7 +72,7 @@ impl Reps {
 pub struct CreateReps {
     pub profile_id: Uuid,
     pub movement_id: i32,
-    pub amount: i32,
+    pub amount: Option<i32>,
 }
 
 impl CreateReps {
@@ -100,7 +100,7 @@ impl CreateReps {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateReps {
     pub id: i32,
-    pub amount: i32,
+    pub amount: Option<i32>,
 }
 
 impl UpdateReps {

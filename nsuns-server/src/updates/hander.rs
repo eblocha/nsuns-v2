@@ -36,9 +36,12 @@ async fn run_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<U
                 Reps::select_latest(movement_id, updates.profile_id, &mut **tx).await?;
 
             let inc = match latest_reps {
-                Some(reps) if reps.amount >= 6 => 15_f64,
-                Some(reps) if reps.amount >= 4 && reps.amount <= 5 => 10_f64,
-                Some(reps) if reps.amount >= 2 && reps.amount <= 3 => 5_f64,
+                Some(reps) => match reps.amount {
+                    Some(amt) if amt >= 6 => 15_f64,
+                    Some(amt) if amt >= 4 && amt <= 5 => 10_f64,
+                    Some(amt) if amt >= 2 && amt <= 3 => 5_f64,
+                    _ => 0_f64,
+                },
                 _ => 0_f64,
             };
 
@@ -51,7 +54,7 @@ async fn run_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<U
             .await?;
 
             let new_rep = CreateReps {
-                amount: 0,
+                amount: None,
                 movement_id: latest_max.movement_id,
                 profile_id: latest_max.profile_id,
             }

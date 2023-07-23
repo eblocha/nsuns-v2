@@ -11,7 +11,7 @@ const displayAmount = (amount?: number) => {
 };
 
 const displayReps = (amount?: number) => {
-  return amount !== undefined ? `${amount} rep${plural(amount)}` : "No reps";
+  return amount !== undefined ? `${amount} rep${plural(amount)}` : "no reps";
 };
 
 type MovementData = {
@@ -71,7 +71,7 @@ export const StatList: Component = () => {
                       entry.maxes[entry.maxes.length - 1]?.amount
                     ) +
                       " " +
-                      displayReps(entry.reps?.[entry.reps.length - 1]?.amount)}
+                      displayReps(entry.reps?.[entry.reps.length - 1]?.amount ?? undefined)}
                   </p>
                 </div>
               </li>
