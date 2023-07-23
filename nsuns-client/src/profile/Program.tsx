@@ -21,7 +21,7 @@ const DeleteProgram: Component<{
   const mutation = useDeleteProgram({
     onSuccess: () => {
       props.close();
-      if (params.programId === props.program.id.toString()) {
+      if (params.programId === props.program.id) {
         navigateToProfileHome();
       }
     },

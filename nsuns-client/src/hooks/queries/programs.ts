@@ -92,7 +92,6 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
         QueryKeys.programs.list(program.owner),
         (programs?: ProgramsQueryData) => programs?.filter((p) => p.id !== id)
       );
-      queryClient.invalidateQueries(QueryKeys.programs.summary(id));
     },
   });
   return mutation;
