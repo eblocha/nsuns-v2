@@ -12,13 +12,11 @@ export const EditSet: Component<{
   movements?: Movement[];
 }> = (props) => {
   const mutation = useEditSet({
-    onSuccess: () => {
-      props.close();
-    },
+    onSuccess: props.close,
   });
 
-  const deleteMutation = useDeleteSet(props.programId.toString(), {
-    onSuccess: () => props.close(),
+  const deleteMutation = useDeleteSet({
+    onSuccess: props.close,
   });
 
   const group = createControlGroup({

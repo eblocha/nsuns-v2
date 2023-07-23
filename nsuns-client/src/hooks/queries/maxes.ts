@@ -13,8 +13,10 @@ import {
   updateMax,
 } from "../../api/maxes";
 import { Accessor } from "solid-js";
-import { updateInArray } from "./util";
+import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
+
+export type MaxesQueryData = QueryData<ReturnType<typeof useMaxesQuery>>;
 
 export const useMaxesQuery = (profileId: Accessor<string>) => {
   return createQuery({
@@ -34,9 +36,12 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
     mutationFn: createMax,
     onSuccess: (max, ...args) => {
       options?.onSuccess?.(max, ...args);
-      queryClient.setQueryData(QueryKeys.maxes(profileId()), (maxes?: Max[]) => {
-        return maxes && [...maxes, max];
-      });
+      queryClient.setQueryData(
+        QueryKeys.maxes(profileId()),
+        (maxes?: MaxesQueryData) => {
+          return maxes && [...maxes, max];
+        }
+      );
     },
   });
   return mutation;
@@ -52,7 +57,7 @@ export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
     mutationFn: updateMax,
     onSuccess: (max, ...args) => {
       options?.onSuccess?.(max, ...args);
-      queryClient.setQueryData(QueryKeys.maxes(profileId()), (maxes?: Max[]) =>
+      queryClient.setQueryData(QueryKeys.maxes(profileId()), (maxes?: MaxesQueryData) =>
         updateInArray(maxes, max, (m) => m.id === max.id)
       );
     },

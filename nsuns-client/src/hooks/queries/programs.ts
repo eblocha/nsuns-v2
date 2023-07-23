@@ -15,8 +15,11 @@ import {
   updateProgram,
 } from "../../api";
 import { Accessor } from "solid-js";
-import { updateInArray } from "./util";
+import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
+import { ProgramSummaryQueryData } from "./sets";
+
+export type ProgramsQueryData = QueryData<ReturnType<typeof useProgramsQuery>>;
 
 export const useProgramsQuery = (profileId: Accessor<string>) => {
   const programsQuery = createQuery({
@@ -41,7 +44,7 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
         QueryKeys.programs.list(profileId()),
-        (programs?: Program[]) =>
+        (programs?: ProgramsQueryData) =>
           programs ? [...programs, program] : undefined
       );
     },
@@ -63,12 +66,12 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
         QueryKeys.programs.list(profileId()),
-        (programs?: Program[]) =>
+        (programs?: ProgramsQueryData) =>
           updateInArray(programs, program, (p) => p.id === program.id)
       );
       queryClient.setQueryData(
         QueryKeys.programs.summary(program.id),
-        (summary?: ProgramSummary) =>
+        (summary?: ProgramSummaryQueryData) =>
           summary && {
             ...summary,
             program,
@@ -93,7 +96,7 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
       options?.onSuccess?.(program, id, ...args);
       queryClient.setQueryData(
         QueryKeys.programs.list(profileId()),
-        (programs?: Program[]) => programs?.filter((p) => p.id !== id)
+        (programs?: ProgramsQueryData) => programs?.filter((p) => p.id !== id)
       );
       queryClient.invalidateQueries(QueryKeys.programs.summary(id));
     },

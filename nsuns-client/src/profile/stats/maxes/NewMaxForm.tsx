@@ -1,11 +1,11 @@
 import { Component, Show } from "solid-js";
-import { useMovementsQuery } from "../../hooks/queries/movements";
-import { useCreateMaxMutation } from "../../hooks/queries/maxes";
-import { createControl, createControlGroup, required } from "../../hooks/forms";
-import { Input } from "../../forms/Input";
-import { Select } from "../../forms/Select";
-import { Warning } from "../../icons/Warning";
-import { displayError } from "../../util/errors";
+import { useMovementsQuery } from "../../../hooks/queries/movements";
+import { useCreateMaxMutation } from "../../../hooks/queries/maxes";
+import { createControl, createControlGroup, required } from "../../../hooks/forms";
+import { Input } from "../../../forms/Input";
+import { Select } from "../../../forms/Select";
+import { Warning } from "../../../icons/Warning";
+import { displayError } from "../../../util/errors";
 
 export const NewMaxForm: Component<{ profileId: string; close: () => void }> = (
   props

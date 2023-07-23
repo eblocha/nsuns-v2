@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/solid-query";
 import { Accessor } from "solid-js";
-import { updateInArray } from "./util";
+import { QueryData, updateInArray } from "./util";
 import {
   CreateReps,
   Reps,
@@ -15,6 +15,8 @@ import {
   updateReps,
 } from "../../api/reps";
 import { QueryKeys } from "./keys";
+
+export type RepsQueryData = QueryData<ReturnType<typeof useRepsQuery>>;
 
 export const useRepsQuery = (profileId: Accessor<string>) => {
   return createQuery({
@@ -34,7 +36,7 @@ export const useCreateRepsMutation = <TError = unknown, TContext = unknown>(
     mutationFn: createReps,
     onSuccess: (reps, ...args) => {
       options?.onSuccess?.(reps, ...args);
-      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: Reps[]) => {
+      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: RepsQueryData) => {
         return repsList && [...repsList, reps];
       });
     },
@@ -52,7 +54,7 @@ export const useUpdateRepsMutation = <TError = unknown, TContext = unknown>(
     mutationFn: updateReps,
     onSuccess: (reps, ...args) => {
       options?.onSuccess?.(reps, ...args);
-      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: Reps[]) =>
+      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: RepsQueryData) =>
         updateInArray(repsList, reps, (r) => r.id === reps.id)
       );
     },

@@ -14,8 +14,12 @@ import {
   updateSet,
 } from "../../api";
 import { Accessor } from "solid-js";
-import { updateInArray } from "./util";
+import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
+
+export type ProgramSummaryQueryData = QueryData<
+  ReturnType<typeof useProgramSummaryQuery>
+>;
 
 export const useProgramSummaryQuery = (programId: Accessor<string>) => {
   return createQuery({
@@ -25,9 +29,9 @@ export const useProgramSummaryQuery = (programId: Accessor<string>) => {
   });
 };
 
-export const useCreateSet = (
+export const useCreateSet = <TError = unknown, TContext = unknown>(
   options?: Partial<
-    CreateMutationOptions<ProgramSet, unknown, CreateProgramSet, unknown>
+    CreateMutationOptions<ProgramSet, TError, CreateProgramSet, TContext>
   >
 ) => {
   const queryClient = useQueryClient();
@@ -38,7 +42,7 @@ export const useCreateSet = (
       options?.onSuccess?.(set, ...args);
       queryClient.setQueryData(
         QueryKeys.programs.summary(set.programId.toString()),
-        (summary?: ProgramSummary) =>
+        (summary?: ProgramSummaryQueryData) =>
           summary && {
             ...summary,
             sets: [...summary.sets, set],
@@ -50,9 +54,9 @@ export const useCreateSet = (
   return mutation;
 };
 
-export const useEditSet = (
+export const useEditSet = <TError = unknown, TContext = unknown>(
   options?: Partial<
-    CreateMutationOptions<ProgramSet, unknown, CreateProgramSet, unknown>
+    CreateMutationOptions<ProgramSet, TError, CreateProgramSet, TContext>
   >
 ) => {
   const queryClient = useQueryClient();
@@ -63,7 +67,7 @@ export const useEditSet = (
       options?.onSuccess?.(set, ...args);
       queryClient.setQueryData(
         QueryKeys.programs.summary(set.programId),
-        (summary?: ProgramSummary) =>
+        (summary?: ProgramSummaryQueryData) =>
           summary && {
             ...summary,
             sets:
@@ -77,10 +81,9 @@ export const useEditSet = (
   return mutation;
 };
 
-export const useDeleteSet = (
-  programId: string,
+export const useDeleteSet = <TError = unknown, TContext = unknown>(
   options?: Partial<
-    CreateMutationOptions<void, unknown, string | number, unknown>
+    CreateMutationOptions<void, TError, string | number, TContext>
   >
 ) => {
   const queryClient = useQueryClient();
@@ -91,7 +94,7 @@ export const useDeleteSet = (
       options?.onSuccess?.(v, id, ...args);
       queryClient.setQueryData(
         QueryKeys.programs.summary(id),
-        (summary?: ProgramSummary) =>
+        (summary?: ProgramSummaryQueryData) =>
           summary && {
             ...summary,
             sets: summary.sets.filter((s) => s.id !== id),

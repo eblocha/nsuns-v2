@@ -1,4 +1,4 @@
-import { baseHeaders, del, json, noContent, post, put } from "./util";
+import { bothJson, del, json, noContent, post, put } from "./util";
 
 export type Day = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -24,13 +24,13 @@ const path = "/api/sets";
 export const createSet = async (set: CreateProgramSet): Promise<ProgramSet> =>
   post(path, {
     body: JSON.stringify(set),
-    headers: baseHeaders,
+    headers: bothJson().headers,
   }).then(json());
 
 export const updateSet = async (set: UpdateProgramSet): Promise<ProgramSet> =>
   put(path, {
     body: JSON.stringify(set),
-    headers: baseHeaders,
+    headers: bothJson().headers,
   }).then(json());
 
 export const deleteSet = async (id: number | string): Promise<void> =>

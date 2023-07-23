@@ -33,3 +33,5 @@ export const combineQueries = (
     error: () => queries.find((q) => q.error)?.error,
   };
 };
+
+export type QueryData<C> = C extends CreateQueryResult<infer D, any> ? D : never;

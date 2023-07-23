@@ -33,7 +33,7 @@ type ProgramContextData = {
    */
   movementsToRepsMap: Accessor<Record<number, Reps[]>>;
   /**
-   * Unique movement ids that have a max-percentage reference or a direct reference in this program.
+   * Unique movement ids that are referenced by this program.
    */
   relevantMovements: Accessor<number[]>;
   queryState: MergedQueryState;

@@ -6,8 +6,7 @@ import { createDelayedLatch } from "../hooks/createDelayedLatch";
 import { RefreshButton } from "../components/RefreshButton";
 import { useProgramsQuery } from "../hooks/queries/programs";
 import { useNavigateToNewProgram } from "../hooks/navigation";
-import { MaxList } from "./maxes/MaxList";
-import { AddMax } from "./maxes/AddMax";
+import { ProfileStats } from "./stats/ProfileStats";
 
 export const ProfileHome: Component = () => {
   const params = useParams<{ profileId: string; programId?: string }>();
@@ -84,13 +83,7 @@ export const ProfileHome: Component = () => {
             </div>
           </div>
         </div>
-        <div class="w-full flex flex-col gap-4 mt-8">
-          <h3 class="text-xl">Your Maxes</h3>
-          <MaxList profileId={params.profileId} />
-          <div>
-            <AddMax profileId={params.profileId} />
-          </div>
-        </div>
+        <ProfileStats profileId={params.profileId} />
       </div>
       <div class="2xl:h-full 2xl:col-span-2 2xl:overflow-auto">
         <Outlet />

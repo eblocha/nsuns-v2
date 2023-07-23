@@ -1,18 +1,18 @@
 import { Component, Show, createSignal } from "solid-js";
-import { Plus } from "../../icons/Plus";
+import { Plus } from "../../../icons/Plus";
 import { NewMaxForm } from "./NewMaxForm";
+import { useStats } from "../../../stats/StatsProvider";
 
-export const AddMax: Component<{ profileId: string }> = (props) => {
+export const AddMax: Component = () => {
+  const { profileId } = useStats();
+
   const [showForm, setShowForm] = createSignal();
 
   return (
     <Show
       when={!showForm()}
       fallback={
-        <NewMaxForm
-          close={() => setShowForm(false)}
-          profileId={props.profileId}
-        />
+        <NewMaxForm close={() => setShowForm(false)} profileId={profileId()} />
       }
     >
       <button
