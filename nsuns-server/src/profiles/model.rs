@@ -37,22 +37,20 @@ impl Profile {
     }
 
     pub async fn update_one(self, tx: &mut Transaction<'_, DB>) -> Result<Option<Self>> {
-        sqlx::query(
-            "UPDATE profiles SET name = $1, WHERE id = $4",
-        )
-        .bind(&self.name)
-        .bind(self.id)
-        .execute(&mut **tx)
-        .await
-        .with_context(|| format!("failed to update profile with id={}", self.id))
-        .map(|result| {
-            if result.rows_affected() == 0 {
-                None
-            } else {
-                Some(self)
-            }
-        })
-        .into_result()
+        sqlx::query("UPDATE profiles SET name = $1, WHERE id = $4")
+            .bind(&self.name)
+            .bind(self.id)
+            .execute(&mut **tx)
+            .await
+            .with_context(|| format!("failed to update profile with id={}", self.id))
+            .map(|result| {
+                if result.rows_affected() == 0 {
+                    None
+                } else {
+                    Some(self)
+                }
+            })
+            .into_result()
     }
 
     pub async fn delete_one(

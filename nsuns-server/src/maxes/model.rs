@@ -22,14 +22,12 @@ impl Max {
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Self>> {
-        sqlx::query_as::<_, Self>(
-            "SELECT * FROM maxes WHERE profile_id = $1 ORDER BY timestamp",
-        )
-        .bind(profile_id)
-        .fetch_all(executor)
-        .await
-        .with_context(|| format!("failed to select maxes for profile_id={}", profile_id))
-        .into_result()
+        sqlx::query_as::<_, Self>("SELECT * FROM maxes WHERE profile_id = $1 ORDER BY timestamp")
+            .bind(profile_id)
+            .fetch_all(executor)
+            .await
+            .with_context(|| format!("failed to select maxes for profile_id={}", profile_id))
+            .into_result()
     }
 
     pub async fn update_one(

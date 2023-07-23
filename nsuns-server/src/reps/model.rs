@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use sqlx::Executor;
 use uuid::Uuid;
 
-use crate::{db::DB, error::{Result, IntoResult}};
+use crate::{
+    db::DB,
+    error::{IntoResult, Result},
+};
 
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]

@@ -30,7 +30,10 @@ pub async fn reps_index(
         .log_error()
 }
 
-pub async fn create_reps(State(pool): State<Pool>, Json(reps): Json<CreateReps>) -> impl IntoResponse {
+pub async fn create_reps(
+    State(pool): State<Pool>,
+    Json(reps): Json<CreateReps>,
+) -> impl IntoResponse {
     reps.insert_one(&pool)
         .await
         .map(Json)

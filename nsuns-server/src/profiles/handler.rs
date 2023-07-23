@@ -33,7 +33,10 @@ pub async fn create_profile(
     commit_ok(res, tx).await.log_error()
 }
 
-pub async fn update_profile(State(pool): State<Pool>, Json(profile): Json<Profile>) -> impl IntoResponse {
+pub async fn update_profile(
+    State(pool): State<Pool>,
+    Json(profile): Json<Profile>,
+) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
     let res = profile.update_one(&mut tx).await.map(Json);
     commit_ok(res, tx).await.log_error()
