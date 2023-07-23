@@ -8,6 +8,7 @@ import {
   CreateProfile,
   Profile,
   createProfile,
+  deleteProfile,
   getProfiles,
   updateProfile,
 } from "../../api";
@@ -62,6 +63,28 @@ export const createUpdateProfileMutation = <
         (profiles?: ProfilesQueryData) =>
           profiles &&
           updateInArray(profiles, profile, (p) => p.id === profile.id)
+      );
+    },
+  });
+};
+
+export const createDeleteProfileMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: Partial<CreateMutationOptions<Profile, TError, string, TContext>>
+) => {
+  const queryClient = useQueryClient();
+
+  return createMutation({
+    mutationFn: deleteProfile,
+    ...options,
+    onSuccess: (profile, ...args) => {
+      options?.onSuccess?.(profile, ...args);
+      queryClient.setQueryData(
+        QueryKeys.profiles(),
+        (profiles?: ProfilesQueryData) =>
+          profiles && profiles.filter((p) => p.id !== profile.id)
       );
     },
   });

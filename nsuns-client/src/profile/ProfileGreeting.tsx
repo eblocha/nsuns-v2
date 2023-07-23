@@ -1,9 +1,18 @@
-import { Component, Match, Show, Switch, createRenderEffect } from "solid-js";
+import {
+  Component,
+  Match,
+  Show,
+  Switch,
+  createRenderEffect,
+  createSignal,
+} from "solid-js";
 import { Profile, getProfile } from "../api";
 import { createQuery } from "@tanstack/solid-query";
 import { Input } from "../forms/Input";
 import { createControl, required } from "../hooks/forms";
 import { createUpdateProfileMutation } from "../hooks/queries/profiles";
+import { Trash } from "../icons/Trash";
+import { DeleteProfile } from "./DeleteProfile";
 
 const EditProfileName: Component<{ profile: Profile }> = (props) => {
   const name = createControl(props.profile.name, { validators: [required()] });
@@ -16,7 +25,8 @@ const EditProfileName: Component<{ profile: Profile }> = (props) => {
     },
   });
 
-  const disableSubmit = () => mutation.isLoading || name.hasErrors() || !name.isChanged();
+  const disableSubmit = () =>
+    mutation.isLoading || name.hasErrors() || !name.isChanged();
 
   const onSubmit = () => {
     if (disableSubmit()) return;
@@ -50,6 +60,7 @@ const Pending: Component = () => {
 };
 
 export const ProfileGreeting: Component<{ id: string }> = (props) => {
+  const [showDeleteModal, setShowDeleteModal] = createSignal(false);
   const query = createQuery({
     queryKey: () => ["profiles", props.id],
     queryFn: () => getProfile(props.id),
@@ -64,7 +75,21 @@ export const ProfileGreeting: Component<{ id: string }> = (props) => {
       <Match when={query.isSuccess}>
         <h2 class="text-2xl h-10 flex flex-row items-center gap-2">
           Welcome, <EditProfileName profile={query.data!} />
+          <button
+            class="text-button text-base text-gray-600 mr-2 hover:text-red-500 focus:text-red-500 hover:transition-colors focus:transition-colors"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowDeleteModal(true);
+            }}
+          >
+            <Trash />
+          </button>
         </h2>
+        <DeleteProfile
+          show={showDeleteModal()}
+          close={() => setShowDeleteModal(false)}
+          profile={query.data!}
+        />
       </Match>
     </Switch>
   );

@@ -28,6 +28,6 @@ export const updateProfile = async (profile: Profile): Promise<Profile> =>
   }).then(json());
 
 export const deleteProfile = async (id: string): Promise<Profile> =>
-  del(`${path}/${id}`, {
+  del(`${path}/${encodeURIComponent(id)}`, {
     headers: acceptJson().headers,
   }).then(json());
