@@ -14,6 +14,7 @@ pub mod maxes;
 pub mod movements;
 pub mod profiles;
 pub mod program;
+pub mod reps;
 pub mod router;
 pub mod sets;
 pub mod settings;

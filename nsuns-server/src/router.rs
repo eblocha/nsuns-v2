@@ -9,12 +9,13 @@ use tracing::Level;
 
 use crate::{
     db::Pool, maxes::router::maxes_router, movements::router::movements_router,
-    profiles::router::profiles_router, program::router::programs_router, sets::router::sets_router,
-    settings::Settings,
+    profiles::router::profiles_router, program::router::programs_router, reps::router::reps_router,
+    sets::router::sets_router, settings::Settings,
 };
 
 pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
-    let serve_dir = ServeDir::new("static").not_found_service(ServeFile::new("static/assets/index.html"));
+    let serve_dir =
+        ServeDir::new("static").not_found_service(ServeFile::new("static/assets/index.html"));
 
     let app = Router::new()
         .nest("/api/profiles", profiles_router())
@@ -22,6 +23,7 @@ pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
         .nest("/api/sets", sets_router())
         .nest("/api/movements", movements_router())
         .nest("/api/maxes", maxes_router())
+        .nest("/api/reps", reps_router())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
