@@ -1,7 +1,6 @@
 import { Component, Match, Switch } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
 import { repsDisplay, resolvedWeightDisplay } from "../../util/setDisplay";
-import { Max } from "../../api/maxes";
 import { currentSet, dayName } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
 import { useProgram } from "./context/ProgramProvider";

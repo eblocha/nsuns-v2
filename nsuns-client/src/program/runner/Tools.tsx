@@ -39,7 +39,7 @@ export const Tools: Component = () => {
   return (
     <div class="flex flex-row items-center">
       <PrevSet />
-      <NextSet nSets={setMap()[dayName()].length ?? 0} />
+      <NextSet nSets={setMap()[dayName()]?.length ?? 0} />
     </div>
   );
 };

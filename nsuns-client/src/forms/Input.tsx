@@ -13,7 +13,7 @@ export const Input: Component<
     <input
       {...props}
       classList={{
-        [style.invalid]: props.control.showErrors(),
+        [style.invalid!]: props.control.showErrors(),
         ...props.classList,
       }}
       value={props.control.value()}

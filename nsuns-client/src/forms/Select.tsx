@@ -45,7 +45,7 @@ export const Select: Component<
   });
 
   createRenderEffect(() => {
-    const firstOption = options()[0].value;
+    const firstOption = options()[0]?.value;
     if (!props.control.value() && firstOption) {
       props.control.setValue(firstOption);
     }
@@ -55,7 +55,7 @@ export const Select: Component<
     <select
       {...props}
       classList={{
-        [style.invalid]: props.control.showErrors(),
+        [style.invalid!]: props.control.showErrors(),
         ...props.classList,
       }}
       value={props.control.value()}

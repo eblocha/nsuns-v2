@@ -33,8 +33,8 @@ export const AnimatedSetList: Component = () => {
         <div
           class="overflow-hidden h-full w-full absolute top-0 left-0 px-1"
           classList={{
-            [style["slide-out-right"]]: direction() < 0,
-            [style["slide-out-left"]]: direction() > 0,
+            [style["slide-out-right"]!]: direction() < 0,
+            [style["slide-out-left"]!]: direction() > 0,
           }}
         >
           <SetList
@@ -52,8 +52,8 @@ export const AnimatedSetList: Component = () => {
       <div
         class="overflow-hidden h-full w-full absolute top-0 left-0 px-1"
         classList={{
-          [style["slide-in-right"]]: direction() < 0,
-          [style["slide-in-left"]]: direction() > 0,
+          [style["slide-in-right"]!]: direction() < 0,
+          [style["slide-in-left"]!]: direction() > 0,
         }}
       >
         <SetList

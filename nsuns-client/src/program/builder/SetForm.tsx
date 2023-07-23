@@ -3,7 +3,7 @@ import { Control, ControlGroup } from "../../hooks/forms";
 import { Select, SelectOption } from "../../forms/Select";
 import { Checkbox } from "../../forms/Checkbox";
 import { TextArea } from "../../forms/TextArea";
-import { CreateMutationResult, Mutation } from "@tanstack/solid-query";
+import { CreateMutationResult } from "@tanstack/solid-query";
 import {
   CreateProgramSet,
   Day,

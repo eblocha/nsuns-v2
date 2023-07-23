@@ -24,7 +24,7 @@ import {
 import { createMutation } from "@tanstack/solid-query";
 
 type CommonProps = {
-  movement: Movement;
+  movement?: Movement;
   profileId: string;
 };
 
@@ -73,7 +73,13 @@ const EditableCard: Component<EditableStatProps> = (props) => {
   const createReps = useCreateRepsMutation(profileId, options);
 
   const mutation = createMutation({
-    mutationFn: async (amount: number) => {
+    mutationFn: async ({
+      amount,
+      movement,
+    }: {
+      amount: number;
+      movement: Movement;
+    }) => {
       if (props.stat && props.type === "max") {
         updateMax.mutate({
           id: props.stat.id,
@@ -87,13 +93,13 @@ const EditableCard: Component<EditableStatProps> = (props) => {
       } else if (props.type === "max") {
         createMax.mutate({
           amount,
-          movementId: props.movement.id,
+          movementId: movement.id,
           profileId: props.profileId,
         });
       } else if (props.type === "reps") {
         createReps.mutate({
           amount,
-          movementId: props.movement.id,
+          movementId: movement.id,
           profileId: props.profileId,
         });
       }
@@ -102,13 +108,13 @@ const EditableCard: Component<EditableStatProps> = (props) => {
 
   const onSubmit = () => {
     const amt = amount.value();
-    if (mutation.isLoading || !amt) return;
+    if (mutation.isLoading || !amt || !props.movement) return;
 
     const parsed = parseInt(amt);
 
     if (parsed === props.stat?.amount) return;
 
-    mutation.mutate(parsed);
+    mutation.mutate({ amount: parsed, movement: props.movement });
   };
 
   return (
@@ -175,7 +181,7 @@ const StatRow: Component<StatsProps> = (props) => {
 };
 
 type MaxRowData = {
-  movement: Movement;
+  movement?: Movement;
   maxes: Reps[];
   reps: Reps[];
 };
@@ -245,4 +251,3 @@ const Loading: Component = () => {
     </For>
   );
 };
- 

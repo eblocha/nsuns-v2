@@ -5,9 +5,11 @@ export const useMovementsToRepsMap = (repsList: Accessor<Reps[]>) => {
   return createMemo(() => {
     const m: Record<number, Reps[]> = {};
     for (const reps of repsList()) {
+      const current = m[reps.movementId];
+
       // maxes are in ascending timestamp order
-      if (reps.movementId in m) {
-        m[reps.movementId].push(reps);
+      if (current) {
+        current.push(reps);
       } else {
         m[reps.movementId] = [reps];
       }

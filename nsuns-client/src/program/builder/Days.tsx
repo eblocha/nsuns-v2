@@ -1,11 +1,4 @@
-import {
-  Component,
-  For,
-  Setter,
-  Show,
-  createMemo,
-  createSignal,
-} from "solid-js";
+import { Component, For, Setter, Show, createSignal } from "solid-js";
 import { Day, ProgramSet } from "../../api";
 import { Plus } from "../../icons/Plus";
 import { NewSet } from "./NewSet";
@@ -76,7 +69,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: number }> = (
                 hasSets={!!setMap()[day]?.length}
                 index={index()}
                 setExpanded={setExpanded}
-                expanded={expanded()[index()]}
+                expanded={expanded()[index()]!}
               />
               <ul>
                 <Show

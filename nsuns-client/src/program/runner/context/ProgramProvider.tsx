@@ -11,6 +11,7 @@ import { useMovementsToMaxesMap } from "../../../hooks/useMovementsToMaxesMap";
 import { Reps } from "../../../api/reps";
 import { useMovementsToRepsMap } from "../../../hooks/useMovementsToRepsMap";
 import { useRepsQuery } from "../../../hooks/queries/reps";
+import { DayName } from "../../../util/days";
 
 type ProgramContextData = {
   programId: Accessor<number>;
@@ -18,7 +19,7 @@ type ProgramContextData = {
   /**
    * Name of the day to the list of set definitions for the day.
    */
-  setMap: Accessor<Record<string, ProgramSet[]>>;
+  setMap: Accessor<Record<DayName, ProgramSet[]>>;
   /**
    * Movement id to Movement.
    */

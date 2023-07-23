@@ -53,7 +53,7 @@ export const createControl = <T>(
     options?.validators?.forEach((validator) => {
       const errs = validator(current);
       for (const key in errs) {
-        errorMap[key] = errs[key];
+        errorMap[key] = errs[key]!;
       }
     });
     return errorMap;
@@ -122,7 +122,7 @@ export const createControlGroup = <R extends Record<string, Control<any>>>(
   const errors = createMemo(() => {
     const errMap: Record<string, ErrorInfo> = {};
     for (const key in controls) {
-      errMap[key] = controls[key].errors();
+      errMap[key] = controls[key]!.errors();
     }
   });
 
@@ -137,7 +137,7 @@ export const createControlGroup = <R extends Record<string, Control<any>>>(
   const value = () => {
     const value: ControlValues<R> = {} as ControlValues<R>;
     for (const key in controls) {
-      value[key] = controls[key].value() as ControlValue<
+      value[key] = controls[key]!.value() as ControlValue<
         R[Extract<keyof R, string>]
       >;
     }
