@@ -16,13 +16,12 @@ export const ProgramDetails: Component<{
   const reset = () => name.reset(props.program.name);
 
   const mutation = useUpdateProgram({
-    onSuccess: () => {
-      name.setDirty(false);
-      name.setTouched(false);
+    onSuccess: (program) => {
+      name.reset(program.name);
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     if (mutation.isLoading || name.hasErrors()) return;
 
     mutation.mutate({
@@ -49,12 +48,17 @@ export const ProgramDetails: Component<{
           <Input control={name} class="ghost-input" required={true} />
         </div>
         <Show when={name.isChanged()}>
-          <button onClick={reset} class="secondary-button ml-auto">
+          <button
+            onClick={reset}
+            class="secondary-button ml-auto"
+            type="button"
+          >
             Reset Title
           </button>
           <button
             class="primary-button ml-4 w-16 flex flex-row items-center justify-center"
             disabled={isLoading() || name.hasErrors()}
+            type="submit"
           >
             <Show
               when={!isLoading()}

@@ -4,9 +4,15 @@ import {
   createQuery,
   useQueryClient,
 } from "@tanstack/solid-query";
-import { CreateProfile, Profile, createProfile, getProfiles } from "../../api";
+import {
+  CreateProfile,
+  Profile,
+  createProfile,
+  getProfiles,
+  updateProfile,
+} from "../../api";
 import { QueryKeys } from "./keys";
-import { QueryData } from "./util";
+import { QueryData, updateInArray } from "./util";
 
 export type ProfilesQueryData = QueryData<
   ReturnType<typeof createProfileQuery>
@@ -33,6 +39,29 @@ export const createCreateProfileMutation = <
       queryClient.setQueryData(
         QueryKeys.profiles(),
         (profiles?: ProfilesQueryData) => profiles && [...profiles, profile]
+      );
+    },
+  });
+};
+
+export const createUpdateProfileMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: Partial<CreateMutationOptions<Profile, TError, Profile, TContext>>
+) => {
+  const queryClient = useQueryClient();
+
+  return createMutation({
+    mutationFn: updateProfile,
+    ...options,
+    onSuccess: (profile, ...args) => {
+      options?.onSuccess?.(profile, ...args);
+      queryClient.setQueryData(
+        QueryKeys.profiles(),
+        (profiles?: ProfilesQueryData) =>
+          profiles &&
+          updateInArray(profiles, profile, (p) => p.id === profile.id)
       );
     },
   });

@@ -37,7 +37,7 @@ impl Profile {
     }
 
     pub async fn update_one(self, tx: &mut Transaction<'_, DB>) -> Result<Option<Self>> {
-        sqlx::query("UPDATE profiles SET name = $1, WHERE id = $4")
+        sqlx::query("UPDATE profiles SET name = $1 WHERE id = $2")
             .bind(&self.name)
             .bind(self.id)
             .execute(&mut **tx)
