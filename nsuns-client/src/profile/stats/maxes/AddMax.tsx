@@ -19,7 +19,7 @@ export const AddMax: Component = () => {
         class="flex flex-row items-center gap-2 text-button-outline"
         onClick={() => setShowForm(true)}
       >
-        <Plus /> Log a New Max
+        <Plus /> Log Max
       </button>
     </Show>
   );

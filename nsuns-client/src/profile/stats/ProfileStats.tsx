@@ -3,6 +3,7 @@ import { StatsProvider } from "../../stats/StatsProvider";
 import { UpdateMaxes } from "./UpdateMaxes";
 import { StatList } from "./maxes/StatList";
 import { AddMax } from "./maxes/AddMax";
+import { UndoUpdate } from "./UndoUpdate";
 
 export const ProfileStats: Component<{ profileId: string }> = (props) => {
   return (
@@ -13,6 +14,7 @@ export const ProfileStats: Component<{ profileId: string }> = (props) => {
           <div class="flex flex-row items-stretch gap-2 flex-wrap">
             <AddMax />
             <UpdateMaxes />
+            <UndoUpdate />
           </div>
         </div>
     </StatsProvider>

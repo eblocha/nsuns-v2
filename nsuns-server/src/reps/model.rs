@@ -122,15 +122,16 @@ pub async fn delete_latest_reps(
     profile_id: Uuid,
     movement_id: i32,
     executor: impl Executor<'_, Database = DB>,
-) -> Result<()> {
-    sqlx::query(
-        "DELETE FROM reps WHERE id IN (
-        SELECT id FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC)",
-    )
+) -> Result<Option<i32>> {
+    sqlx::query_as::<_, (i32,)>(
+        "DELETE FROM reps WHERE id = any(
+        array(SELECT id FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1)
+    ) RETURNING id",)
     .bind(movement_id)
     .bind(profile_id)
-    .execute(executor)
-    .await?;
-
-    Ok(())
+    .fetch_optional(executor)
+    .await
+    .map(|res| res.map(|(id,)| id))
+    .with_context(|| "failed to delete latest reps")
+    .into_result()
 }
