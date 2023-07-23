@@ -1,7 +1,6 @@
 use anyhow::Result;
 use axum::Router;
 use tower_http::{
-    cors::CorsLayer,
     services::{ServeDir, ServeFile},
     trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
@@ -14,8 +13,7 @@ use crate::{
 };
 
 pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
-    let serve_dir =
-        ServeDir::new("static").not_found_service(ServeFile::new("static/assets/index.html"));
+    let serve_dir = ServeDir::new("static").not_found_service(ServeFile::new("static/index.html"));
 
     let app = Router::new()
         .nest("/api/profiles", profiles_router())
@@ -31,7 +29,6 @@ pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
         .with_state(pool)
-        .layer(CorsLayer::permissive())
         .fallback_service(serve_dir);
 
     Ok(app)
