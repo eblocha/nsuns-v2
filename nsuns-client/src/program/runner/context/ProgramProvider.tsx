@@ -1,37 +1,17 @@
 import { Accessor, Component, JSX, createContext, useContext } from "solid-js";
-import { Movement, ProgramSet } from "../../../api";
-import { Max } from "../../../api/maxes";
+import { ProgramSet } from "../../../api";
 import { useProgramSummaryQuery } from "../../../hooks/queries/sets";
-import { useMovementsQuery } from "../../../hooks/queries/movements";
-import { useMaxesQuery } from "../../../hooks/queries/maxes";
-import { MergedQueryState, combineQueries } from "../../../hooks/queries/util";
+import { MergedQueryState } from "../../../hooks/queries/util";
 import { useSetMap } from "../../../hooks/useSetMap";
-import { useMovementMap } from "../../../hooks/useMovementMap";
-import { useMovementsToMaxesMap } from "../../../hooks/useMovementsToMaxesMap";
-import { Reps } from "../../../api/reps";
-import { useMovementsToRepsMap } from "../../../hooks/useMovementsToRepsMap";
-import { useRepsQuery } from "../../../hooks/queries/reps";
 import { DayName } from "../../../util/days";
+import { StatsProvider, useStats } from "../../../stats/StatsProvider";
 
-type ProgramContextData = {
+type ProgramContextData = ReturnType<typeof useStats> & {
   programId: Accessor<number>;
-  profileId: Accessor<string>;
   /**
    * Name of the day to the list of set definitions for the day.
    */
   setMap: Accessor<Record<DayName, ProgramSet[]>>;
-  /**
-   * Movement id to Movement.
-   */
-  movementMap: Accessor<Record<number, Movement>>;
-  /**
-   * Movement id to time-ordered (earliest first) maxes for that movement.
-   */
-  movementsToMaxesMap: Accessor<Record<number, Max[]>>;
-  /**
-   * Movement id to time-ordered (earliest first) reps for that movement.
-   */
-  movementsToRepsMap: Accessor<Record<number, Reps[]>>;
   /**
    * Unique movement ids that are referenced by this program.
    */
@@ -43,27 +23,24 @@ const EMPTY: never[] = [];
 
 const ProgramContext = createContext<ProgramContextData>();
 
-export const ProgramProvider: Component<{
+const InnerProvider: Component<{
   programId: string;
-  profileId: string;
   children?: JSX.Element;
 }> = (props) => {
-  const summaryQuery = useProgramSummaryQuery(() => props.programId);
-  const movementsQuery = useMovementsQuery();
-  const maxesQuery = useMaxesQuery(() => props.profileId);
-  const repsQuery = useRepsQuery(() => props.profileId);
+  const stats = useStats();
 
-  const queryState = combineQueries(summaryQuery, movementsQuery, maxesQuery);
+  const summaryQuery = useProgramSummaryQuery(() => props.programId);
+
+  const queryState: MergedQueryState = {
+    error: () => stats.queryState.error() || summaryQuery.error,
+    isError: () => stats.queryState.isError() || summaryQuery.isError,
+    isLoading: () => stats.queryState.isLoading() || summaryQuery.isLoading,
+    isSuccess: () => stats.queryState.isSuccess() && summaryQuery.isSuccess,
+  };
 
   const sets = () => summaryQuery.data?.sets ?? EMPTY;
-  const movements = () => movementsQuery.data ?? EMPTY;
-  const maxes = () => maxesQuery.data ?? EMPTY;
-  const reps = () => repsQuery.data ?? EMPTY;
 
   const setMap = useSetMap(sets);
-  const movementMap = useMovementMap(movements);
-  const movementsToMaxesMap = useMovementsToMaxesMap(maxes);
-  const movementsToRepsMap = useMovementsToRepsMap(reps);
 
   const relevantMovements = () => {
     const uniqueIds: number[] = [];
@@ -84,18 +61,29 @@ export const ProgramProvider: Component<{
   return (
     <ProgramContext.Provider
       value={{
-        profileId: () => props.profileId,
+        ...stats,
         programId: () => parseInt(props.programId),
         setMap,
-        movementMap,
-        movementsToMaxesMap,
-        movementsToRepsMap,
         relevantMovements,
         queryState,
       }}
     >
       {props.children}
     </ProgramContext.Provider>
+  );
+};
+
+export const ProgramProvider: Component<{
+  programId: string;
+  profileId: string;
+  children?: JSX.Element;
+}> = (props) => {
+  return (
+    <StatsProvider profileId={props.profileId}>
+      <InnerProvider programId={props.programId}>
+        {props.children}
+      </InnerProvider>
+    </StatsProvider>
   );
 };
 
