@@ -1,6 +1,7 @@
 export const QueryKeys = {
   maxes: (profileId: string) => ["maxes", profileId],
   movements: () => ["movements"],
+  profiles: () => ["profiles"],
   programs: {
     // profile ids are uuids, so no collisions
     list: (profileId: string) => ["programs", profileId],

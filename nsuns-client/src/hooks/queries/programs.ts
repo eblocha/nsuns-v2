@@ -91,8 +91,8 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
   const mutation = createMutation({
     ...options,
     mutationFn: deleteProgram,
-    onSuccess: (program, id, ...args) => {
-      options?.onSuccess?.(program, id, ...args);
+    onSuccess: (v, id, ...args) => {
+      options?.onSuccess?.(v, id, ...args);
       queryClient.setQueryData(
         QueryKeys.programs.list(profileId()),
         (programs?: ProgramsQueryData) => programs?.filter((p) => p.id !== id)

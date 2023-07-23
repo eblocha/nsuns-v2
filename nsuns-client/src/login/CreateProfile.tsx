@@ -1,25 +1,19 @@
 import { Component, Show } from "solid-js";
 import { Input } from "../forms/Input";
 import { A } from "@solidjs/router";
-import { createProfile } from "../api";
-import { createMutation, useQueryClient } from "@tanstack/solid-query";
 import { Spinner } from "../icons/Spinner";
 import { useNavigateToProfileHome } from "../hooks/navigation";
 import { createControl, required } from "../hooks/forms";
 import { ErrorMessages } from "../forms/ErrorMessages";
 import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
+import { createCreateProfileMutation } from "../hooks/queries/profiles";
 
 export const CreateProfile: Component = () => {
-  const queryClient = useQueryClient();
   const navigateToProfileHome = useNavigateToProfileHome();
 
-  const mutation = createMutation({
-    mutationFn: createProfile,
+  const mutation = createCreateProfileMutation({
     onSuccess: (profile) => {
-      queryClient.invalidateQueries(["profiles"], {
-        exact: false,
-      });
       navigateToProfileHome(profile.id);
     },
   });
