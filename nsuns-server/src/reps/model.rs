@@ -117,3 +117,20 @@ impl UpdateReps {
             .into_result()
     }
 }
+
+pub async fn delete_latest_reps(
+    profile_id: Uuid,
+    movement_id: i32,
+    executor: impl Executor<'_, Database = DB>,
+) -> Result<()> {
+    sqlx::query(
+        "DELETE FROM reps WHERE id IN (
+        SELECT id FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC)",
+    )
+    .bind(movement_id)
+    .bind(profile_id)
+    .execute(executor)
+    .await?;
+
+    Ok(())
+}

@@ -24,7 +24,7 @@ pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
         .nest("/api/movements", movements_router())
         .nest("/api/maxes", maxes_router())
         .nest("/api/reps", reps_router())
-        .nest("/api/update", updates_router())
+        .nest("/api/updates", updates_router())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))

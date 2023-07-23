@@ -1,6 +1,6 @@
 import { Max } from "./maxes";
 import { Reps } from "./reps";
-import { bothJson, json, post } from "./util";
+import { bothJson, del, json, noContent, post, sendJson } from "./util";
 
 export type UpdateRequest = {
   profileId: string;
@@ -12,10 +12,16 @@ export type UpdateResponse = {
   reps: Reps[];
 };
 
-const path = "/api/update";
+const path = "/api/updates";
 
 export const runUpdates = (req: UpdateRequest): Promise<UpdateResponse> =>
   post(path, {
     body: JSON.stringify(req),
     headers: bothJson().headers,
   }).then(json());
+
+export const undoUpdates = (req: UpdateRequest): Promise<void> =>
+  del(path, {
+    body: JSON.stringify(req),
+    headers: sendJson().headers,
+  }).then(noContent());

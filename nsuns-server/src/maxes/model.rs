@@ -117,3 +117,20 @@ impl UpdateMax {
             .into_result()
     }
 }
+
+pub async fn delete_latest_maxes(
+    profile_id: Uuid,
+    movement_id: i32,
+    executor: impl Executor<'_, Database = DB>,
+) -> Result<()> {
+    sqlx::query(
+        "DELETE FROM maxes WHERE id IN (
+        SELECT id FROM maxes WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC)",
+    )
+    .bind(movement_id)
+    .bind(profile_id)
+    .execute(executor)
+    .await?;
+
+    Ok(())
+}

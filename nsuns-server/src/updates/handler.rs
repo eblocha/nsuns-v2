@@ -6,8 +6,8 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool, DB},
     error::{IntoResult, LogError, Result},
-    maxes::model::{CreateMax, Max},
-    reps::model::{CreateReps, Reps},
+    maxes::model::{delete_latest_maxes, CreateMax, Max},
+    reps::model::{delete_latest_reps, CreateReps, Reps},
 };
 
 #[derive(Debug, Deserialize)]
@@ -75,5 +75,19 @@ async fn run_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<U
 pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
     let res = run_updates(&mut tx, updates).await.map(Json).into_result();
+    commit_ok(res, tx).await.log_error()
+}
+
+async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<()> {
+    for movement_id in updates.movement_ids {
+        delete_latest_reps(updates.profile_id, movement_id, &mut **tx).await?;
+        delete_latest_maxes(updates.profile_id, movement_id, &mut **tx).await?;
+    }
+    Ok(())
+}
+
+pub async fn undo(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
+    let mut tx = transaction(&pool).await.log_error()?;
+    let res = undo_updates(&mut tx, updates).await.map(Json).into_result();
     commit_ok(res, tx).await.log_error()
 }
