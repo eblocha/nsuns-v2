@@ -23,13 +23,13 @@ export const ProfileHome: Component = () => {
   const isFetching = createDelayedLatch(() => programsQuery.isFetching, 200);
 
   return (
-    <div class="2xl:h-full grid grid-rows-2 2xl:grid-rows-1 2xl:grid-cols-3 gap-10 2xl:overflow-hidden">
-      <div class="2xl:h-full flex flex-col items-center justify-center py-12 px-24 2xl:overflow-auto gap-8">
+    <div class="2xl:h-full grid grid-rows-2 2xl:grid-rows-1 2xl:grid-cols-3 2xl:overflow-hidden">
+      <div class="2xl:h-full py-12 px-24 2xl:overflow-auto">
         <div class="w-full">
           <div class="mb-4">
             <ProfileGreeting id={params.profileId} />
           </div>
-          <h2 class="text-lg">Your Programs</h2>
+          <h2 class="text-xl">Your Programs</h2>
           <div class="flex flex-col justify-center">
             <Switch>
               <Match when={programsQuery.isLoading}>
@@ -84,7 +84,7 @@ export const ProfileHome: Component = () => {
             </div>
           </div>
         </div>
-        <div class="w-full flex flex-col gap-4">
+        <div class="w-full flex flex-col gap-4 mt-8">
           <h3 class="text-xl">Your Maxes</h3>
           <MaxList profileId={params.profileId} />
           <div>

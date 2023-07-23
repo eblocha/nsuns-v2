@@ -124,18 +124,18 @@ const LastAmountCard: Component<Stats> = (props) => {
 };
 
 const StatRow: Component<Stats> = (props) => {
+  const points = createMemo(() =>
+    props.stats?.map((stat, index) => ({
+      x: index,
+      y: stat.amount,
+    }))
+  );
+
   return (
     <div class="grid grid-cols-4 gap-4">
       <LastAmountCard {...props} />
       <div class="col-span-3 h-32 text-blue-500 p-1 mt-auto">
-        <Graph
-          data={props.stats?.map((stat, index) => ({
-            x: index,
-            y: stat.amount,
-          }))}
-          weight={4}
-          fillOpacity="10%"
-        />
+        <Graph data={points()} weight={4} fillOpacity="10%" />
       </div>
     </div>
   );
