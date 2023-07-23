@@ -9,6 +9,11 @@ export type Reps = {
 
 export type CreateReps = Omit<Reps, "id">;
 
+export type UpdateReps = {
+  id: number;
+  amount: number;
+};
+
 const path = "/api/reps";
 
 export const getReps = async (profileId: string): Promise<Reps[]> =>
@@ -20,7 +25,7 @@ export const createReps = async (reps: CreateReps): Promise<Reps> =>
     headers: baseHeaders,
   }).then(json());
 
-export const updateReps = async (reps: Reps): Promise<Reps> =>
+export const updateReps = async (reps: UpdateReps): Promise<Reps> =>
   put(path, {
     body: JSON.stringify(reps),
     headers: baseHeaders,

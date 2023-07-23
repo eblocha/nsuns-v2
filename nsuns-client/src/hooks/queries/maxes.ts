@@ -7,6 +7,7 @@ import {
 import {
   CreateMax,
   Max,
+  UpdateMax,
   createMax,
   getMaxes,
   updateMax,
@@ -42,7 +43,7 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
 
 export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
   profileId: Accessor<string>,
-  options?: Partial<CreateMutationOptions<Max, TError, Max, TContext>>
+  options?: Partial<CreateMutationOptions<Max, TError, UpdateMax, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({

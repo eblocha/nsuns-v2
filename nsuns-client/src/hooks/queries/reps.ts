@@ -9,6 +9,7 @@ import { updateInArray } from "./util";
 import {
   CreateReps,
   Reps,
+  UpdateReps,
   createReps,
   getReps,
   updateReps,
@@ -42,7 +43,7 @@ export const useCreateRepsMutation = <TError = unknown, TContext = unknown>(
 
 export const useUpdateRepsMutation = <TError = unknown, TContext = unknown>(
   profileId: Accessor<string>,
-  options?: Partial<CreateMutationOptions<Reps, TError, Reps, TContext>>
+  options?: Partial<CreateMutationOptions<Reps, TError, UpdateReps, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({

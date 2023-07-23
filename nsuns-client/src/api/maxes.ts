@@ -9,6 +9,11 @@ export type Max = {
 
 export type CreateMax = Omit<Max, "id">;
 
+export type UpdateMax = {
+  id: number;
+  amount: number;
+}
+
 const path = "/api/maxes";
 
 export const getMaxes = async (profileId: string): Promise<Max[]> =>
@@ -20,7 +25,7 @@ export const createMax = async (max: CreateMax): Promise<Max> =>
     headers: baseHeaders,
   }).then(json());
 
-export const updateMax = async (max: Max): Promise<Max> =>
+export const updateMax = async (max: UpdateMax): Promise<Max> =>
   put(path, {
     body: JSON.stringify(max),
     headers: baseHeaders,

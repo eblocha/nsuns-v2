@@ -12,7 +12,7 @@ use crate::{
     util::{created, or_404},
 };
 
-use super::model::{CreateReps, Reps};
+use super::model::{CreateReps, Reps, UpdateReps};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,7 +41,10 @@ pub async fn create_reps(
         .log_error()
 }
 
-pub async fn update_reps(State(pool): State<Pool>, Json(reps): Json<Reps>) -> impl IntoResponse {
+pub async fn update_reps(
+    State(pool): State<Pool>,
+    Json(reps): Json<UpdateReps>,
+) -> impl IntoResponse {
     reps.update_one(&pool)
         .await
         .map(or_404::<_, Json<_>>)

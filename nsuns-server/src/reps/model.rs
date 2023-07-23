@@ -81,3 +81,25 @@ impl CreateReps {
         .into_result()
     }
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateReps {
+    pub id: i32,
+    pub amount: i32,
+}
+
+impl UpdateReps {
+    pub async fn update_one(
+        self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> Result<Option<Reps>> {
+        sqlx::query_as::<_, Reps>("UPDATE reps SET amount = $1 WHERE id = $2 RETURNING *")
+            .bind(self.amount)
+            .bind(self.id)
+            .fetch_optional(executor)
+            .await
+            .with_context(|| format!("failed to update reps with id={}", self.id))
+            .into_result()
+    }
+}

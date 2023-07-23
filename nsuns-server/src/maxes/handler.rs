@@ -12,7 +12,7 @@ use crate::{
     util::{created, or_404},
 };
 
-use super::model::{CreateMax, Max};
+use super::model::{CreateMax, Max, UpdateMax};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -38,7 +38,7 @@ pub async fn create_max(State(pool): State<Pool>, Json(max): Json<CreateMax>) ->
         .log_error()
 }
 
-pub async fn update_max(State(pool): State<Pool>, Json(max): Json<Max>) -> impl IntoResponse {
+pub async fn update_max(State(pool): State<Pool>, Json(max): Json<UpdateMax>) -> impl IntoResponse {
     max.update_one(&pool)
         .await
         .map(or_404::<_, Json<_>>)

@@ -76,12 +76,12 @@ const EditableCard: Component<EditableStatProps> = (props) => {
     mutationFn: async (amount: number) => {
       if (props.stat && props.type === "max") {
         updateMax.mutate({
-          ...props.stat,
+          id: props.stat.id,
           amount,
         });
       } else if (props.stat && props.type === "reps") {
         updateReps.mutate({
-          ...props.stat,
+          id: props.stat.id,
           amount,
         });
       } else if (props.type === "max") {
