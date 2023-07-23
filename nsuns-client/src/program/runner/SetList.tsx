@@ -1,6 +1,5 @@
 import { Component, For, JSX, Setter, Show, createMemo } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
-import { Dumbbell } from "../../icons/Dumbbell";
 import {
   getSections,
   plural,

@@ -14,7 +14,7 @@ import { useProgram } from "./context/ProgramProvider";
 
 const dayNameOut = () => (direction() < 0 ? nextDayName() : prevDayName());
 
-export const AnimatedSetList: Component = (props) => {
+export const AnimatedSetList: Component = () => {
   const { setMap, movementMap, movementsToMaxesMap } = useProgram();
 
   let timeout: number;
