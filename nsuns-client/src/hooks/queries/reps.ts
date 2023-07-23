@@ -14,10 +14,11 @@ import {
   getReps,
   updateReps,
 } from "../../api/reps";
+import { QueryKeys } from "./keys";
 
 export const useRepsQuery = (profileId: Accessor<string>) => {
   return createQuery({
-    queryKey: () => ["reps", profileId()],
+    queryKey: () => QueryKeys.reps(profileId()),
     queryFn: () => getReps(profileId()),
     enabled: !!profileId(),
   });
@@ -33,7 +34,7 @@ export const useCreateRepsMutation = <TError = unknown, TContext = unknown>(
     mutationFn: createReps,
     onSuccess: (reps, ...args) => {
       options?.onSuccess?.(reps, ...args);
-      queryClient.setQueryData(["reps", profileId()], (repsList?: Reps[]) => {
+      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: Reps[]) => {
         return repsList && [...repsList, reps];
       });
     },
@@ -51,7 +52,7 @@ export const useUpdateRepsMutation = <TError = unknown, TContext = unknown>(
     mutationFn: updateReps,
     onSuccess: (reps, ...args) => {
       options?.onSuccess?.(reps, ...args);
-      queryClient.setQueryData(["reps", profileId()], (repsList?: Reps[]) =>
+      queryClient.setQueryData(QueryKeys.reps(profileId()), (repsList?: Reps[]) =>
         updateInArray(repsList, reps, (r) => r.id === reps.id)
       );
     },

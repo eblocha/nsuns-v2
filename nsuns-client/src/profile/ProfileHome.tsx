@@ -12,7 +12,7 @@ import { AddMax } from "./maxes/AddMax";
 export const ProfileHome: Component = () => {
   const params = useParams<{ profileId: string; programId?: string }>();
   const navToNewProgram = useNavigateToNewProgram();
-  const programsQuery = useProgramsQuery(params.profileId);
+  const programsQuery = useProgramsQuery(() => params.profileId);
 
   createEffect(() => {
     if (programsQuery.isSuccess && programsQuery.data?.length === 0) {

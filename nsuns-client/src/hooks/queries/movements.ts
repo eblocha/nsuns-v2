@@ -12,10 +12,11 @@ import {
   updateMovement,
 } from "../../api";
 import { updateInArray } from "./util";
+import { QueryKeys } from "./keys";
 
 export const useMovementsQuery = () => {
   const query = createQuery({
-    queryKey: () => ["movements"],
+    queryKey: QueryKeys.movements,
     queryFn: getMovements,
   });
 
@@ -32,7 +33,7 @@ export const useCreateMovement = <TError = unknown, TContext = unknown>(
     ...options,
     mutationFn: createMovement,
     onSuccess: (movement, ...args) => {
-      queryClient.setQueryData(["movements"], (movements?: Movement[]) => {
+      queryClient.setQueryData(QueryKeys.movements(), (movements?: Movement[]) => {
         return movements && [...movements, movement];
       });
       options?.onSuccess?.(movement, ...args);
@@ -50,7 +51,7 @@ export const useUpdateMovement = <TError = unknown, TContext = unknown>(
     mutationFn: updateMovement,
     onSuccess: (movement, ...args) => {
       options?.onSuccess?.(movement, ...args);
-      queryClient.setQueryData(["movements"], (movements?: Movement[]) =>
+      queryClient.setQueryData(QueryKeys.movements(), (movements?: Movement[]) =>
         updateInArray(movements, movement, (m) => m.id === movement.id)
       );
     },

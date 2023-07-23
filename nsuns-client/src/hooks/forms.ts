@@ -18,6 +18,7 @@ export type Control<T> = {
   setValue: Setter<T>;
   dirty: Accessor<boolean>;
   setDirty: Setter<boolean>;
+  isChanged: Accessor<boolean>;
   touched: Accessor<boolean>;
   setTouched: Setter<boolean>;
   errors: Accessor<ErrorInfo>;
@@ -39,9 +40,13 @@ export const createControl = <T>(
   initialValue: T,
   options?: InputOptions<T>
 ): Control<T> => {
-  const [value, setValue] = createSignal(initialValue);
+  const [initial, setInitial] = createSignal(initialValue);
+
+  const [value, setValue] = createSignal(initial());
   const [dirty, setDirty] = createSignal(false);
   const [touched, setTouched] = createSignal(false);
+
+  const isChanged = () => value() !== initial();
 
   const errorMessageMapping: Record<string, string> =
     options?.errorMessageMapping ?? DEFAULT_ERROR_MESSAGES;
@@ -75,6 +80,9 @@ export const createControl = <T>(
       setDirty(false);
       setTouched(false);
       setValue(() => (value === undefined ? initialValue : value));
+      if (value !== undefined) {
+        setInitial(() => value);
+      }
     });
 
   return {
@@ -82,6 +90,7 @@ export const createControl = <T>(
     setValue,
     dirty,
     setDirty,
+    isChanged,
     touched,
     setTouched,
     errors,
@@ -102,6 +111,7 @@ export type ControlGroup<R extends Record<string, Control<any>>> = {
   controls: R;
   dirty: Accessor<boolean>;
   touched: Accessor<boolean>;
+  changed: Accessor<boolean>;
   errors: Accessor<void>;
   hasErrors: Accessor<boolean>;
   showErrors: Accessor<boolean>;
@@ -117,6 +127,9 @@ export const createControlGroup = <R extends Record<string, Control<any>>>(
   );
   const touched = createMemo(
     () => !Object.values(controls).every((control) => !control.touched())
+  );
+  const changed = createMemo(
+    () => !Object.values(controls).every((control) => !control.isChanged())
   );
 
   const errors = createMemo(() => {
@@ -155,6 +168,7 @@ export const createControlGroup = <R extends Record<string, Control<any>>>(
     controls,
     dirty,
     touched,
+    changed,
     errors,
     hasErrors,
     showErrors,

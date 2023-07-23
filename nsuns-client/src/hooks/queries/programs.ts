@@ -7,6 +7,7 @@ import {
 import {
   CreateProgram,
   Program,
+  ProgramSummary,
   UpdateProgram,
   createProgram,
   deleteProgram,
@@ -15,11 +16,12 @@ import {
 } from "../../api";
 import { Accessor } from "solid-js";
 import { updateInArray } from "./util";
+import { QueryKeys } from "./keys";
 
-export const useProgramsQuery = (profileId: string) => {
+export const useProgramsQuery = (profileId: Accessor<string>) => {
   const programsQuery = createQuery({
-    queryKey: () => ["programs", profileId],
-    queryFn: () => getProfilePrograms(profileId),
+    queryKey: () => QueryKeys.programs.list(profileId()),
+    queryFn: () => getProfilePrograms(profileId()),
     enabled: !!profileId,
   });
   return programsQuery;
@@ -38,7 +40,7 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
     onSuccess: (program, ...args) => {
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
-        ["programs", profileId()],
+        QueryKeys.programs.list(profileId()),
         (programs?: Program[]) =>
           programs ? [...programs, program] : undefined
       );
@@ -60,9 +62,17 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
     onSuccess: (program, ...args) => {
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(
-        ["programs", profileId()],
+        QueryKeys.programs.list(profileId()),
         (programs?: Program[]) =>
           updateInArray(programs, program, (p) => p.id === program.id)
+      );
+      queryClient.setQueryData(
+        QueryKeys.programs.summary(program.id),
+        (summary?: ProgramSummary) =>
+          summary && {
+            ...summary,
+            program,
+          }
       );
     },
   });
@@ -82,9 +92,10 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
     onSuccess: (program, id, ...args) => {
       options?.onSuccess?.(program, id, ...args);
       queryClient.setQueryData(
-        ["programs", profileId()],
+        QueryKeys.programs.list(profileId()),
         (programs?: Program[]) => programs?.filter((p) => p.id !== id)
       );
+      queryClient.invalidateQueries(QueryKeys.programs.summary(id));
     },
   });
   return mutation;

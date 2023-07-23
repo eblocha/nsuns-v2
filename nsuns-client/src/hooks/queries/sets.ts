@@ -15,10 +15,11 @@ import {
 } from "../../api";
 import { Accessor } from "solid-js";
 import { updateInArray } from "./util";
+import { QueryKeys } from "./keys";
 
 export const useProgramSummaryQuery = (programId: Accessor<string>) => {
   return createQuery({
-    queryKey: () => ["programs", programId()],
+    queryKey: () => QueryKeys.programs.summary(programId()),
     queryFn: () => getProgramSummary(programId()),
     enabled: !!programId(),
   });
@@ -36,15 +37,12 @@ export const useCreateSet = (
     onSuccess: (set, ...args) => {
       options?.onSuccess?.(set, ...args);
       queryClient.setQueryData(
-        ["programs", set.programId.toString()],
-        (summary?: ProgramSummary) => {
-          if (!summary) return;
-
-          return {
-            program: summary.program,
+        QueryKeys.programs.summary(set.programId.toString()),
+        (summary?: ProgramSummary) =>
+          summary && {
+            ...summary,
             sets: [...summary.sets, set],
-          };
-        }
+          }
       );
     },
   });
@@ -64,17 +62,14 @@ export const useEditSet = (
     onSuccess: (set, ...args) => {
       options?.onSuccess?.(set, ...args);
       queryClient.setQueryData(
-        ["programs", set.programId.toString()],
-        (summary?: ProgramSummary) => {
-          if (!summary) return;
-
-          return {
-            program: summary.program,
+        QueryKeys.programs.summary(set.programId),
+        (summary?: ProgramSummary) =>
+          summary && {
+            ...summary,
             sets:
               updateInArray(summary.sets, set, (s) => s.id === set.id) ??
               summary.sets,
-          };
-        }
+          }
       );
     },
   });
@@ -95,14 +90,12 @@ export const useDeleteSet = (
     onSuccess: (v, id, ...args) => {
       options?.onSuccess?.(v, id, ...args);
       queryClient.setQueryData(
-        ["programs", programId],
-        (summary?: ProgramSummary) => {
-          if (!summary) return;
-          return {
-            program: summary.program,
+        QueryKeys.programs.summary(id),
+        (summary?: ProgramSummary) =>
+          summary && {
+            ...summary,
             sets: summary.sets.filter((s) => s.id !== id),
-          };
-        }
+          }
       );
     },
   });

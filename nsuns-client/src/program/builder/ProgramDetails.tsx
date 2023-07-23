@@ -5,7 +5,6 @@ import { Spinner } from "../../icons/Spinner";
 import { createDelayedLatch } from "../../hooks/createDelayedLatch";
 import { useUpdateProgram } from "../../hooks/queries/programs";
 import { createControl, required } from "../../hooks/forms";
-import { ErrorMessages } from "../../forms/ErrorMessages";
 import { Warning } from "../../icons/Warning";
 import { displayError } from "../../util/errors";
 
@@ -14,6 +13,7 @@ export const ProgramDetails: Component<{
   profileId: string;
 }> = (props) => {
   const name = createControl(props.program.name, { validators: [required()] });
+  const reset = () => name.reset(props.program.name);
 
   const mutation = useUpdateProgram(() => props.profileId, {
     onSuccess: () => {
@@ -31,9 +31,7 @@ export const ProgramDetails: Component<{
     });
   };
 
-  createRenderEffect(() => {
-    name.reset(props.program.name);
-  });
+  createRenderEffect(reset);
 
   const isLoading = createDelayedLatch(() => mutation.isLoading, 200);
 
@@ -45,22 +43,26 @@ export const ProgramDetails: Component<{
         onSubmit();
       }}
     >
-      <div class="flex flex-row items-center justify-between">
+      <div class="flex flex-row items-center">
         <div class="flex flex-col items-end text-2xl">
           <Input control={name} class="ghost-input" required={true} />
-          <ErrorMessages control={name} />
         </div>
-        <button
-          class="primary-button ml-4 w-16 flex flex-row items-center justify-center"
-          disabled={isLoading() || name.hasErrors() || !name.dirty()}
-        >
-          <Show
-            when={!isLoading()}
-            fallback={<Spinner class="my-1 animate-spin" />}
+        <Show when={name.isChanged()}>
+          <button onClick={reset} class="secondary-button ml-auto">
+            Reset Title
+          </button>
+          <button
+            class="primary-button ml-4 w-16 flex flex-row items-center justify-center"
+            disabled={isLoading() || name.hasErrors()}
           >
-            Save
-          </Show>
-        </button>
+            <Show
+              when={!isLoading()}
+              fallback={<Spinner class="my-1 animate-spin" />}
+            >
+              Save
+            </Show>
+          </button>
+        </Show>
       </div>
       <Show when={mutation.isError}>
         <div class="w-full flex flex-row items-center justify-end gap-4 mt-2">

@@ -14,10 +14,11 @@ import {
 } from "../../api/maxes";
 import { Accessor } from "solid-js";
 import { updateInArray } from "./util";
+import { QueryKeys } from "./keys";
 
 export const useMaxesQuery = (profileId: Accessor<string>) => {
   return createQuery({
-    queryKey: () => ["maxes", profileId()],
+    queryKey: () => QueryKeys.maxes(profileId()),
     queryFn: () => getMaxes(profileId()),
     enabled: !!profileId(),
   });
@@ -33,7 +34,7 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
     mutationFn: createMax,
     onSuccess: (max, ...args) => {
       options?.onSuccess?.(max, ...args);
-      queryClient.setQueryData(["maxes", profileId()], (maxes?: Max[]) => {
+      queryClient.setQueryData(QueryKeys.maxes(profileId()), (maxes?: Max[]) => {
         return maxes && [...maxes, max];
       });
     },
@@ -51,7 +52,7 @@ export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
     mutationFn: updateMax,
     onSuccess: (max, ...args) => {
       options?.onSuccess?.(max, ...args);
-      queryClient.setQueryData(["maxes", profileId()], (maxes?: Max[]) =>
+      queryClient.setQueryData(QueryKeys.maxes(profileId()), (maxes?: Max[]) =>
         updateInArray(maxes, max, (m) => m.id === max.id)
       );
     },
