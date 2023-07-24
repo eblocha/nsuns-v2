@@ -120,7 +120,7 @@ pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> Result<Option
 
     if let Some(ref set) = set_opt {
         // decrement any sets with ordering > this one
-        sqlx::query("UPDATE program_sets SET ordering = ordering - 1 WHERE ordering > $1 AND program_id = $2 AND day = $3")
+        sqlx::query("UPDATE program_sets SET ordering = ordering - 1 WHERE program_id = $2 AND day = $3 AND ordering > $1")
             .bind(set.ordering)
             .bind(set.program_id)
             .bind(set.day)

@@ -12,6 +12,8 @@ CREATE TABLE programs (
   owner UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE
 );
 
+CREATE INDEX programs_by_owner ON programs(owner, created_on);
+
 -- bench press, squat, etc.
 CREATE TABLE movements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,7 +44,7 @@ CREATE TABLE program_sets (
   CONSTRAINT unique_set UNIQUE (program_id, day, movement_id, ordering)
 );
 
-CREATE INDEX sets_by_program_id ON program_sets(program_id);
+CREATE INDEX sets_by_program_id_day_ordering ON program_sets(program_id, day, ordering);
 
 CREATE TABLE maxes (
   id BIGSERIAL PRIMARY KEY,
@@ -52,7 +54,7 @@ CREATE TABLE maxes (
   amount DOUBLE PRECISION NOT NULL CHECK (amount >= 0)
 );
 
-CREATE INDEX maxes_by_profile_id ON maxes(profile_id);
+CREATE INDEX maxes_by_profile_id_timestamp ON maxes(profile_id, timestamp);
 
 CREATE TABLE reps (
   id BIGSERIAL PRIMARY KEY,
@@ -65,4 +67,4 @@ CREATE TABLE reps (
   )
 );
 
-CREATE INDEX reps_by_profile_id ON reps(profile_id);
+CREATE INDEX reps_by_profile_id_timestamp ON reps(profile_id, timestamp);
