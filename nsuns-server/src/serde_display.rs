@@ -73,7 +73,10 @@ mod tests {
         let raw = r#"["18446744073709551615","18446744073709551615"]"#;
         let de: Vec<Test> = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(de, vec![Test(18446744073709551615), Test(18446744073709551615)]);
+        assert_eq!(
+            de,
+            vec![Test(18446744073709551615), Test(18446744073709551615)]
+        );
     }
 
     #[test]
