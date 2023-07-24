@@ -9,3 +9,4 @@ timeout = [1, 0]             # [seconds, nanos]
 
 [server]
 port = 8080
+static_dir = "static"

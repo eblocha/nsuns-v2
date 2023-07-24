@@ -1,4 +1,4 @@
-(cd ./nsuns-client && yarn build) && rm -r ./dist/static && cp -r ./nsuns-client/dist ./dist/static
+(cd ./nsuns-client && yarn build)
 
 cargo build --release --target=aarch64-unknown-linux-gnu
 

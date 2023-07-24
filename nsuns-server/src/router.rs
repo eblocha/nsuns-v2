@@ -12,9 +12,7 @@ use crate::{
     sets::router::sets_router, settings::Settings, updates::router::updates_router,
 };
 
-pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
-    let serve_dir = ServeDir::new("static").not_found_service(ServeFile::new("static/index.html"));
-
+pub fn router(pool: Pool, settings: &Settings) -> Result<Router> {
     let app = Router::new()
         .nest("/api/profiles", profiles_router())
         .nest("/api/programs", programs_router())
@@ -28,8 +26,16 @@ pub fn router(pool: Pool, _settings: &Settings) -> Result<Router> {
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
-        .with_state(pool)
-        .fallback_service(serve_dir);
+        .with_state(pool);
 
-    Ok(app)
+    if let Some(ref static_dir) = settings.server.static_dir {
+        let serve_dir = ServeDir::new(static_dir).not_found_service(ServeFile::new(
+            format!("{}/index.html", static_dir),
+        ));
+
+        Ok(app.fallback_service(serve_dir))
+    } else {
+        Ok(app)
+    }
+
 }
