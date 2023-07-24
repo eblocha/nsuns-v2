@@ -1,4 +1,6 @@
 use anyhow::Context;
+use chrono::naive::serde::ts_milliseconds;
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
 use uuid::Uuid;
@@ -17,6 +19,8 @@ pub struct Reps {
     pub profile_id: Uuid,
     pub movement_id: Uuid,
     pub amount: Option<i32>,
+    #[serde(with = "ts_milliseconds")]
+    pub timestamp: NaiveDateTime,
 }
 
 impl Reps {
@@ -80,8 +84,8 @@ pub struct CreateReps {
 
 impl CreateReps {
     pub async fn insert_one(self, executor: impl Executor<'_, Database = DB>) -> Result<Reps> {
-        sqlx::query_as::<_, (i64,)>(
-            "INSERT INTO reps (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id",
+        sqlx::query_as::<_, (i64, NaiveDateTime)>(
+            "INSERT INTO reps (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id, timestamp",
         )
         .bind(self.profile_id)
         .bind(self.movement_id)
@@ -89,11 +93,12 @@ impl CreateReps {
         .fetch_one(executor)
         .await
         .with_context(|| "failed to insert a new rep record")
-        .map(|(id,)| Reps {
+        .map(|(id, timestamp)| Reps {
             id,
             profile_id: self.profile_id,
             movement_id: self.movement_id,
             amount: self.amount,
+            timestamp
         })
         .into_result()
     }

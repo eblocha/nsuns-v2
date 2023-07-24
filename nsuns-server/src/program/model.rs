@@ -1,4 +1,6 @@
 use anyhow::Context;
+use chrono::naive::serde::ts_milliseconds;
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
 use uuid::Uuid;
@@ -17,6 +19,8 @@ pub struct Program {
     pub name: String,
     pub description: Option<String>,
     pub owner: Uuid,
+    #[serde(with = "ts_milliseconds")]
+    pub created_on: NaiveDateTime,
 }
 
 impl Program {
@@ -98,7 +102,10 @@ impl UpdateProgram {
     }
 }
 
-pub async fn delete_one(id: Uuid, executor: impl Executor<'_, Database = DB>) -> Result<Option<Program>> {
+pub async fn delete_one(
+    id: Uuid,
+    executor: impl Executor<'_, Database = DB>,
+) -> Result<Option<Program>> {
     sqlx::query_as::<_, Program>("DELETE FROM programs WHERE id = $1 RETURNING *")
         .bind(id)
         .fetch_optional(executor)
