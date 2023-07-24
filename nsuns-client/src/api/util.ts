@@ -28,9 +28,18 @@ export const sendJson = () => new HeaderBuilder().contentType(applicationJson);
 
 export type FetchParams = Parameters<typeof fetch>;
 
+const getErrorMessage = async (res: Response): Promise<string> => {
+  const contentType = res.headers.get("content-type");
+
+  if (contentType?.startsWith("text/html")) return "";
+
+  return await res.text();
+};
+
 export const processResponse = async (res: Response): Promise<Response> => {
   if (!res.ok) {
-    throw new Error(`HTTP Status ${res.status} (${res.statusText})`);
+    const msg = await getErrorMessage(res);
+    throw new Error(`HTTP Status ${res.status} (${res.statusText}) ${msg}`);
   }
 
   return res;

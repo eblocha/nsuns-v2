@@ -3,25 +3,11 @@ use std::fmt::{Debug, Display};
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
-use serde::Serialize;
 
 pub struct Error {
     pub status: StatusCode,
     pub error: anyhow::Error,
-}
-
-#[derive(Debug, Serialize)]
-pub struct ErrorResponse {
-    pub message: String,
-}
-
-impl IntoResponse for ErrorResponse {
-    #[inline]
-    fn into_response(self) -> Response {
-        Json(self).into_response()
-    }
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -49,7 +35,7 @@ impl IntoResponse for Error {
             self.error.to_string()
         };
 
-        (self.status, ErrorResponse { message }).into_response()
+        (self.status, message).into_response()
     }
 }
 

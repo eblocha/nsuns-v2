@@ -9,8 +9,6 @@ use serde::de::DeserializeOwned;
 use thiserror::Error;
 use validator::Validate;
 
-use crate::error::ErrorResponse;
-
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ValidatedJson<T>(pub T);
 
@@ -44,7 +42,7 @@ impl IntoResponse for ServerError {
         match self {
             ServerError::ValidationError(_) => {
                 let message = format!("Input validation error: [{}]", self).replace('\n', ", ");
-                (StatusCode::BAD_REQUEST, ErrorResponse { message }).into_response()
+                (StatusCode::UNPROCESSABLE_ENTITY, message).into_response()
             }
             ServerError::AxumRejection(e) => e.into_response(),
         }
