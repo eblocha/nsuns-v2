@@ -9,14 +9,5 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  api:
-    ports:
-      - '8080:8080'
-    depends_on:
-      - postgres
-    build: ./nsuns-server
-    environment:
-      DATABASE_HOST: postgres
-
 volumes:
   pgdata:
