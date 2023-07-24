@@ -1,5 +1,6 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Serialize_repr, Deserialize_repr};
 use sqlx::{Executor, Transaction};
 use uuid::Uuid;
 use validator::Validate;
@@ -9,13 +10,25 @@ use crate::{
     error::{IntoResult, Result},
 };
 
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone, Copy, sqlx::Type)]
+#[repr(i16)]
+pub enum Day {
+    Sunday,
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+}
+
 #[derive(Debug, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Set {
     pub id: Uuid,
     pub program_id: Uuid,
     pub movement_id: Uuid,
-    pub day: i16,
+    pub day: Day,
     pub ordering: i32,
     pub reps: Option<i32>,
     pub reps_is_minimum: bool,
@@ -45,8 +58,7 @@ impl Set {
 pub struct CreateSet {
     pub program_id: Uuid,
     pub movement_id: Uuid,
-    #[validate(range(min = 0, max = 6))]
-    pub day: i16,
+    pub day: Day,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
     #[serde(default)]
@@ -70,7 +82,7 @@ impl CreateSet {
         .await
         .with_context(|| {
             format!(
-                "failed to fetch max ordered set with program_id={} and day={}",
+                "failed to fetch max ordered set with program_id={} and day={:?}",
                 self.program_id, self.day
             )
         })?
@@ -113,13 +125,11 @@ impl CreateSet {
 }
 
 pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> Result<Option<Set>> {
-    let set_opt = sqlx::query_as::<_, Set>(
-        "DELETE FROM program_sets WHERE id = $1 RETURNING *",
-    )
-    .bind(id)
-    .fetch_optional(&mut **tx)
-    .await
-    .with_context(|| format!("failed to delete set with id={}", id))?;
+    let set_opt = sqlx::query_as::<_, Set>("DELETE FROM program_sets WHERE id = $1 RETURNING *")
+        .bind(id)
+        .fetch_optional(&mut **tx)
+        .await
+        .with_context(|| format!("failed to delete set with id={}", id))?;
 
     if let Some(ref set) = set_opt {
         // decrement any sets with ordering > this one
@@ -141,8 +151,7 @@ pub struct UpdateSet {
     pub id: Uuid,
     pub program_id: Uuid,
     pub movement_id: Uuid,
-    #[validate(range(min = 0, max = 6))]
-    pub day: i16,
+    pub day: Day,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
     #[serde(default)]
