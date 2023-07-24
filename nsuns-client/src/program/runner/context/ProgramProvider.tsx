@@ -45,10 +45,6 @@ const InnerProvider: Component<{
   const relevantMovements = () => {
     const uniqueIds: string[] = [];
     for (const set of sets()) {
-      if (!uniqueIds.includes(set.movementId)) {
-        uniqueIds.push(set.movementId);
-      }
-
       if (!set.percentageOfMax) continue;
       if (!uniqueIds.includes(set.percentageOfMax)) {
         uniqueIds.push(set.percentageOfMax);
