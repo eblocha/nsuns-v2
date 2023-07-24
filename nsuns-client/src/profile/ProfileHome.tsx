@@ -6,7 +6,8 @@ import { createDelayedLatch } from "../hooks/createDelayedLatch";
 import { RefreshButton } from "../components/RefreshButton";
 import { useProgramsQuery } from "../hooks/queries/programs";
 import { useNavigateToNewProgram } from "../hooks/navigation";
-import { ProfileStats } from "./stats/ProfileStats";
+import { MovementList } from "../movements/MovementList";
+import { StatsProvider } from "../stats/StatsProvider";
 
 export const ProfileHome: Component = () => {
   const params = useParams<{ profileId: string; programId?: string }>();
@@ -22,9 +23,9 @@ export const ProfileHome: Component = () => {
   const isFetching = createDelayedLatch(() => programsQuery.isFetching, 200);
 
   return (
-    <div class="2xl:h-full grid grid-rows-2 2xl:grid-rows-1 2xl:grid-cols-3 2xl:overflow-hidden">
-      <div class="2xl:h-full py-12 px-24 2xl:overflow-auto">
-        <div class="w-full">
+    <div class="2xl:h-full grid grid-rows-2 2xl:grid-rows-1 2xl:grid-cols-8 2xl:overflow-hidden">
+      <div class="2xl:h-full py-12 px-24 2xl:overflow-auto col-span-3">
+        <div class="w-full mb-4">
           <div class="mb-4">
             <ProfileGreeting id={params.profileId} />
           </div>
@@ -83,9 +84,11 @@ export const ProfileHome: Component = () => {
             </div>
           </div>
         </div>
-        <ProfileStats profileId={params.profileId} />
+        <StatsProvider profileId={params.profileId}>
+          <MovementList />
+        </StatsProvider>
       </div>
-      <div class="2xl:h-full 2xl:col-span-2 2xl:overflow-auto">
+      <div class="2xl:h-full 2xl:col-span-5 2xl:overflow-auto">
         <Outlet />
       </div>
     </div>

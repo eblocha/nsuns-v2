@@ -1,8 +1,9 @@
 import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
 import { CreateMovement } from "./CreateMovement";
 import { Plus } from "../icons/Plus";
-import { Movement } from "./Movement";
-import { useMovementsQuery } from "../hooks/queries/movements";
+import { MovementItem } from "./Movement";
+import { useStats } from "../stats/StatsProvider";
+import { displayError } from "../util/errors";
 
 const Loading: Component = () => {
   return (
@@ -18,23 +19,24 @@ const Loading: Component = () => {
 };
 
 export const MovementList: Component = () => {
-  const query = useMovementsQuery();
+  const { profileId, movementMap, movementsToMaxesMap, movementsToRepsMap, queryState } =
+    useStats();
   const [showForm, setShowForm] = createSignal(false);
 
   return (
-    <div class="w-full h-full flex flex-col">
+    <div class="w-full flex flex-col">
       <h2 class="mb-4 text-xl">Movements</h2>
       <div class="flex-grow">
         <Switch>
-          <Match when={query.isLoading}>
+          <Match when={queryState.isLoading()}>
             <Loading />
           </Match>
-          <Match when={query.isError}>
+          <Match when={queryState.isError()}>
             <div class="h-full w-full flex flex-col items-center">
-              Failed to fetch movements: {`${query.error}`}
+              {displayError(queryState.error(), "fetch movements")}
             </div>
           </Match>
-          <Match when={query.isSuccess}>
+          <Match when={queryState.isSuccess()}>
             <div class="flex flex-col">
               <Show
                 when={showForm()}
@@ -53,8 +55,15 @@ export const MovementList: Component = () => {
                 </div>
               </Show>
               <ul class="flex-grow">
-                <For each={query.data}>
-                  {(movement) => <Movement {...movement} />}
+                <For each={Object.values(movementMap())}>
+                  {(movement) => (
+                    <MovementItem
+                      movement={movement}
+                      profileId={profileId()}
+                      maxes={movementsToMaxesMap()[movement.id]}
+                      reps={movementsToRepsMap()[movement.id]}
+                    />
+                  )}
                 </For>
               </ul>
             </div>

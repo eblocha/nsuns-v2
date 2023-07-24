@@ -1,18 +1,18 @@
 import { Component, Show } from "solid-js";
-import { useStats } from "../../stats/StatsProvider";
-import { createUndoUpdatesMutation } from "../../hooks/queries/updates";
-import { RotateLeft } from "../../icons/RotateLeft";
+import { createUndoUpdatesMutation } from "../hooks/queries/updates";
+import { RotateLeft } from "../icons/RotateLeft";
 
-export const UndoUpdate: Component = () => {
-  const { profileId, movementMap } = useStats();
-
+export const UndoUpdate: Component<{
+  movementId: string;
+  profileId: string;
+}> = (props) => {
   const mutation = createUndoUpdatesMutation();
 
   const run = () => {
     if (mutation.isLoading) return;
     mutation.mutate({
-      movementIds: Object.values(movementMap()).map((mv) => mv.id),
-      profileId: profileId(),
+      movementIds: [props.movementId],
+      profileId: props.profileId,
     });
   };
 

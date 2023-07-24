@@ -1,6 +1,5 @@
 import { useParams } from "@solidjs/router";
 import { Component, Match, Switch } from "solid-js";
-import { MovementList } from "../../movements/MovementList";
 import { Days } from "./Days";
 import { ProgramDetails } from "./ProgramDetails";
 import { useProgramSummaryQuery } from "../../hooks/queries/sets";
@@ -36,7 +35,7 @@ export const ProgramBuilder: Component = () => {
   const query = useProgramSummaryQuery(() => params.programId);
 
   return (
-    <div class="w-full min-h-full overflow-visible border-l border-gray-700 grid grid-cols-4 gap-5 p-5 relative">
+    <div class="w-full min-h-full overflow-visible border-l border-gray-700 p-5 relative">
       <div class="col-span-3 flex flex-col overflow-visible relative">
         <div class="flex-grow flex flex-col overflow-visible relative">
           <Switch>
@@ -62,9 +61,6 @@ export const ProgramBuilder: Component = () => {
             </Match>
           </Switch>
         </div>
-      </div>
-      <div>
-        <MovementList />
       </div>
     </div>
   );

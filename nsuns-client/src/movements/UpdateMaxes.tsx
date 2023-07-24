@@ -1,18 +1,18 @@
 import { Component, Show } from "solid-js";
-import { Rotate } from "../../icons/Rotate";
-import { createRunUpdatesMutation } from "../../hooks/queries/updates";
-import { useStats } from "../../stats/StatsProvider";
+import { createRunUpdatesMutation } from "../hooks/queries/updates";
+import { Rotate } from "../icons/Rotate";
 
-export const UpdateMaxes: Component = () => {
-  const { profileId, movementMap } = useStats();
-
+export const UpdateMaxes: Component<{
+  movementId: string;
+  profileId: string;
+}> = (props) => {
   const mutation = createRunUpdatesMutation();
 
   const run = () => {
     if (mutation.isLoading) return;
     mutation.mutate({
-      movementIds: Object.values(movementMap()).map((mv) => mv.id),
-      profileId: profileId(),
+      movementIds: [props.movementId],
+      profileId: props.profileId,
     });
   };
 
@@ -27,7 +27,7 @@ export const UpdateMaxes: Component = () => {
           "animate-spin": mutation.isLoading,
         }}
       />
-      <Show when={mutation.isLoading} fallback={"Update Maxes"}>
+      <Show when={mutation.isLoading} fallback={"Run Updates"}>
         Updating...
       </Show>
     </button>
