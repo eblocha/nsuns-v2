@@ -2,13 +2,14 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     db::DB,
     error::{IntoResult, Result},
 };
 
-#[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Max {
     #[serde(with = "crate::serde_display")]
@@ -68,11 +69,12 @@ impl Max {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateMax {
     pub profile_id: Uuid,
     pub movement_id: Uuid,
+    #[validate(range(min = 0))]
     pub amount: f64,
 }
 
@@ -97,11 +99,12 @@ impl CreateMax {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateMax {
     #[serde(with = "crate::serde_display")]
     pub id: i64,
+    #[validate(range(min = 0))]
     pub amount: f64,
 }
 

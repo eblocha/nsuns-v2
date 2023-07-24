@@ -2,16 +2,18 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     db::DB,
     error::{IntoResult, Result},
 };
 
-#[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
     pub id: Uuid,
+    #[validate(length(min = 1))]
     pub name: String,
 }
 
@@ -66,9 +68,10 @@ impl Profile {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateProfile {
+    #[validate(length(min = 1))]
     pub name: String,
 }
 

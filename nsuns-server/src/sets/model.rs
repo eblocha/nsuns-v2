@@ -2,13 +2,14 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     db::DB,
     error::{IntoResult, Result},
 };
 
-#[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Set {
     pub id: Uuid,
@@ -39,7 +40,7 @@ impl Set {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, validator::Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateSet {
     pub program_id: Uuid,
@@ -50,7 +51,9 @@ pub struct CreateSet {
     pub reps: Option<i32>,
     #[serde(default)]
     pub reps_is_minimum: bool,
+    #[validate(length(min = 1))]
     pub description: Option<String>,
+    #[validate(range(min = 0))]
     pub amount: f64,
     pub percentage_of_max: Option<Uuid>,
 }
@@ -132,7 +135,7 @@ pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> Result<Option
     Ok(set_opt)
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, validator::Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSet {
     pub id: Uuid,
@@ -144,7 +147,9 @@ pub struct UpdateSet {
     pub reps: Option<i32>,
     #[serde(default)]
     pub reps_is_minimum: bool,
+    #[validate(length(min = 1))]
     pub description: Option<String>,
+    #[validate(range(min = 0))]
     pub amount: f64,
     pub percentage_of_max: Option<Uuid>,
 }

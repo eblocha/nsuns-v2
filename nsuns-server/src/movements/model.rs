@@ -2,17 +2,20 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     db::DB,
     error::{IntoResult, Result},
 };
 
-#[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct Movement {
     pub id: Uuid,
+    #[validate(length(min = 1))]
     pub name: String,
+    #[validate(length(min = 1))]
     pub description: Option<String>,
 }
 
@@ -47,10 +50,12 @@ impl Movement {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateMovement {
+    #[validate(length(min = 1))]
     pub name: String,
+    #[validate(length(min = 1))]
     pub description: Option<String>,
 }
 

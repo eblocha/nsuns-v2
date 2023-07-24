@@ -2,6 +2,7 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     db::DB,
@@ -9,11 +10,11 @@ use crate::{
     sets::model::Set,
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Serialize, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Program {
     pub id: Uuid,
-    pub name: Option<String>,
+    pub name: String,
     pub description: Option<String>,
     pub owner: Uuid,
 }
@@ -44,10 +45,12 @@ impl Program {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateProgram {
-    pub name: Option<String>,
+    #[validate(length(min = 1))]
+    pub name: String,
+    #[validate(length(min = 1))]
     pub description: Option<String>,
     pub owner: Uuid,
 }
@@ -67,11 +70,13 @@ impl CreateProgram {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateProgram {
     pub id: Uuid,
-    pub name: Option<String>,
+    #[validate(length(min = 1))]
+    pub name: String,
+    #[validate(length(min = 1))]
     pub description: Option<String>,
 }
 

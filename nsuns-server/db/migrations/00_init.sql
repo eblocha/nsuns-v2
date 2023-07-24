@@ -5,7 +5,7 @@ CREATE TABLE profiles (
 
 CREATE TABLE programs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR,
+  name VARCHAR NOT NULL,
   description VARCHAR,
   created_on TIMESTAMP NOT NULL DEFAULT now(),
   -- profile that owns the program
