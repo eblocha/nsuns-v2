@@ -5,7 +5,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build && cp -T -r dist ../nsuns-server/static",
+    "build": "vite build && rm -r ../nsuns-server/static/assets && cp -T -r dist ../nsuns-server/static",
     "serve": "vite preview"
   },
   "license": "GPL-2.0",
