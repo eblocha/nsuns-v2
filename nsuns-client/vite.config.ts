@@ -19,7 +19,8 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    outDir: "../dist/static",
+    outDir: "../dist/assets",
     emptyOutDir: true,
+    assetsDir: "."
   },
 });

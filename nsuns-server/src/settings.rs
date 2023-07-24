@@ -78,7 +78,7 @@ impl Settings {
             .set_default("server.port", 8080)
             .unwrap()
             .set_env_override_unwrap("server.port", "SERVER_PORT")
-            .set_env_override_unwrap("server.static_files", "STATIC_FILES_DIR")
+            .set_env_override_unwrap("server.static_dir", "STATIC_FILES_DIR")
             .set_env_override_unwrap("database.host", "DATABASE_HOST")
             .set_env_override_unwrap("database.port", "DATABASE_PORT")
             .set_env_override_unwrap("database.username", "DATABASE_USERNAME")
