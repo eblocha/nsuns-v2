@@ -76,7 +76,8 @@ impl Settings {
             .set_env_override_unwrap("database.host", "DATABASE_HOST")
             .set_env_override_unwrap("database.port", "DATABASE_PORT")
             .set_env_override_unwrap("database.username", "DATABASE_USERNAME")
-            .set_env_override_unwrap("database.password", "DATABASE_PASSWORD");
+            .set_env_override_unwrap("database.password", "DATABASE_PASSWORD")
+            .set_env_override_unwrap("database.migrations", "DATABASE_MIGRATIONS");
 
         let config = builder.build();
 
