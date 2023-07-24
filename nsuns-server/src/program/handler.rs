@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool},
     error::{IntoResult, LogError},
-    util::{created, or_404},
+    util::{created, or_404}, validation::ValidatedJson,
 };
 
 use super::model::{delete_one, gather_program_summary, CreateProgram, Program, UpdateProgram};
@@ -32,7 +32,7 @@ pub async fn profile_programs(
 
 pub async fn create_program(
     State(pool): State<Pool>,
-    Json(program): Json<CreateProgram>,
+    ValidatedJson(program): ValidatedJson<CreateProgram>,
 ) -> impl IntoResponse {
     program
         .insert_one(&pool)
@@ -45,7 +45,7 @@ pub async fn create_program(
 
 pub async fn update_program(
     State(pool): State<Pool>,
-    Json(program): Json<UpdateProgram>,
+    ValidatedJson(program): ValidatedJson<UpdateProgram>,
 ) -> impl IntoResponse {
     program
         .update_one(&pool)

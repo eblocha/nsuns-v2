@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool},
     error::LogError,
-    util::{created, or_404},
+    util::{created, or_404}, validation::ValidatedJson,
 };
 
 use super::model::{CreateProfile, Profile};
@@ -26,7 +26,7 @@ pub async fn get_profile(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl
 
 pub async fn create_profile(
     State(pool): State<Pool>,
-    Json(profile): Json<CreateProfile>,
+    ValidatedJson(profile): ValidatedJson<CreateProfile>,
 ) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
     let res = profile.create_one(&mut tx).await.map(Json).map(created);
@@ -35,7 +35,7 @@ pub async fn create_profile(
 
 pub async fn update_profile(
     State(pool): State<Pool>,
-    Json(profile): Json<Profile>,
+    ValidatedJson(profile): ValidatedJson<Profile>,
 ) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
     let res = profile.update_one(&mut tx).await.map(Json);

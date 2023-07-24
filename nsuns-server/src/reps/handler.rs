@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::{
     db::Pool,
     error::LogError,
-    util::{created, or_404},
+    util::{created, or_404}, validation::ValidatedJson,
 };
 
 use super::model::{CreateReps, Reps, UpdateReps};
@@ -32,7 +32,7 @@ pub async fn reps_index(
 
 pub async fn create_reps(
     State(pool): State<Pool>,
-    Json(reps): Json<CreateReps>,
+    ValidatedJson(reps): ValidatedJson<CreateReps>,
 ) -> impl IntoResponse {
     reps.insert_one(&pool)
         .await
@@ -43,7 +43,7 @@ pub async fn create_reps(
 
 pub async fn update_reps(
     State(pool): State<Pool>,
-    Json(reps): Json<UpdateReps>,
+    ValidatedJson(reps): ValidatedJson<UpdateReps>,
 ) -> impl IntoResponse {
     reps.update_one(&pool)
         .await

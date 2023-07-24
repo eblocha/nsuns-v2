@@ -4,13 +4,7 @@ import { Select, SelectOption } from "../../forms/Select";
 import { Checkbox } from "../../forms/Checkbox";
 import { TextArea } from "../../forms/TextArea";
 import { CreateMutationResult } from "@tanstack/solid-query";
-import {
-  CreateProgramSet,
-  Day,
-  Movement,
-  ProgramSet,
-  UpdateProgramSet,
-} from "../../api";
+import { CreateProgramSet, Day, Movement, UpdateProgramSet } from "../../api";
 import { Spinner } from "../../icons/Spinner";
 import { Input } from "../../forms/Input";
 import { Warning } from "../../icons/Warning";
@@ -73,7 +67,7 @@ export const SetForm: Component<{
     const base = {
       amount: parseFloat(value.amount),
       day: props.dayIndex,
-      description: value.description ?? null,
+      description: value.description || null,
       movementId: value.movementId,
       percentageOfMax: value.maxMovementId ? value.maxMovementId : null,
       programId: props.programId,
