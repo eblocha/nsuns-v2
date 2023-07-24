@@ -8,7 +8,7 @@
     "build": "vite build && cp -T -r dist ../nsuns-server/static",
     "serve": "vite preview"
   },
-  "license": "GPLv2",
+  "license": "GPL-2.0",
   "devDependencies": {
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.26",
