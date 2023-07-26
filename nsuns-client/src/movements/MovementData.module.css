@@ -1,0 +1,15 @@
+.fade-out {
+  animation: fade-out 2s linear;
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 100%;
+  }
+  75% {
+    opacity: 100%;
+  }
+  100% {
+    opacity: 0%;
+  }
+}

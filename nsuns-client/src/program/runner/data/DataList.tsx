@@ -1,27 +1,11 @@
-import {
-  Component,
-  For,
-  Match,
-  Switch,
-  createMemo,
-  createRenderEffect,
-} from "solid-js";
+import { Component, For, Match, Switch, createMemo } from "solid-js";
 import { useProgram } from "../context/ProgramProvider";
 import { Max } from "../../../api/maxes";
 import { Graph } from "../../../graph/Graph";
 import { Movement } from "../../../api";
 import { Reps } from "../../../api/reps";
-import { createControl } from "../../../hooks/forms";
 import { Input } from "../../../forms/Input";
-import {
-  useCreateMaxMutation,
-  useUpdateMaxMutation,
-} from "../../../hooks/queries/maxes";
-import {
-  useCreateRepsMutation,
-  useUpdateRepsMutation,
-} from "../../../hooks/queries/reps";
-import { createMutation } from "@tanstack/solid-query";
+import { useEditStat } from "../../../hooks/useEditStat";
 
 type CommonProps = {
   movement?: Movement;
@@ -53,68 +37,7 @@ type EditableStatProps = CommonProps &
   );
 
 const EditableCard: Component<EditableStatProps> = (props) => {
-  const amount = createControl(props.stat?.amount?.toString() || "");
-
-  const reset = () => {
-    amount.reset(props.stat?.amount?.toString());
-  };
-
-  createRenderEffect(reset);
-
-  const options = {
-    onError: reset,
-  };
-
-  const updateMax = useUpdateMaxMutation(options);
-  const createMax = useCreateMaxMutation(options);
-
-  const updateReps = useUpdateRepsMutation(options);
-  const createReps = useCreateRepsMutation(options);
-
-  const mutation = createMutation({
-    mutationFn: async ({
-      amount,
-      movement,
-    }: {
-      amount: number | null;
-      movement: Movement;
-    }) => {
-      if (props.stat && props.type === "max" && amount !== null) {
-        updateMax.mutate({
-          id: props.stat.id,
-          amount,
-        });
-      } else if (props.stat && props.type === "reps") {
-        updateReps.mutate({
-          id: props.stat.id,
-          amount,
-        });
-      } else if (props.type === "max" && amount !== null) {
-        createMax.mutate({
-          amount,
-          movementId: movement.id,
-          profileId: props.profileId,
-        });
-      } else if (props.type === "reps") {
-        createReps.mutate({
-          amount,
-          movementId: movement.id,
-          profileId: props.profileId,
-        });
-      }
-    },
-  });
-
-  const onSubmit = () => {
-    const amt = amount.value();
-    if (mutation.isLoading || !props.movement) return;
-
-    const parsed = amt ? parseInt(amt) : null;
-
-    if (parsed === props.stat?.amount) return;
-
-    mutation.mutate({ amount: parsed, movement: props.movement });
-  };
+  const { amount, onSubmit, reset, mutation } = useEditStat(props);
 
   return (
     <div class="rounded flex flex-col border border-gray-600 text-xl">
@@ -140,6 +63,7 @@ const EditableCard: Component<EditableStatProps> = (props) => {
             class="w-full h-full ghost-input text-center"
             placeholder="Edit"
             disabled={mutation.isLoading}
+            required={props.type === "max"}
             onBlur={reset}
           />
         </form>

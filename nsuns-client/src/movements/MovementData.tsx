@@ -1,21 +1,67 @@
-import { Component, Match, Switch, createSignal } from "solid-js";
+import {
+  Component,
+  Match,
+  Show,
+  Switch,
+  createEffect,
+  createSignal,
+  onCleanup,
+} from "solid-js";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
 import { Movement } from "../api";
-import { plural } from "../util/setDisplay";
 import { Plus } from "../icons/Plus";
 import { Graph } from "../graph/Graph";
 import { UpdateMaxes } from "./UpdateMaxes";
 import { UndoUpdate } from "./UndoUpdate";
 import { NewMaxForm } from "./log/NewMaxForm";
 import { NewRepsForm } from "./log/NewRepsForm";
+import { EditableStatProps, useEditStat } from "../hooks/useEditStat";
+import { Input } from "../forms/Input";
+import { Check } from "../icons/Check";
+import styles from "./MovementData.module.css";
 
-const displayAmount = (amount?: number) => {
-  return amount !== undefined ? `${amount} lb${plural(amount)}` : "None";
-};
+const EditableStat: Component<EditableStatProps> = (props) => {
+  const { amount, onSubmit, mutation, reset } = useEditStat(props);
 
-const displayReps = (amount?: number) => {
-  return amount !== undefined ? `${amount} rep${plural(amount)}` : "no reps";
+  createEffect(() => {
+    if (mutation.isSuccess) {
+      const timeout = setTimeout(mutation.reset, 2000);
+      onCleanup(() => clearTimeout(timeout));
+    }
+  });
+
+  return (
+    <form
+      class="flex flex-row items-center gap-1"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+    >
+      <div class="flex-shrink-0">{props.type === "max" ? "Max:" : "Reps:"}</div>
+      <div class="flex-grow">
+        <Input
+          control={amount}
+          type="number"
+          min={0}
+          class="w-full h-full ghost-input"
+          placeholder="Edit"
+          disabled={mutation.isLoading}
+          required={props.type === "max"}
+          onBlur={reset}
+        />
+      </div>
+      <Show when={mutation.isSuccess}>
+        <Check
+          class="text-green-500 flex-shrink-0 ml-2"
+          classList={{
+            [styles["fade-out"]!]: true,
+          }}
+        />
+      </Show>
+    </form>
+  );
 };
 
 export const MovementData: Component<{
@@ -24,19 +70,24 @@ export const MovementData: Component<{
   movement: Movement;
   profileId: string;
 }> = (props) => {
-  const latestMax = () =>
-    displayAmount(props.maxes[props.maxes.length - 1]?.amount);
-  const latestReps = () =>
-    displayReps(props.reps[props.reps.length - 1]?.amount ?? undefined);
-
   const [showForm, setShowForm] = createSignal<"max" | "reps" | null>(null);
 
   return (
     <div class="flex flex-col gap-2">
-      <div class="grid grid-cols-5">
+      <div class="grid grid-cols-5 gap-1">
         <div class="col-span-2">
-          <p>Max: {latestMax()}</p>
-          <p>{latestReps()}</p>
+          <EditableStat
+            profileId={props.profileId}
+            type="max"
+            movement={props.movement}
+            stat={props.maxes[props.maxes.length - 1]}
+          />
+          <EditableStat
+            profileId={props.profileId}
+            type="reps"
+            movement={props.movement}
+            stat={props.reps[props.reps.length - 1]}
+          />
         </div>
         <div class="h-20 text-blue-500 col-span-3 p-1 border-l border-b border-gray-600">
           <Graph
