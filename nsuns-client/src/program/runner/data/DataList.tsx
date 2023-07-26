@@ -5,12 +5,7 @@ import { Graph } from "../../../graph/Graph";
 import { Movement } from "../../../api";
 import { Reps } from "../../../api/reps";
 import { Input } from "../../../forms/Input";
-import { useEditStat } from "../../../hooks/useEditStat";
-
-type CommonProps = {
-  movement?: Movement;
-  profileId: string;
-};
+import { useEditStat, CommonProps, EditableStatProps } from "../../../hooks/useEditStat";
 
 type StatsProps = CommonProps &
   (
@@ -20,18 +15,6 @@ type StatsProps = CommonProps &
       }
     | {
         stats: Reps[];
-        type: "reps";
-      }
-  );
-
-type EditableStatProps = CommonProps &
-  (
-    | {
-        stat?: Max;
-        type: "max";
-      }
-    | {
-        stat?: Reps;
         type: "reps";
       }
   );
