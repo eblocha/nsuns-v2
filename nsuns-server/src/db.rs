@@ -1,13 +1,13 @@
-use std::{path::Path, time::Duration};
+use std::{fmt::Debug, path::Path, time::Duration};
 
-use anyhow::{Context, Result};
+use anyhow::Context;
 use serde::Deserialize;
 use sqlx::{
     postgres::{PgConnectOptions, PgPoolOptions},
     Acquire, Postgres, Transaction,
 };
 
-use crate::error::{Error, IntoResult};
+use crate::error::{ErrorWithStatus, OperationResult};
 
 pub type DB = Postgres;
 pub type Pool = sqlx::Pool<DB>;
@@ -45,21 +45,19 @@ impl From<&DatabaseSettings> for PgConnectOptions {
     }
 }
 
-pub fn create_connection_pool(settings: &DatabaseSettings) -> Result<Pool> {
+pub fn create_connection_pool(settings: &DatabaseSettings) -> Pool {
     let options: PgConnectOptions = settings.into();
 
-    let pool = PgPoolOptions::new()
+    PgPoolOptions::new()
         .max_connections(settings.max_connections)
         .acquire_timeout(settings.timeout)
-        .connect_lazy_with(options);
-
-    Ok(pool)
+        .connect_lazy_with(options)
 }
 
 pub async fn run_migrations<'a>(
     migrations: &Path,
     acquire: impl Acquire<'a, Database = DB>,
-) -> Result<()> {
+) -> anyhow::Result<()> {
     let migrator = sqlx::migrate::Migrator::new(migrations)
         .await
         .with_context(|| "failed to read migrations")?;
@@ -74,29 +72,33 @@ pub async fn run_migrations<'a>(
 #[inline]
 pub async fn transaction<'a>(
     acquire: impl Acquire<'a, Database = DB>,
-) -> crate::error::Result<Transaction<'a, DB>> {
+) -> OperationResult<Transaction<'a, DB>> {
     acquire
         .begin()
         .await
         .with_context(|| "failed to start a transaction")
-        .into_result()
+        .map_err(Into::into)
 }
 
 /// Commit the transaction if the result is Ok, otherwise rollback.
 /// This may transform Ok into Err if the commit fails.
 #[inline]
-pub async fn commit_ok<T, E>(
-    result: core::result::Result<T, E>,
-    tx: Transaction<'_, DB>,
-) -> crate::error::Result<T>
+pub async fn commit_ok<T, E>(result: Result<T, E>, tx: Transaction<'_, DB>) -> OperationResult<T>
 where
-    E: Into<Error>,
+    E: Into<ErrorWithStatus<anyhow::Error>> + Debug,
 {
-    if result.is_ok() {
-        tx.commit().await?;
-    } else {
-        tx.rollback().await?;
-    }
+    match result {
+        Ok(_) => {
+            tx.commit()
+                .await
+                .with_context(|| "failed to commit transaction")?;
+        }
+        Err(ref e) => {
+            tx.rollback()
+                .await
+                .with_context(|| format!("failed to rollback transaction caused by: {e:?}"))?;
+        }
+    };
 
-    result.into_result()
+    result.map_err(Into::into)
 }

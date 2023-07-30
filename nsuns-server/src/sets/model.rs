@@ -5,10 +5,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    db::DB,
-    error::{IntoResult, Result},
-};
+use crate::{db::DB, error::OperationResult};
 
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -29,7 +26,7 @@ impl Set {
     pub async fn select_for_program(
         program_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Vec<Set>> {
+    ) -> OperationResult<Vec<Set>> {
         sqlx::query_as::<_, Self>(
             "SELECT * FROM program_sets WHERE program_id = $1 ORDER BY day, ordering",
         )
@@ -37,7 +34,7 @@ impl Set {
         .fetch_all(executor)
         .await
         .with_context(|| format!("failed to select sets with program_id={program_id}"))
-        .into_result()
+        .map_err(Into::into)
     }
 }
 
@@ -60,7 +57,7 @@ pub struct CreateSet {
 }
 
 impl CreateSet {
-    pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> Result<Set> {
+    pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Set> {
         // get the max `ordering` value for the program and day
         let ordering = sqlx::query_as::<_, (Option<i32>,)>(
             "SELECT MAX(ordering) FROM program_sets WHERE program_id = $1 AND day = $2",
@@ -113,7 +110,7 @@ impl CreateSet {
     }
 }
 
-pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> Result<Option<Set>> {
+pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
     let set_opt = sqlx::query_as::<_, Set>("DELETE FROM program_sets WHERE id = $1 RETURNING *")
         .bind(id)
         .fetch_optional(&mut **tx)
@@ -157,7 +154,7 @@ impl UpdateSet {
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Set>> {
+    ) -> OperationResult<Option<Set>> {
         let opt = sqlx::query_as::<_, (Uuid, i32)>(
             "UPDATE program_sets SET
             program_id = $1,

@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::{
     db::{commit_ok, transaction, Pool},
-    error::{IntoResult, LogError},
+    error::LogError,
     util::{created, or_404},
     validation::ValidatedJson,
 };
@@ -42,7 +42,6 @@ pub async fn create_program(
         .await
         .map(Json)
         .map(created)
-        .into_result()
         .log_error()
 }
 
@@ -54,7 +53,6 @@ pub async fn update_program(
         .update_one(&pool)
         .await
         .map(or_404::<_, Json<_>>)
-        .into_result()
         .log_error()
 }
 
@@ -62,7 +60,6 @@ pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> i
     delete_one(id, &pool)
         .await
         .map(or_404::<_, Json<_>>)
-        .into_result()
         .log_error()
 }
 
@@ -70,7 +67,6 @@ pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> 
     let mut tx = transaction(&pool).await.log_error()?;
     let res = gather_program_summary(id, &mut tx)
         .await
-        .map(or_404::<_, Json<_>>)
-        .into_result();
+        .map(or_404::<_, Json<_>>);
     commit_ok(res, tx).await.log_error()
 }

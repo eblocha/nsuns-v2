@@ -1,30 +1,33 @@
 use std::fmt::{Debug, Display};
 
+use anyhow::Context;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
 
-pub struct Error {
+/// An error with a corresponding status code to be returned to the client.
+/// By default, this status code will be 500 (internal server error).
+#[derive(thiserror::Error)]
+pub struct ErrorWithStatus<E> {
     pub status: StatusCode,
-    pub error: anyhow::Error,
+    #[source]
+    pub error: E,
 }
 
-pub type Result<T> = core::result::Result<T, Error>;
-
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Display::fmt(&self.error, f)
+impl<E> From<E> for ErrorWithStatus<E> {
+    fn from(error: E) -> Self {
+        Self {
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            error,
+        }
     }
 }
 
-impl Debug for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}: {:?}", self.status, self.error)
-    }
-}
-
-impl IntoResponse for Error {
+impl<E> IntoResponse for ErrorWithStatus<E>
+where
+    E: Display,
+{
     fn into_response(self) -> Response {
         let message = if self.status.is_server_error() {
             self.status
@@ -39,63 +42,40 @@ impl IntoResponse for Error {
     }
 }
 
-impl<E> From<E> for Error
+impl<E> Display for ErrorWithStatus<E>
 where
-    E: Into<anyhow::Error>,
+    E: Display,
 {
-    #[inline]
-    fn from(err: E) -> Self {
-        Self {
-            status: StatusCode::INTERNAL_SERVER_ERROR,
-            error: err.into(),
-        }
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self.error, f)
     }
 }
 
-pub trait IntoResult<T> {
-    fn into_result(self) -> Result<T>;
-    fn into_status(self, status: StatusCode) -> Result<T>;
-}
-
-impl<T, E> IntoResult<T> for core::result::Result<T, E>
+impl<E> Debug for ErrorWithStatus<E>
 where
-    E: Into<Error>,
+    E: Debug,
 {
-    #[inline]
-    fn into_result(self) -> Result<T> {
-        self.map_err(Into::<Error>::into)
-    }
-
-    #[inline]
-    fn into_status(self, status: StatusCode) -> Result<T> {
-        self.map_err(|e| {
-            let mut err = e.into();
-            err.status = status;
-            err
-        })
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {:?}", self.status, self.error)
     }
 }
+
+/// Represents the result of an HTTP operation.
+/// Contains a successful response, or an error with a status code.
+pub type OperationResult<T, E = anyhow::Error> = core::result::Result<T, ErrorWithStatus<E>>;
 
 pub trait LogError {
     /// Log the error if appropriate
     fn log_error(self) -> Self;
 }
 
-pub trait IsLoggable {
-    #[inline(always)]
-    fn is_loggable(&self) -> bool {
-        true
-    }
-}
-
-impl<T, E> LogError for core::result::Result<T, E>
+impl<T, E> LogError for OperationResult<T, E>
 where
-    E: IsLoggable + Debug,
+    E: Debug,
 {
-    #[inline]
     fn log_error(self) -> Self {
         if let Err(error) = &self {
-            if error.is_loggable() {
+            if error.status.is_server_error() {
                 tracing::error!("{error:?}");
             }
         }
@@ -103,11 +83,22 @@ where
     }
 }
 
-impl<E> IsLoggable for E where E: Into<anyhow::Error> {}
-
-impl IsLoggable for Error {
-    #[inline]
-    fn is_loggable(&self) -> bool {
-        self.status.is_server_error()
+impl<T> LogError for anyhow::Result<T> {
+    fn log_error(self) -> Self {
+        if let Err(error) = &self {
+            tracing::error!("{error:?}");
+        }
+        self
     }
+}
+
+/// Add context to a known Err.
+/// anyhow does not expose the ext_context method to add conext to known errs.
+pub fn ext_context<E, C>(e: E, context: C) -> anyhow::Error
+where
+    E: std::error::Error + Send + Sync + 'static,
+    C: Display + Send + Sync + 'static,
+{
+    // SAFETY: we know it's an error since we are making it right now.
+    unsafe { Err::<(), _>(e).context(context).unwrap_err_unchecked() }
 }

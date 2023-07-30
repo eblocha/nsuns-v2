@@ -1,8 +1,8 @@
-use anyhow::Result;
 use axum::Router;
 use tower_http::{
+    catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
-    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer}, catch_panic::CatchPanicLayer,
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
 use utoipa::OpenApi;
@@ -22,7 +22,7 @@ pub const MAXES_PATH: &str = "/api/maxes";
 pub const REPS_PATH: &str = "/api/reps";
 pub const UPDATES_PATH: &str = "/api/updates";
 
-pub fn router(pool: Pool, settings: &Settings) -> Result<Router> {
+pub fn router(pool: Pool, settings: &Settings) -> Router {
     let app = Router::new()
         .nest(PROFILES_PATH, profiles_router())
         .nest(PROGRAMS_PATH, programs_router())
@@ -45,8 +45,8 @@ pub fn router(pool: Pool, settings: &Settings) -> Result<Router> {
             .precompressed_gzip()
             .not_found_service(ServeFile::new(format!("{static_dir}/index.html")));
 
-        Ok(app.fallback_service(serve_dir))
+        app.fallback_service(serve_dir)
     } else {
-        Ok(app)
+        app
     }
 }

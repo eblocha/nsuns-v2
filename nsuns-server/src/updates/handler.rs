@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     db::{commit_ok, transaction, Pool, DB},
-    error::{IntoResult, LogError, Result},
+    error::{LogError, OperationResult},
     maxes::model::{delete_latest_maxes, CreateMax, Max},
     reps::model::{delete_latest_reps, CreateReps, Reps},
 };
@@ -25,7 +25,10 @@ pub struct UpdatedState {
     pub reps: Vec<Reps>,
 }
 
-async fn run_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<UpdatedState> {
+async fn run_updates(
+    tx: &mut Transaction<'_, DB>,
+    updates: Updates,
+) -> OperationResult<UpdatedState> {
     let mut new_maxes = Vec::<Max>::with_capacity(updates.movement_ids.len());
     let mut new_reps = Vec::<Reps>::with_capacity(updates.movement_ids.len());
 
@@ -75,7 +78,7 @@ async fn run_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<U
 
 pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
-    let res = run_updates(&mut tx, updates).await.map(Json).into_result();
+    let res = run_updates(&mut tx, updates).await.map(Json);
     commit_ok(res, tx).await.log_error()
 }
 
@@ -93,7 +96,7 @@ pub struct Removed {
     pub reps: Vec<DeletedId>,
 }
 
-async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<Removed> {
+async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> OperationResult<Removed> {
     let mut maxes = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());
     let mut reps = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());
 
@@ -114,6 +117,6 @@ async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Result<
 
 pub async fn undo(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await.log_error()?;
-    let res = undo_updates(&mut tx, updates).await.map(Json).into_result();
+    let res = undo_updates(&mut tx, updates).await.map(Json);
     commit_ok(res, tx).await.log_error()
 }

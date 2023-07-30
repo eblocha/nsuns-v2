@@ -7,10 +7,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    db::DB,
-    error::{IntoResult, Result},
-};
+use crate::{db::DB, error::OperationResult};
 
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -30,19 +27,19 @@ impl Reps {
     pub async fn select_for_profile(
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Vec<Self>> {
+    ) -> OperationResult<Vec<Self>> {
         sqlx::query_as::<_, Self>("SELECT * FROM reps WHERE profile_id = $1 ORDER BY timestamp")
             .bind(profile_id)
             .fetch_all(executor)
             .await
             .with_context(|| format!("failed to select reps for profile_id={profile_id}"))
-            .into_result()
+            .map_err(Into::into)
     }
 
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Self>> {
+    ) -> OperationResult<Option<Self>> {
         sqlx::query("UPDATE reps SET profile_id = $1, movement_id = $2, amount = $3 WHERE id = $4")
             .bind(self.profile_id)
             .bind(self.movement_id)
@@ -58,21 +55,21 @@ impl Reps {
                     Some(self)
                 }
             })
-            .into_result()
+            .map_err(Into::into)
     }
 
     pub async fn select_latest(
         movement_id: Uuid,
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Self>> {
+    ) -> OperationResult<Option<Self>> {
         sqlx::query_as::<_, Self>("SELECT * FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1")
             .bind(movement_id)
             .bind(profile_id)
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to fetch latest reps for profile_id={profile_id} and movement_id={movement_id}"))
-            .into_result()
+            .map_err(Into::into)
     }
 }
 
@@ -86,7 +83,10 @@ pub struct CreateReps {
 }
 
 impl CreateReps {
-    pub async fn insert_one(self, executor: impl Executor<'_, Database = DB>) -> Result<Reps> {
+    pub async fn insert_one(
+        self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<Reps> {
         sqlx::query_as::<_, (i64, NaiveDateTime)>(
             "INSERT INTO reps (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id, timestamp",
         )
@@ -103,7 +103,7 @@ impl CreateReps {
             amount: self.amount,
             timestamp
         })
-        .into_result()
+        .map_err(Into::into)
     }
 }
 
@@ -121,14 +121,14 @@ impl UpdateReps {
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Reps>> {
+    ) -> OperationResult<Option<Reps>> {
         sqlx::query_as::<_, Reps>("UPDATE reps SET amount = $1 WHERE id = $2 RETURNING *")
             .bind(self.amount)
             .bind(self.id)
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to update reps with id={id}", id = self.id))
-            .into_result()
+            .map_err(Into::into)
     }
 }
 
@@ -136,7 +136,7 @@ pub async fn delete_latest_reps(
     profile_id: Uuid,
     movement_id: Uuid,
     executor: impl Executor<'_, Database = DB>,
-) -> Result<Option<i64>> {
+) -> OperationResult<Option<i64>> {
     sqlx::query_as::<_, (i64,)>(
         "DELETE FROM reps WHERE id = any(
         array(SELECT id FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1)
@@ -147,5 +147,5 @@ pub async fn delete_latest_reps(
     .await
     .map(|res| res.map(|(id,)| id))
     .with_context(|| "failed to delete latest reps")
-    .into_result()
+    .map_err(Into::into)
 }

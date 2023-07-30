@@ -7,10 +7,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    db::DB,
-    error::{IntoResult, Result},
-};
+use crate::{db::DB, error::OperationResult};
 
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -30,19 +27,19 @@ impl Max {
     pub async fn select_for_profile(
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Vec<Self>> {
+    ) -> OperationResult<Vec<Self>> {
         sqlx::query_as::<_, Self>("SELECT * FROM maxes WHERE profile_id = $1 ORDER BY timestamp")
             .bind(profile_id)
             .fetch_all(executor)
             .await
             .with_context(|| format!("failed to select maxes for profile_id={profile_id}"))
-            .into_result()
+            .map_err(Into::into)
     }
 
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Self>> {
+    ) -> OperationResult<Option<Self>> {
         sqlx::query("UPDATE maxes SET profile_id = $1, movement_id = $2, amount = $3 WHERE id = $4")
             .bind(self.profile_id)
             .bind(self.movement_id)
@@ -58,21 +55,21 @@ impl Max {
                     Some(self)
                 }
             })
-            .into_result()
+            .map_err(Into::into)
     }
 
     pub async fn select_latest(
         movement_id: Uuid,
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Self>> {
+    ) -> OperationResult<Option<Self>> {
         sqlx::query_as::<_, Self>("SELECT * FROM maxes WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1")
             .bind(movement_id)
             .bind(profile_id)
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to fetch latest max for profile_id={profile_id} and movement_id={movement_id}"))
-            .into_result()
+            .map_err(Into::into)
     }
 }
 
@@ -86,7 +83,10 @@ pub struct CreateMax {
 }
 
 impl CreateMax {
-    pub async fn insert_one(self, executor: impl Executor<'_, Database = DB>) -> Result<Max> {
+    pub async fn insert_one(
+        self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<Max> {
         sqlx::query_as::<_, (i64, NaiveDateTime)>(
             "INSERT INTO maxes (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id, timestamp",
         )
@@ -103,7 +103,7 @@ impl CreateMax {
             amount: self.amount,
             timestamp
         })
-        .into_result()
+        .map_err(Into::into)
     }
 }
 
@@ -121,14 +121,14 @@ impl UpdateMax {
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Max>> {
+    ) -> OperationResult<Option<Max>> {
         sqlx::query_as::<_, Max>("UPDATE maxes SET amount = $1 WHERE id = $2 RETURNING *")
             .bind(self.amount)
             .bind(self.id)
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to update max with id={id}", id = self.id))
-            .into_result()
+            .map_err(Into::into)
     }
 }
 
@@ -136,7 +136,7 @@ pub async fn delete_latest_maxes(
     profile_id: Uuid,
     movement_id: Uuid,
     executor: impl Executor<'_, Database = DB>,
-) -> Result<Option<i64>> {
+) -> OperationResult<Option<i64>> {
     sqlx::query_as::<_, (i64,)>(
         "DELETE FROM maxes WHERE id = any(
         array(SELECT id FROM maxes WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1)
@@ -147,5 +147,5 @@ pub async fn delete_latest_maxes(
     .await
     .map(|res| res.map(|(id,)| id))
     .with_context(|| "failed to delete latest maxes")
-    .into_result()
+    .map_err(Into::into)
 }

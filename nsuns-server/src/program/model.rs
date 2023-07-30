@@ -7,11 +7,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    db::DB,
-    error::{IntoResult, Result},
-    sets::model::Set,
-};
+use crate::{db::DB, error::OperationResult, sets::model::Set};
 
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -29,25 +25,25 @@ impl Program {
     pub async fn select_all_for_profile(
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
-    ) -> Result<Vec<Self>> {
+    ) -> OperationResult<Vec<Self>> {
         sqlx::query_as::<_, Self>("SELECT * FROM programs WHERE owner = $1 ORDER BY created_on")
             .bind(owner)
             .fetch_all(executor)
             .await
             .with_context(|| format!("failed to select program with owner id={owner}"))
-            .into_result()
+            .map_err(Into::into)
     }
 
     pub async fn select_one(
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Self>> {
+    ) -> OperationResult<Option<Self>> {
         sqlx::query_as::<_, Self>("SELECT * from programs WHERE id = $1")
             .bind(id)
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to fetch program with id={id}"))
-            .into_result()
+            .map_err(Into::into)
     }
 }
 
@@ -62,7 +58,10 @@ pub struct CreateProgram {
 }
 
 impl CreateProgram {
-    pub async fn insert_one(self, executor: impl Executor<'_, Database = DB>) -> Result<Program> {
+    pub async fn insert_one(
+        self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<Program> {
         sqlx::query_as::<_, Program>(
             "INSERT INTO programs (name, description, owner) VALUES ($1, $2, $3) RETURNING *",
         )
@@ -72,7 +71,7 @@ impl CreateProgram {
         .fetch_one(executor)
         .await
         .with_context(|| "failed to create program")
-        .into_result()
+        .map_err(Into::into)
     }
 }
 
@@ -90,7 +89,7 @@ impl UpdateProgram {
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
-    ) -> Result<Option<Program>> {
+    ) -> OperationResult<Option<Program>> {
         sqlx::query_as::<_, Program>(
             "UPDATE programs SET name = $1, description = $2 WHERE id = $3 RETURNING *",
         )
@@ -100,20 +99,20 @@ impl UpdateProgram {
         .fetch_optional(executor)
         .await
         .with_context(|| format!("failed to update program with id={id}", id = self.id))
-        .into_result()
+        .map_err(Into::into)
     }
 }
 
 pub async fn delete_one(
     id: Uuid,
     executor: impl Executor<'_, Database = DB>,
-) -> Result<Option<Program>> {
+) -> OperationResult<Option<Program>> {
     sqlx::query_as::<_, Program>("DELETE FROM programs WHERE id = $1 RETURNING *")
         .bind(id)
         .fetch_optional(executor)
         .await
         .with_context(|| format!("failed to delete program with id={id}"))
-        .into_result()
+        .map_err(Into::into)
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -126,7 +125,7 @@ pub struct ProgramSummary {
 pub async fn gather_program_summary(
     id: Uuid,
     tx: &mut Transaction<'_, DB>,
-) -> Result<Option<ProgramSummary>> {
+) -> OperationResult<Option<ProgramSummary>> {
     let program_opt = Program::select_one(id, &mut **tx).await?;
 
     if let Some(program) = program_opt {

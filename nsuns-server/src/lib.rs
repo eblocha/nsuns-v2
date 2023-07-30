@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Context;
 use axum::Router;
 use db::run_migrations;
 use router::router;
@@ -24,19 +24,18 @@ pub mod updates;
 pub mod util;
 pub mod validation;
 
-pub async fn initialize_api_server(settings: &Settings) -> Result<Router> {
-    let pool = db::create_connection_pool(&settings.database)
-        .with_context(|| "failed to create connection pool")?;
+pub async fn initialize_api_server(settings: &Settings) -> anyhow::Result<Router> {
+    let pool = db::create_connection_pool(&settings.database);
 
     let migrations = Path::new(&settings.database.migrations);
 
     run_migrations(migrations, &pool).await?;
 
-    let app = router(pool, settings)?;
+    let app = router(pool, settings);
     Ok(app)
 }
 
-pub async fn api_server(settings: &Settings) -> Result<()> {
+pub async fn api_server(settings: &Settings) -> anyhow::Result<()> {
     let app = initialize_api_server(settings).await?;
     let addr = std::net::SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, settings.server.port));
 
