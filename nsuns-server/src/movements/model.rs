@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -8,7 +10,7 @@ use validator::Validate;
 
 use crate::{
     db::DB,
-    error::{ext_context, ErrorWithStatus, OperationResult},
+    error::{add_context, ErrorWithStatus, OperationResult},
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, Validate, ToSchema)]
@@ -21,10 +23,17 @@ pub struct Movement {
     pub description: Option<String>,
 }
 
-fn not_unique_error() -> ErrorWithStatus<anyhow::Error> {
-    ErrorWithStatus {
-        status: StatusCode::CONFLICT,
-        error: anyhow!("movement name is not unique"),
+fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
+where
+    F: FnOnce() -> C,
+    C: Display + Send + Sync + 'static,
+{
+    match e {
+        sqlx::Error::Database(e) if e.is_unique_violation() => ErrorWithStatus {
+            status: StatusCode::CONFLICT,
+            error: anyhow!("movement name is not unique"),
+        },
+        _ => add_context(e, context()).into(),
     }
 }
 
@@ -49,13 +58,10 @@ impl Movement {
             .bind(self.id)
             .execute(executor)
             .await
-            .map_err(|e| match e {
-                sqlx::Error::Database(e) if e.is_unique_violation() => not_unique_error(),
-                _ => ext_context(
-                    e,
-                    format!("failed to update movement with id={id}", id = self.id),
-                )
-                .into(),
+            .map_err(|e| {
+                handle_error(e, || {
+                    format!("failed to update movement with id={id}", id = self.id)
+                })
             })
             .map(|result| {
                 if result.rows_affected() == 0 {
@@ -64,7 +70,6 @@ impl Movement {
                     Some(self)
                 }
             })
-            .map_err(Into::into)
     }
 }
 
@@ -89,10 +94,6 @@ impl CreateMovement {
         .bind(self.description.as_ref())
         .fetch_one(executor)
         .await
-        .map_err(|e| match e {
-            sqlx::Error::Database(e) if e.is_unique_violation() => not_unique_error(),
-            _ => ext_context(e, "failed to insert new movement").into(),
-        })
-        .map_err(Into::into)
+        .map_err(|e| handle_error(e, || "failed to insert new movement"))
     }
 }

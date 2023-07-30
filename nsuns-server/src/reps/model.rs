@@ -1,4 +1,7 @@
-use anyhow::Context;
+use std::fmt::Display;
+
+use anyhow::{anyhow, Context};
+use axum::http::StatusCode;
 use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -7,7 +10,24 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{db::DB, error::OperationResult};
+use crate::{
+    db::DB,
+    error::{add_context, ErrorWithStatus, OperationResult},
+};
+
+fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
+where
+    F: FnOnce() -> C,
+    C: Display + Send + Sync + 'static,
+{
+    match e {
+        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus {
+            status: StatusCode::BAD_REQUEST,
+            error: anyhow!("movementId or profileId provided does not exist"),
+        },
+        _ => add_context(e, context()).into(),
+    }
+}
 
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -47,7 +67,11 @@ impl Reps {
             .bind(self.id)
             .execute(executor)
             .await
-            .with_context(|| format!("failed to update reps with id={id}", id = self.id))
+            .map_err(|e| {
+                handle_error(e, || {
+                    format!("failed to update reps with id={id}", id = self.id)
+                })
+            })
             .map(|result| {
                 if result.rows_affected() == 0 {
                     None
@@ -55,7 +79,6 @@ impl Reps {
                     Some(self)
                 }
             })
-            .map_err(Into::into)
     }
 
     pub async fn select_latest(
@@ -95,7 +118,7 @@ impl CreateReps {
         .bind(self.amount)
         .fetch_one(executor)
         .await
-        .with_context(|| "failed to insert a new rep record")
+        .map_err(|e| handle_error(e, || "failed to insert a new rep record"))
         .map(|(id, timestamp)| Reps {
             id,
             profile_id: self.profile_id,
@@ -103,7 +126,6 @@ impl CreateReps {
             amount: self.amount,
             timestamp
         })
-        .map_err(Into::into)
     }
 }
 
@@ -127,8 +149,11 @@ impl UpdateReps {
             .bind(self.id)
             .fetch_optional(executor)
             .await
-            .with_context(|| format!("failed to update reps with id={id}", id = self.id))
-            .map_err(Into::into)
+            .map_err(|e| {
+                handle_error(e, || {
+                    format!("failed to update reps with id={id}", id = self.id)
+                })
+            })
     }
 }
 

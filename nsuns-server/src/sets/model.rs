@@ -1,11 +1,31 @@
-use anyhow::Context;
+use std::fmt::Display;
+
+use anyhow::{anyhow, Context};
+use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{db::DB, error::OperationResult};
+use crate::{
+    db::DB,
+    error::{add_context, ErrorWithStatus, OperationResult},
+};
+
+fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
+where
+    F: FnOnce() -> C,
+    C: Display + Send + Sync + 'static,
+{
+    match e {
+        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus {
+            status: StatusCode::BAD_REQUEST,
+            error: anyhow!("programId, movementId, or percentageOfMax provided does not exist"),
+        },
+        _ => add_context(e, context()).into(),
+    }
+}
 
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -92,7 +112,7 @@ impl CreateSet {
         .bind(self.percentage_of_max)
         .fetch_one(&mut **tx)
         .await
-        .with_context(|| "failed to insert new set")?
+        .map_err(|e| handle_error(e, || "failed to insert new set"))?
         .0;
 
         Ok(Set {
@@ -180,7 +200,11 @@ impl UpdateSet {
         .bind(self.id)
         .fetch_optional(executor)
         .await
-        .with_context(|| format!("failed to update set with id={id}", id = self.id))?;
+        .map_err(|e| {
+            handle_error(e, || {
+                format!("failed to update set with id={id}", id = self.id)
+            })
+        })?;
 
         if let Some((id, ordering)) = opt {
             Ok(Some(Set {

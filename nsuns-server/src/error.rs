@@ -94,7 +94,7 @@ impl<T> LogError for anyhow::Result<T> {
 
 /// Add context to a known Err.
 /// anyhow does not expose the ext_context method to add conext to known errs.
-pub fn ext_context<E, C>(e: E, context: C) -> anyhow::Error
+pub fn add_context<E, C>(e: E, context: C) -> anyhow::Error
 where
     E: std::error::Error + Send + Sync + 'static,
     C: Display + Send + Sync + 'static,
