@@ -39,7 +39,7 @@ impl Movement {
             .bind(self.id)
             .execute(executor)
             .await
-            .with_context(|| format!("failed to update movement with id={}", self.id))
+            .with_context(|| format!("failed to update movement with id={id}", id = self.id))
             .map(|result| {
                 if result.rows_affected() == 0 {
                     None

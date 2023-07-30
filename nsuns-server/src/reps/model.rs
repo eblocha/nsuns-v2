@@ -35,7 +35,7 @@ impl Reps {
             .bind(profile_id)
             .fetch_all(executor)
             .await
-            .with_context(|| format!("failed to select reps for profile_id={}", profile_id))
+            .with_context(|| format!("failed to select reps for profile_id={profile_id}"))
             .into_result()
     }
 
@@ -50,7 +50,7 @@ impl Reps {
             .bind(self.id)
             .execute(executor)
             .await
-            .with_context(|| format!("failed to update reps with id={}", self.id))
+            .with_context(|| format!("failed to update reps with id={id}", id = self.id))
             .map(|result| {
                 if result.rows_affected() == 0 {
                     None
@@ -71,7 +71,7 @@ impl Reps {
             .bind(profile_id)
             .fetch_optional(executor)
             .await
-            .with_context(|| format!("failed to fetch latest reps for profile_id={} and movement_id={}", profile_id, movement_id))
+            .with_context(|| format!("failed to fetch latest reps for profile_id={profile_id} and movement_id={movement_id}"))
             .into_result()
     }
 }
@@ -127,7 +127,7 @@ impl UpdateReps {
             .bind(self.id)
             .fetch_optional(executor)
             .await
-            .with_context(|| format!("failed to update reps with id={}", self.id))
+            .with_context(|| format!("failed to update reps with id={id}", id = self.id))
             .into_result()
     }
 }

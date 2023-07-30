@@ -40,7 +40,7 @@ pub async fn api_server(settings: &Settings) -> Result<()> {
     let app = initialize_api_server(settings).await?;
     let addr = std::net::SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, settings.server.port));
 
-    tracing::info!("listening on {}", addr);
+    tracing::info!("listening on {addr}");
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

@@ -71,7 +71,7 @@ impl Settings {
     pub fn new() -> Result<Self> {
         let config_source = var("CONFIG_SOURCE").unwrap_or_else(|_| "config/settings.toml".into());
 
-        tracing::info!("reading config from {}", config_source);
+        tracing::info!("reading config from {config_source}");
 
         let builder = Config::builder()
             .add_source(File::with_name(&config_source))
@@ -89,6 +89,6 @@ impl Settings {
 
         config
             .and_then(|cfg| cfg.try_deserialize())
-            .with_context(|| format!("failed to parse settings from file: {}", config_source))
+            .with_context(|| format!("failed to parse settings from file: {config_source}"))
     }
 }

@@ -27,7 +27,7 @@ impl Profile {
             .bind(id)
             .fetch_optional(executor)
             .await
-            .with_context(|| format!("failed to fetch profile with id={}", id))
+            .with_context(|| format!("failed to fetch profile with id={id}"))
             .into_result()
     }
 
@@ -45,7 +45,7 @@ impl Profile {
             .bind(self.id)
             .execute(&mut **tx)
             .await
-            .with_context(|| format!("failed to update profile with id={}", self.id))
+            .with_context(|| format!("failed to update profile with id={id}", id = self.id))
             .map(|result| {
                 if result.rows_affected() == 0 {
                     None
@@ -64,7 +64,7 @@ impl Profile {
             .bind(id)
             .fetch_optional(executor)
             .await
-            .with_context(|| format!("failed to delete profile with id={}", id))
+            .with_context(|| format!("failed to delete profile with id={id}"))
             .into_result()
     }
 }

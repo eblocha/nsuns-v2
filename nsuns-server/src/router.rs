@@ -41,7 +41,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Result<Router> {
 
     if let Some(ref static_dir) = settings.server.static_dir {
         let serve_dir = ServeDir::new(static_dir)
-            .not_found_service(ServeFile::new(format!("{}/index.html", static_dir)));
+            .not_found_service(ServeFile::new(format!("{static_dir}/index.html")));
 
         Ok(app.fallback_service(serve_dir))
     } else {

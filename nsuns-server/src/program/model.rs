@@ -34,7 +34,7 @@ impl Program {
             .bind(owner)
             .fetch_all(executor)
             .await
-            .with_context(|| format!("failed to select program with owner id={}", owner))
+            .with_context(|| format!("failed to select program with owner id={owner}"))
             .into_result()
     }
 
@@ -46,7 +46,7 @@ impl Program {
             .bind(id)
             .fetch_optional(executor)
             .await
-            .with_context(|| format!("failed to fetch program with id={}", id))
+            .with_context(|| format!("failed to fetch program with id={id}"))
             .into_result()
     }
 }
@@ -99,7 +99,7 @@ impl UpdateProgram {
         .bind(self.id)
         .fetch_optional(executor)
         .await
-        .with_context(|| format!("failed to update program with id={}", self.id))
+        .with_context(|| format!("failed to update program with id={id}", id = self.id))
         .into_result()
     }
 }
@@ -112,7 +112,7 @@ pub async fn delete_one(
         .bind(id)
         .fetch_optional(executor)
         .await
-        .with_context(|| format!("failed to delete program with id={}", id))
+        .with_context(|| format!("failed to delete program with id={id}"))
         .into_result()
 }
 

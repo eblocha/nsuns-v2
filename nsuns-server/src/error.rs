@@ -96,7 +96,7 @@ where
     fn log_error(self) -> Self {
         if let Err(error) = &self {
             if error.is_loggable() {
-                tracing::error!("{:?}", error);
+                tracing::error!("{error:?}");
             }
         }
         self

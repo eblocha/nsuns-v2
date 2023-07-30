@@ -41,7 +41,7 @@ impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         match self {
             ServerError::ValidationError(_) => {
-                let message = format!("Input validation error: [{}]", self).replace('\n', ", ");
+                let message = format!("Input validation error: [{self}]").replace('\n', ", ");
                 (StatusCode::UNPROCESSABLE_ENTITY, message).into_response()
             }
             ServerError::AxumRejection(e) => e.into_response(),
