@@ -4,17 +4,20 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
+use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
     db::Pool,
     error::LogError,
-    util::{created, or_404}, validation::ValidatedJson,
+    util::{created, or_404},
+    validation::ValidatedJson,
 };
 
 use super::model::{CreateReps, Reps, UpdateReps};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 #[serde(rename_all = "camelCase")]
 pub struct RepsQuery {
     pub profile_id: Uuid,

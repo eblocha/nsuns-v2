@@ -8,7 +8,8 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool},
     error::LogError,
-    util::{created, or_404}, validation::ValidatedJson,
+    util::{created, or_404},
+    validation::ValidatedJson,
 };
 
 use super::model::{CreateProfile, Profile};

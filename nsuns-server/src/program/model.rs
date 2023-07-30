@@ -3,6 +3,7 @@ use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -12,13 +13,14 @@ use crate::{
     sets::model::Set,
 };
 
-#[derive(Debug, Serialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Program {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
     pub owner: Uuid,
+    #[schema(value_type = i64)]
     #[serde(with = "ts_milliseconds")]
     pub created_on: NaiveDateTime,
 }
@@ -49,7 +51,7 @@ impl Program {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateProgram {
     #[validate(length(min = 1))]
@@ -74,7 +76,7 @@ impl CreateProgram {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateProgram {
     pub id: Uuid,
@@ -114,7 +116,7 @@ pub async fn delete_one(
         .into_result()
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgramSummary {
     pub program: Program,

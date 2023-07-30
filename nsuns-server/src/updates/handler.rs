@@ -1,6 +1,7 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use sqlx::Transaction;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -10,14 +11,14 @@ use crate::{
     reps::model::{delete_latest_reps, CreateReps, Reps},
 };
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Updates {
     pub profile_id: Uuid,
     pub movement_ids: Vec<Uuid>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatedState {
     pub maxes: Vec<Max>,
@@ -78,10 +79,14 @@ pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> 
     commit_ok(res, tx).await.log_error()
 }
 
-#[derive(Debug, Serialize)]
-pub struct DeletedId(#[serde(with = "crate::serde_display")] i64);
+#[derive(Debug, Serialize, ToSchema)]
+pub struct DeletedId(
+    #[schema(value_type = String, format = Int64)]
+    #[serde(with = "crate::serde_display")]
+    i64,
+);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Removed {
     pub maxes: Vec<DeletedId>,

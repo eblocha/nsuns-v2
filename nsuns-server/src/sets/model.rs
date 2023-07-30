@@ -2,6 +2,7 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use sqlx::{Executor, Transaction};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -22,12 +23,13 @@ pub enum Day {
     Saturday,
 }
 
-#[derive(Debug, Serialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Set {
     pub id: Uuid,
     pub program_id: Uuid,
     pub movement_id: Uuid,
+    #[schema(value_type = i16)]
     pub day: Day,
     pub ordering: i32,
     pub reps: Option<i32>,
@@ -53,11 +55,12 @@ impl Set {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateSet {
     pub program_id: Uuid,
     pub movement_id: Uuid,
+    #[schema(value_type = i16)]
     pub day: Day,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
@@ -145,12 +148,13 @@ pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> Result<Option
     Ok(set_opt)
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSet {
     pub id: Uuid,
     pub program_id: Uuid,
     pub movement_id: Uuid,
+    #[schema(value_type = i16)]
     pub day: Day,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,

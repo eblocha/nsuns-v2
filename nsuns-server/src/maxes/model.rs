@@ -3,6 +3,7 @@ use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -11,14 +12,16 @@ use crate::{
     error::{IntoResult, Result},
 };
 
-#[derive(Debug, Serialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Max {
+    #[schema(value_type = String, format = Int64)]
     #[serde(with = "crate::serde_display")]
     pub id: i64,
     pub profile_id: Uuid,
     pub movement_id: Uuid,
     pub amount: f64,
+    #[schema(value_type = i64)]
     #[serde(with = "ts_milliseconds")]
     pub timestamp: NaiveDateTime,
 }
@@ -73,7 +76,7 @@ impl Max {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateMax {
     pub profile_id: Uuid,
@@ -104,9 +107,10 @@ impl CreateMax {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateMax {
+    #[schema(value_type = String, format = Int64)]
     #[serde(with = "crate::serde_display")]
     pub id: i64,
     #[validate(range(min = 0))]

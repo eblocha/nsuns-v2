@@ -1,6 +1,7 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -9,7 +10,7 @@ use crate::{
     error::{IntoResult, Result},
 };
 
-#[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Movement {
     pub id: Uuid,
@@ -50,7 +51,7 @@ impl Movement {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateMovement {
     #[validate(length(min = 1))]

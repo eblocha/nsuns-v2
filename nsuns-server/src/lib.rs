@@ -12,6 +12,7 @@ pub mod db;
 pub mod error;
 pub mod maxes;
 pub mod movements;
+pub mod openapi;
 pub mod profiles;
 pub mod program;
 pub mod reps;
