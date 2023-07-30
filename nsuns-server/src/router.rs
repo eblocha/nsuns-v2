@@ -2,7 +2,7 @@ use anyhow::Result;
 use axum::Router;
 use tower_http::{
     services::{ServeDir, ServeFile},
-    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer}, catch_panic::CatchPanicLayer,
 };
 use tracing::Level;
 use utoipa::OpenApi;
@@ -32,6 +32,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Result<Router> {
         .nest(REPS_PATH, reps_router())
         .nest(UPDATES_PATH, updates_router())
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .layer(CatchPanicLayer::new())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
@@ -41,6 +42,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Result<Router> {
 
     if let Some(ref static_dir) = settings.server.static_dir {
         let serve_dir = ServeDir::new(static_dir)
+            .precompressed_gzip()
             .not_found_service(ServeFile::new(format!("{static_dir}/index.html")));
 
         Ok(app.fallback_service(serve_dir))
