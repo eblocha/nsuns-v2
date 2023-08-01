@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Display};
 
-use anyhow::Context;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -90,15 +89,4 @@ impl<T> LogError for anyhow::Result<T> {
         }
         self
     }
-}
-
-/// Add context to a known Err.
-/// anyhow does not expose the ext_context method to add conext to known errs.
-pub fn add_context<E, C>(e: E, context: C) -> anyhow::Error
-where
-    E: std::error::Error + Send + Sync + 'static,
-    C: Display + Send + Sync + 'static,
-{
-    // SAFETY: we know it's an error since we are making it right now.
-    unsafe { Err::<(), _>(e).context(context).unwrap_err_unchecked() }
 }

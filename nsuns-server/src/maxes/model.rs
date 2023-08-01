@@ -12,7 +12,7 @@ use validator::Validate;
 
 use crate::{
     db::DB,
-    error::{add_context, ErrorWithStatus, OperationResult},
+    error::{ErrorWithStatus, OperationResult},
 };
 
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
@@ -39,7 +39,7 @@ where
             status: StatusCode::BAD_REQUEST,
             error: anyhow!("movementId or profileId provided does not exist"),
         },
-        _ => add_context(e, context()).into(),
+        _ => anyhow!(e).context(context()).into(),
     }
 }
 

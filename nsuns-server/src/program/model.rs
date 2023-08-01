@@ -12,7 +12,7 @@ use validator::Validate;
 
 use crate::{
     db::DB,
-    error::{add_context, ErrorWithStatus, OperationResult},
+    error::{ErrorWithStatus, OperationResult},
     sets::model::Set,
 };
 
@@ -26,7 +26,7 @@ where
             status: StatusCode::BAD_REQUEST,
             error: anyhow!("profileId provided does not exist"),
         },
-        _ => add_context(e, context()).into(),
+        _ => anyhow!(e).context(context()).into(),
     }
 }
 

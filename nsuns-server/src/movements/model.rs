@@ -10,7 +10,7 @@ use validator::Validate;
 
 use crate::{
     db::DB,
-    error::{add_context, ErrorWithStatus, OperationResult},
+    error::{ErrorWithStatus, OperationResult},
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, Validate, ToSchema)]
@@ -33,7 +33,7 @@ where
             status: StatusCode::CONFLICT,
             error: anyhow!("movement name is not unique"),
         },
-        _ => add_context(e, context()).into(),
+        _ => anyhow!(e).context(context()).into(),
     }
 }
 
