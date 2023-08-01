@@ -96,7 +96,7 @@ where
         Err(ref e) => {
             tx.rollback()
                 .await
-                .with_context(|| format!("failed to rollback transaction caused by: {e:?}"))?;
+                .with_context(|| format!("failed to rollback transaction initiated by previous error: {e:?}"))?;
         }
     };
 

@@ -79,21 +79,23 @@ pub struct CreateSet {
 impl CreateSet {
     pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Set> {
         // get the max `ordering` value for the program and day
-        let ordering = sqlx::query_as::<_, (Option<i32>,)>(
-            "SELECT MAX(ordering) FROM program_sets WHERE program_id = $1 AND day = $2",
+        // fetching all rows here to lock them for updates
+        let ordering = sqlx::query_as::<_, (i32,)>(
+            "SELECT ordering FROM program_sets WHERE program_id = $1 AND day = $2 FOR UPDATE",
         )
         .bind(self.program_id)
         .bind(self.day)
-        .fetch_one(&mut **tx)
+        .fetch_all(&mut **tx)
         .await
         .with_context(|| {
             format!(
-                "failed to fetch max ordered set with program_id={} and day={:?}",
+                "failed to fetch max ordered set with program_id={} and day={}",
                 self.program_id, self.day
             )
         })?
-        .0
-        .map(|value| value + 1)
+        .into_iter()
+        .map(|r| r.0 + 1)
+        .max()
         .unwrap_or(0);
 
         let id = sqlx::query_as::<_, (Uuid,)>(
@@ -131,6 +133,10 @@ impl CreateSet {
 }
 
 pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
+    tx.execute("LOCK TABLE program_sets IN ACCESS EXCLUSIVE MODE")
+        .await
+        .with_context(|| "failed to lock program_sets table")?;
+
     let set_opt = sqlx::query_as::<_, Set>("DELETE FROM program_sets WHERE id = $1 RETURNING *")
         .bind(id)
         .fetch_optional(&mut **tx)
