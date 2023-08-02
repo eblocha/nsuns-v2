@@ -9,6 +9,7 @@ import { Max } from "../../api/maxes";
 import { day, goToToday, today } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
 import { Moon } from "../../icons/Moon";
+import { Day, dayNames } from "../../util/days";
 
 export const displaySet = (set: ProgramSet, max?: number): JSX.Element => {
   const repsComponent =
@@ -33,7 +34,7 @@ export const SetList: Component<{
   setCurrentSet: Setter<number>;
   movementMap?: Record<string, Movement>;
   movementsToMaxesMap?: Record<string, Max[]>;
-  day: string;
+  day: Day;
 }> = (props) => {
   const sections = createMemo(() =>
     getSections(props.sets ?? [], props.movementMap ?? {})
@@ -42,7 +43,7 @@ export const SetList: Component<{
   return (
     <div class="w-full h-full flex flex-col border rounded border-gray-700 overflow-hidden">
       <div class="flex flex-row items-center border-b border-gray-700 p-2 bg-gray-900">
-        <h2 class="text-xl">{props.day}</h2>
+        <h2 class="text-xl">{dayNames[props.day]}</h2>
         <button
           class="text-button ml-auto text-sm"
           onClick={goToToday}

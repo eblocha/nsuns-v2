@@ -24,6 +24,10 @@ pub fn created() -> &'static str {
     StatusCode::CREATED.as_str()
 }
 
+pub fn no_content() -> &'static str {
+    StatusCode::NO_CONTENT.as_str()
+}
+
 pub fn param_in_default() -> Option<ParameterIn> {
     None
 }

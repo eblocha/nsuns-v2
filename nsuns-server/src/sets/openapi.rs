@@ -10,11 +10,14 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::{created, id_path_param, ok, APPLICATION_JSON},
+    openapi::{created, id_path_param, no_content, ok, APPLICATION_JSON},
     router::SETS_PATH,
 };
 
-use super::model::{CreateSet, Set, UpdateSet};
+use super::{
+    handler::DeleteSetMeta,
+    model::{CreateSet, Set, UpdateSet},
+};
 
 pub trait WithSetsDefinition {
     fn with_sets(self) -> Self;
@@ -25,6 +28,7 @@ impl WithSetsDefinition for ComponentsBuilder {
         self.schema_from::<Set>()
             .schema_from::<CreateSet>()
             .schema_from::<UpdateSet>()
+            .schema_from::<DeleteSetMeta>()
     }
 }
 
@@ -60,7 +64,12 @@ impl WithSetsDefinition for PathsBuilder {
 
         let delete_op = OperationBuilder::new()
             .parameters(id_path_param(Some("The set to delete")))
-            .response(ok(), set_response())
+            .request_body(Some(
+                RequestBodyBuilder::new()
+                    .content(APPLICATION_JSON, Content::new(DeleteSetMeta::schema().1))
+                    .build(),
+            ))
+            .response(no_content(), Response::new("no content"))
             .tag(TAG)
             .build();
 

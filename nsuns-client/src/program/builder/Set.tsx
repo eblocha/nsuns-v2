@@ -1,7 +1,8 @@
 import { Component, Show, createSignal } from "solid-js";
-import { Day, Movement, ProgramSet } from "../../api";
+import { Movement, ProgramSet } from "../../api";
 import { EditSet } from "./EditSet";
 import { plural, repsDisplay } from "../../util/setDisplay";
+import { Day } from "../../util/days";
 
 export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const movement = movements.find((m) => m.id === set.movementId);

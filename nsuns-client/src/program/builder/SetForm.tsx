@@ -4,11 +4,17 @@ import { Select, SelectOption } from "../../forms/Select";
 import { Checkbox } from "../../forms/Checkbox";
 import { TextArea } from "../../forms/TextArea";
 import { CreateMutationResult } from "@tanstack/solid-query";
-import { CreateProgramSet, Day, Movement, UpdateProgramSet } from "../../api";
+import {
+  CreateProgramSet,
+  Movement,
+  SetDeleteMeta,
+  UpdateProgramSet,
+} from "../../api";
 import { Spinner } from "../../icons/Spinner";
 import { Input } from "../../forms/Input";
 import { Warning } from "../../icons/Warning";
 import { displayError } from "../../util/errors";
+import { Day } from "../../util/days";
 
 export type SetFormControls = ControlGroup<{
   movementId: Control<string>;
@@ -33,10 +39,15 @@ export const SetForm: Component<{
   mutationUpdate?: CreateMutationResult<
     unknown,
     unknown,
-    UpdateProgramSet,
+    UpdateProgramSet & { day: Day; programId: string },
     unknown
   >;
-  mutationDelete?: CreateMutationResult<unknown, unknown, string, unknown>;
+  mutationDelete?: CreateMutationResult<
+    unknown,
+    unknown,
+    { id: string; meta: SetDeleteMeta },
+    unknown
+  >;
   id?: string;
   programId: string;
   dayIndex: Day;
@@ -91,7 +102,15 @@ export const SetForm: Component<{
   );
 
   const onDelete = () => {
-    !isDeleting() && props.id && props.mutationDelete?.mutate(props.id);
+    !isDeleting() &&
+      props.id &&
+      props.mutationDelete?.mutate({
+        id: props.id,
+        meta: {
+          day: props.dayIndex,
+          programId: props.programId,
+        },
+      });
   };
 
   return (

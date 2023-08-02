@@ -1,8 +1,9 @@
 import { Component } from "solid-js";
-import { Day, Movement } from "../../api";
+import { Movement } from "../../api";
 import { useCreateSet } from "../../hooks/queries/sets";
 import { createControl, createControlGroup, required } from "../../hooks/forms";
 import { SetForm } from "./SetForm";
+import { Day } from "../../util/days";
 
 export const NewSet: Component<{
   close: () => void;

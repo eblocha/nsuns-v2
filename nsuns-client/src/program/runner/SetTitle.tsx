@@ -1,7 +1,7 @@
 import { Component, Match, Switch } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
 import { repsDisplay, resolvedWeightDisplay } from "../../util/setDisplay";
-import { currentSet, dayName } from "./state";
+import { currentSet, day } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
 import { useProgram } from "./context/ProgramProvider";
 
@@ -58,9 +58,9 @@ export const LoadingTitle: Component = () => {
 };
 
 export const TitleBanner: Component = () => {
-  const { setMap, movementMap, movementsToMaxesMap, queryState } = useProgram();
+  const { getSets, movementMap, movementsToMaxesMap, queryState } = useProgram();
 
-  const currentProgramSet = () => setMap()[dayName()]?.[currentSet()];
+  const currentProgramSet = () => getSets(day())[currentSet()];
   const currentMovement = () => {
     const set = currentProgramSet();
     return set && movementMap()[set.movementId];
@@ -70,7 +70,7 @@ export const TitleBanner: Component = () => {
     return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
 
-  const nextProgramSet = () => setMap()[dayName()]?.[currentSet() + 1];
+  const nextProgramSet = () => getSets(day())[currentSet() + 1];
   const nextMovement = () => {
     const set = nextProgramSet();
     return set && movementMap()[set.movementId];

@@ -1,4 +1,4 @@
-import { Component, Show, createRenderEffect, on } from "solid-js";
+import { Component, Show, createRenderEffect } from "solid-js";
 import { Input } from "../../forms/Input";
 import { Program } from "../../api";
 import { Spinner } from "../../icons/Spinner";

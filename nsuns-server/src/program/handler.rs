@@ -14,7 +14,7 @@ use crate::{
     validation::ValidatedJson,
 };
 
-use super::model::{delete_one, gather_program_summary, CreateProgram, Program, UpdateProgram};
+use super::model::{delete_one, gather_program_summary, CreateProgram, ProgramMeta, UpdateProgram};
 
 #[derive(Debug, Deserialize, IntoParams)]
 #[into_params(parameter_in = Query)]
@@ -27,7 +27,7 @@ pub async fn profile_programs(
     Query(params): Query<ProgramQuery>,
     State(pool): State<Pool>,
 ) -> impl IntoResponse {
-    Program::select_all_for_profile(&pool, &params.profile_id)
+    ProgramMeta::select_all_for_profile(&pool, &params.profile_id)
         .await
         .map(Json)
         .log_error()
@@ -57,10 +57,9 @@ pub async fn update_program(
 }
 
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
-    delete_one(id, &pool)
-        .await
-        .map(or_404::<_, Json<_>>)
-        .log_error()
+    let mut tx = transaction(&pool).await.log_error()?;
+    let res = delete_one(id, &mut tx).await.map(or_404::<_, Json<_>>);
+    commit_ok(res, tx).await.log_error()
 }
 
 pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {

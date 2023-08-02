@@ -1,13 +1,12 @@
 import { Component, For, Setter, Show, createSignal } from "solid-js";
-import { Day, ProgramSet } from "../../api";
+import { ProgramSummary, getSetsByDay } from "../../api";
 import { Plus } from "../../icons/Plus";
 import { NewSet } from "./NewSet";
 import { useMovementsQuery } from "../../hooks/queries/movements";
 import { SetComponent } from "./Set";
 import { SetSummary } from "./SetSummary";
 import { ChevronDown } from "../../icons/ChevronDown";
-import { dayNames } from "../../util/days";
-import { useSetMap } from "../../hooks/useSetMap";
+import { Day, dayNames } from "../../util/days";
 
 const EMPTY: never[] = [];
 
@@ -47,14 +46,12 @@ const TitleRow: Component<{
   );
 };
 
-export const Days: Component<{ sets: ProgramSet[]; programId: string }> = (
-  props
-) => {
+export const Days: Component<{ summary: ProgramSummary }> = (props) => {
   const [addSetTo, setAddSetTo] = createSignal<number | null>(null);
   const [expanded, setExpanded] = createSignal(dayNames.map(() => true));
   const query = useMovementsQuery();
 
-  const setMap = useSetMap(() => props.sets);
+  const getSets = (index: number) => getSetsByDay(props.summary, index as Day);
 
   const movements = () => query.data ?? EMPTY;
 
@@ -66,7 +63,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: string }> = (
             <li class="mb-4">
               <TitleRow
                 day={day}
-                hasSets={!!setMap()[day]?.length}
+                hasSets={!!getSets(index())?.length}
                 index={index()}
                 setExpanded={setExpanded}
                 expanded={expanded()[index()]!}
@@ -76,18 +73,18 @@ export const Days: Component<{ sets: ProgramSet[]; programId: string }> = (
                   when={expanded()[index()]}
                   fallback={
                     <li>
-                      <SetSummary sets={setMap()[day]} />
+                      <SetSummary sets={getSets(index())} />
                     </li>
                   }
                 >
-                  <For each={setMap()[day]}>
+                  <For each={getSets(index())}>
                     {(set) => (
                       <li class="rounded border border-gray-700 mb-2">
                         <SetComponent
                           set={set}
                           movements={movements()}
                           dayIndex={index() as Day}
-                          programId={props.programId}
+                          programId={props.summary.program.id}
                         />
                       </li>
                     )}
@@ -111,7 +108,7 @@ export const Days: Component<{ sets: ProgramSet[]; programId: string }> = (
                     <NewSet
                       close={() => setAddSetTo(null)}
                       dayIndex={index()}
-                      programId={props.programId}
+                      programId={props.summary.program.id}
                       movements={movements()}
                     />
                   </Show>

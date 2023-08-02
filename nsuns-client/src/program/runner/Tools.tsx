@@ -1,6 +1,6 @@
 import { Component } from "solid-js";
 import { Forward } from "../../icons/Forward";
-import { currentSet, dayName, setCurrentSet } from "./state";
+import { currentSet, day, setCurrentSet } from "./state";
 import { useProgram } from "./context/ProgramProvider";
 
 const NextSet: Component<{ nSets: number }> = (props) => {
@@ -34,12 +34,12 @@ const PrevSet: Component = () => {
 };
 
 export const Tools: Component = () => {
-  const { setMap } = useProgram();
+  const { getSets } = useProgram();
 
   return (
     <div class="flex flex-row items-center">
       <PrevSet />
-      <NextSet nSets={setMap()[dayName()]?.length ?? 0} />
+      <NextSet nSets={getSets(day()).length} />
     </div>
   );
 };

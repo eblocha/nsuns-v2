@@ -1,17 +1,16 @@
-import { Accessor, Component, JSX, createContext, useContext } from "solid-js";
-import { ProgramSet } from "../../../api";
+import { Accessor, Component, JSX, createContext, createMemo, useContext } from "solid-js";
+import { ProgramSet, getSetsByDay } from "../../../api";
 import { useProgramSummaryQuery } from "../../../hooks/queries/sets";
 import { MergedQueryState } from "../../../hooks/queries/util";
-import { useSetMap } from "../../../hooks/useSetMap";
-import { DayName } from "../../../util/days";
+import { Day, days } from "../../../util/days";
 import { StatsProvider, useStats } from "../../../stats/StatsProvider";
 
 type ProgramContextData = ReturnType<typeof useStats> & {
   programId: Accessor<string>;
   /**
-   * Name of the day to the list of set definitions for the day.
+   * Get an array of sets for a specific day
    */
-  setMap: Accessor<Record<DayName, ProgramSet[]>>;
+  getSets: (day: Day) => ProgramSet[];
   /**
    * Unique movement ids that are referenced by this program.
    */
@@ -38,28 +37,28 @@ const InnerProvider: Component<{
     isSuccess: () => stats.queryState.isSuccess() && summaryQuery.isSuccess,
   };
 
-  const sets = () => summaryQuery.data?.sets ?? EMPTY;
+  const getSets = (day: Day) => summaryQuery.data ? getSetsByDay(summaryQuery.data, day) : EMPTY;
 
-  const setMap = useSetMap(sets);
-
-  const relevantMovements = () => {
+  const relevantMovements = createMemo(() => {
     const uniqueIds: string[] = [];
-    for (const set of sets()) {
-      if (!set.percentageOfMax) continue;
-      if (!uniqueIds.includes(set.percentageOfMax)) {
-        uniqueIds.push(set.percentageOfMax);
+    for (const day of days) {
+      for (const set of getSets(day)) {
+        if (!set.percentageOfMax) continue;
+        if (!uniqueIds.includes(set.percentageOfMax)) {
+          uniqueIds.push(set.percentageOfMax);
+        }
       }
     }
 
     return uniqueIds;
-  };
+  });
 
   return (
     <ProgramContext.Provider
       value={{
         ...stats,
         programId: () => props.programId,
-        setMap,
+        getSets,
         relevantMovements,
         queryState,
       }}

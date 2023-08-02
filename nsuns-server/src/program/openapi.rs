@@ -6,7 +6,7 @@ use utoipa::{
         response::Response,
         ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
     },
-    IntoParams, PartialSchema, ToSchema,
+    IntoParams, ToSchema, PartialSchema,
 };
 
 use crate::{
@@ -16,7 +16,7 @@ use crate::{
 
 use super::{
     handler::ProgramQuery,
-    model::{CreateProgram, Program, ProgramSummary, UpdateProgram},
+    model::{CreateProgram, ProgramMeta, ProgramSummary, UpdateProgram},
 };
 
 pub trait WithProgramsDefintions {
@@ -25,7 +25,7 @@ pub trait WithProgramsDefintions {
 
 impl WithProgramsDefintions for ComponentsBuilder {
     fn with_programs(self) -> Self {
-        self.schema_from::<Program>()
+        self.schema_from::<ProgramMeta>()
             .schema_from::<CreateProgram>()
             .schema_from::<UpdateProgram>()
             .schema_from::<ProgramSummary>()
@@ -34,7 +34,7 @@ impl WithProgramsDefintions for ComponentsBuilder {
 
 fn program_response() -> Response {
     ResponseBuilder::new()
-        .content(APPLICATION_JSON, Content::new(Program::schema().1))
+        .content(APPLICATION_JSON, Content::new(ProgramMeta::schema().1))
         .build()
 }
 
@@ -47,7 +47,7 @@ impl WithProgramsDefintions for PathsBuilder {
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Vec::<Program>::schema()))
+                    .content(APPLICATION_JSON, Content::new(Vec::<ProgramMeta>::schema()))
                     .build(),
             )
             .tag(TAG)

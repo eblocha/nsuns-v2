@@ -1,10 +1,10 @@
 import { Component, Show, createEffect, on, onCleanup } from "solid-js";
 import {
   currentSet,
-  dayName,
+  day,
   direction,
-  nextDayName,
-  prevDayName,
+  nextDay,
+  prevDay,
   setCurrentSet,
   setDirection,
 } from "./state";
@@ -12,10 +12,10 @@ import { SetList } from "./SetList";
 import style from "./AnimatedSetList.module.css";
 import { useProgram } from "./context/ProgramProvider";
 
-const dayNameOut = () => (direction() < 0 ? nextDayName() : prevDayName());
+const dayOut = () => (direction() < 0 ? nextDay(day()) : prevDay(day()));
 
 export const AnimatedSetList: Component = () => {
-  const { setMap, movementMap, movementsToMaxesMap } = useProgram();
+  const { getSets, movementMap, movementsToMaxesMap } = useProgram();
 
   let timeout: number;
 
@@ -38,10 +38,10 @@ export const AnimatedSetList: Component = () => {
           }}
         >
           <SetList
-            sets={setMap()[dayNameOut()]}
+            sets={getSets(dayOut())}
             currentSet={currentSet()}
             setCurrentSet={setCurrentSet}
-            day={dayNameOut()}
+            day={dayOut()}
             movementMap={movementMap()}
             movementsToMaxesMap={movementsToMaxesMap()}
           />
@@ -57,10 +57,10 @@ export const AnimatedSetList: Component = () => {
         }}
       >
         <SetList
-          sets={setMap()[dayName()]}
+          sets={getSets(day())}
           currentSet={currentSet()}
           setCurrentSet={setCurrentSet}
-          day={dayName()}
+          day={day()}
           movementMap={movementMap()}
           movementsToMaxesMap={movementsToMaxesMap()}
         />

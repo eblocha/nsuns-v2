@@ -3,7 +3,8 @@ use std::fmt::Display;
 use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
-use sqlx::{Executor, Transaction};
+use serde_repr::{Deserialize_repr, Serialize_repr};
+use sqlx::{postgres::PgQueryResult, Executor, Transaction};
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -27,14 +28,23 @@ where
     }
 }
 
+#[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum Day {
+    Sunday,
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+}
+
 #[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Set {
     pub id: Uuid,
-    pub program_id: Uuid,
     pub movement_id: Uuid,
-    pub day: i16,
-    pub ordering: i32,
     pub reps: Option<i32>,
     pub reps_is_minimum: bool,
     pub description: Option<String>,
@@ -43,18 +53,27 @@ pub struct Set {
 }
 
 impl Set {
-    pub async fn select_for_program(
-        program_id: Uuid,
+    pub async fn select_where_id_in(
+        ids: &Vec<Uuid>,
         executor: impl Executor<'_, Database = DB>,
-    ) -> OperationResult<Vec<Set>> {
-        sqlx::query_as::<_, Self>(
-            "SELECT * FROM program_sets WHERE program_id = $1 ORDER BY day, ordering",
+    ) -> Result<Vec<Set>, sqlx::Error> {
+        sqlx::query_as::<_, Set>(
+            "SELECT * FROM program_sets WHERE id = any($1) ORDER BY array_position($2, id)",
         )
-        .bind(program_id)
+        .bind(ids)
+        .bind(ids)
         .fetch_all(executor)
         .await
-        .with_context(|| format!("failed to select sets with program_id={program_id}"))
-        .map_err(Into::into)
+    }
+
+    pub async fn delete_where_id_in(
+        ids: &Vec<Uuid>,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> Result<PgQueryResult, sqlx::Error> {
+        sqlx::query("DELETE FROM program_sets WHERE id = any($1)")
+            .bind(ids)
+            .execute(executor)
+            .await
     }
 }
 
@@ -63,8 +82,8 @@ impl Set {
 pub struct CreateSet {
     pub program_id: Uuid,
     pub movement_id: Uuid,
-    #[validate(range(min = 0, max = 6))]
-    pub day: i16,
+    #[schema(value_type = u8)]
+    pub day: Day,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
     #[serde(default)]
@@ -76,95 +95,142 @@ pub struct CreateSet {
     pub percentage_of_max: Option<Uuid>,
 }
 
-impl CreateSet {
-    pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Set> {
-        // get the max `ordering` value for the program and day
-        // fetching all rows here to lock them for updates
-        let ordering = sqlx::query_as::<_, (i32,)>(
-            "SELECT ordering FROM program_sets WHERE program_id = $1 AND day = $2 FOR UPDATE",
-        )
-        .bind(self.program_id)
-        .bind(self.day)
-        .fetch_all(&mut **tx)
-        .await
-        .with_context(|| {
-            format!(
-                "failed to fetch max ordered set with program_id={} and day={}",
-                self.program_id, self.day
-            )
-        })?
-        .into_iter()
-        .map(|r| r.0 + 1)
-        .max()
-        .unwrap_or(0);
-
-        let id = sqlx::query_as::<_, (Uuid,)>(
-            "INSERT INTO program_sets (
-            program_id, movement_id, day, ordering, reps, reps_is_minimum, description, amount, percentage_of_max
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
-        )
-        .bind(self.program_id)
-        .bind(self.movement_id)
-        .bind(self.day)
-        .bind(ordering)
-        .bind(self.reps)
-        .bind(self.reps_is_minimum)
-        .bind(&self.description)
-        .bind(self.amount)
-        .bind(self.percentage_of_max)
-        .fetch_one(&mut **tx)
-        .await
-        .map_err(|e| handle_error(e, || "failed to insert new set"))?
-        .0;
-
-        Ok(Set {
-            id,
-            program_id: self.program_id,
-            movement_id: self.movement_id,
-            day: self.day,
-            ordering,
-            reps: self.reps,
-            reps_is_minimum: self.reps_is_minimum,
-            description: self.description,
-            amount: self.amount,
-            percentage_of_max: self.percentage_of_max,
-        })
+fn get_day_column(day: Day) -> &'static str {
+    match day {
+        Day::Sunday => "set_ids_sunday",
+        Day::Monday => "set_ids_monday",
+        Day::Tuesday => "set_ids_tuesday",
+        Day::Wednesday => "set_ids_wednesday",
+        Day::Thursday => "set_ids_thursday",
+        Day::Friday => "set_ids_friday",
+        Day::Saturday => "set_ids_saturday",
     }
 }
 
-pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
-    tx.execute("LOCK TABLE program_sets IN ACCESS EXCLUSIVE MODE")
-        .await
-        .with_context(|| "failed to lock program_sets table")?;
+async fn get_set_ids(
+    program_id: Uuid,
+    day: Day,
+    for_update: bool,
+    executor: impl Executor<'_, Database = DB>,
+) -> OperationResult<Option<Vec<Uuid>>> {
+    let day_col = get_day_column(day);
+    let lock_clause = if for_update { "FOR UPDATE" } else { "" };
 
-    let set_opt = sqlx::query_as::<_, Set>("DELETE FROM program_sets WHERE id = $1 RETURNING *")
+    let set_ids = sqlx::query_as::<_, (Vec<Uuid>,)>(&format!(
+        "SELECT {day_col} FROM programs WHERE id = $1 {lock_clause}",
+    ))
+    .bind(program_id)
+    .fetch_optional(executor)
+    .await
+    .with_context(|| {
+        format!(
+            "failed to fetch existing set ids for day={:?} and program_id={}",
+            day, program_id
+        )
+    })?
+    .map(|id| id.0);
+
+    Ok(set_ids)
+}
+
+async fn update_set_ids(
+    program_id: Uuid,
+    day: Day,
+    set_ids: Vec<Uuid>,
+    executor: impl Executor<'_, Database = DB>,
+) -> OperationResult<PgQueryResult> {
+    let day_col = get_day_column(day);
+    sqlx::query(&format!("UPDATE programs SET {day_col} = $1 WHERE id = $2"))
+        .bind(set_ids)
+        .bind(program_id)
+        .execute(executor)
+        .await
+        .with_context(|| {
+            format!(
+                "failed to update set ids for day={:?} and program_id={}",
+                day, program_id
+            )
+        })
+        .map_err(Into::into)
+}
+
+impl CreateSet {
+    pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
+        let set_ids = get_set_ids(self.program_id, self.day, true, &mut **tx).await?;
+
+        if let Some(mut set_ids) = set_ids {
+            let id = sqlx::query_as::<_, (Uuid,)>(
+                "INSERT INTO program_sets (
+                    movement_id, reps, reps_is_minimum, description, amount, percentage_of_max
+                ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+            )
+            .bind(self.movement_id)
+            .bind(self.reps)
+            .bind(self.reps_is_minimum)
+            .bind(&self.description)
+            .bind(self.amount)
+            .bind(self.percentage_of_max)
+            .fetch_one(&mut **tx)
+            .await
+            .map_err(|e| handle_error(e, || "failed to insert new set"))?
+            .0;
+
+            set_ids.push(id);
+
+            update_set_ids(self.program_id, self.day, set_ids, &mut **tx).await?;
+
+            Ok(Some(Set {
+                id,
+                movement_id: self.movement_id,
+                reps: self.reps,
+                reps_is_minimum: self.reps_is_minimum,
+                description: self.description,
+                amount: self.amount,
+                percentage_of_max: self.percentage_of_max,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+pub async fn delete_one(
+    program_id: Uuid,
+    day: Day,
+    id: Uuid,
+    tx: &mut Transaction<'_, DB>,
+) -> OperationResult<Option<()>> {
+    let set_ids = get_set_ids(program_id, day, true, &mut **tx).await?;
+
+    let res = sqlx::query("DELETE FROM program_sets WHERE id = $1")
         .bind(id)
-        .fetch_optional(&mut **tx)
+        .execute(&mut **tx)
         .await
         .with_context(|| format!("failed to delete set with id={id}"))?;
 
-    if let Some(ref set) = set_opt {
-        // decrement any sets with ordering > this one
-        sqlx::query("UPDATE program_sets SET ordering = ordering - 1 WHERE program_id = $2 AND day = $3 AND ordering > $1")
-            .bind(set.ordering)
-            .bind(set.program_id)
-            .bind(set.day)
-            .execute(&mut **tx)
-            .await
-            .with_context(|| "failed to decrement remaining set ordering")?;
+    if res.rows_affected() == 0 {
+        return Ok(None);
     }
 
-    Ok(set_opt)
+    if let Some(mut set_ids) = set_ids {
+        let idx_opt = set_ids.iter().position(|set_id| *set_id == id);
+
+        if let Some(idx) = idx_opt {
+            set_ids.remove(idx);
+        }
+
+        update_set_ids(program_id, day, set_ids, &mut **tx).await?;
+        Ok(Some(()))
+    } else {
+        Ok(None)
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSet {
     pub id: Uuid,
-    pub program_id: Uuid,
     pub movement_id: Uuid,
-    #[validate(range(min = 0, max = 6))]
-    pub day: i16,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
     #[serde(default)]
@@ -181,30 +247,25 @@ impl UpdateSet {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Set>> {
-        let opt = sqlx::query_as::<_, (Uuid, i32)>(
+        let res = sqlx::query(
             "UPDATE program_sets SET
-            program_id = $1,
-            movement_id = $2,
-            day = $3,
-            reps = $4,
-            reps_is_minimum = $5,
-            description = $6,
-            amount = $7,
-            percentage_of_max = $8
-            WHERE id = $9
-            RETURNING id, ordering
+            movement_id = $1,
+            reps = $2,
+            reps_is_minimum = $3,
+            description = $4,
+            amount = $5,
+            percentage_of_max = $6
+            WHERE id = $7
         ",
         )
-        .bind(self.program_id)
         .bind(self.movement_id)
-        .bind(self.day)
         .bind(self.reps)
         .bind(self.reps_is_minimum)
         .bind(self.description.as_ref())
         .bind(self.amount)
         .bind(self.percentage_of_max)
         .bind(self.id)
-        .fetch_optional(executor)
+        .execute(executor)
         .await
         .map_err(|e| {
             handle_error(e, || {
@@ -212,21 +273,18 @@ impl UpdateSet {
             })
         })?;
 
-        if let Some((id, ordering)) = opt {
+        if res.rows_affected() == 0 {
+            Ok(None)
+        } else {
             Ok(Some(Set {
-                id,
-                program_id: self.program_id,
+                id: self.id,
                 movement_id: self.movement_id,
-                day: self.day,
-                ordering,
                 reps: self.reps,
                 reps_is_minimum: self.reps_is_minimum,
                 description: self.description,
                 amount: self.amount,
                 percentage_of_max: self.percentage_of_max,
             }))
-        } else {
-            Ok(None)
         }
     }
 }

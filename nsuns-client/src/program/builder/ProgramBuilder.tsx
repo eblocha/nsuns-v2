@@ -53,10 +53,7 @@ export const ProgramBuilder: Component = () => {
                 />
               </div>
               <div class="flex-grow overflow-visible">
-                <Days
-                  sets={query.data?.sets ?? []}
-                  programId={params.programId}
-                />
+                <Days summary={query.data!} />
               </div>
             </Match>
           </Switch>
