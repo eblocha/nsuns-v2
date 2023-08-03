@@ -45,6 +45,7 @@ pub enum Day {
 pub struct Set {
     pub id: Uuid,
     pub program_id: Uuid,
+    #[schema(value_type = i16)]
     pub day: Day,
     pub movement_id: Uuid,
     pub reps: Option<i32>,
@@ -84,7 +85,7 @@ impl Set {
 pub struct CreateSet {
     pub program_id: Uuid,
     pub movement_id: Uuid,
-    #[schema(value_type = u8)]
+    #[schema(value_type = i16)]
     pub day: Day,
     #[validate(range(min = 0))]
     pub reps: Option<i32>,
