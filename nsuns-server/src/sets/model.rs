@@ -28,8 +28,8 @@ where
     }
 }
 
-#[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug, Clone, Copy)]
-#[repr(u8)]
+#[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug, Clone, Copy, sqlx::Type)]
+#[repr(i16)]
 pub enum Day {
     Sunday,
     Monday,
@@ -44,6 +44,8 @@ pub enum Day {
 #[serde(rename_all = "camelCase")]
 pub struct Set {
     pub id: Uuid,
+    pub program_id: Uuid,
+    pub day: Day,
     pub movement_id: Uuid,
     pub reps: Option<i32>,
     pub reps_is_minimum: bool,
@@ -123,10 +125,7 @@ async fn get_set_ids(
     .fetch_optional(executor)
     .await
     .with_context(|| {
-        format!(
-            "failed to fetch existing set ids for day={:?} and program_id={}",
-            day, program_id
-        )
+        format!("failed to fetch existing set ids for day={day:?} and program_id={program_id}",)
     })?
     .map(|id| id.0);
 
@@ -146,10 +145,7 @@ async fn update_set_ids(
         .execute(executor)
         .await
         .with_context(|| {
-            format!(
-                "failed to update set ids for day={:?} and program_id={}",
-                day, program_id
-            )
+            format!("failed to update set ids for day={day:?} and program_id={program_id}",)
         })
         .map_err(Into::into)
 }
@@ -161,8 +157,8 @@ impl CreateSet {
         if let Some(mut set_ids) = set_ids {
             let id = sqlx::query_as::<_, (Uuid,)>(
                 "INSERT INTO program_sets (
-                    movement_id, reps, reps_is_minimum, description, amount, percentage_of_max
-                ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+                    movement_id, reps, reps_is_minimum, description, amount, percentage_of_max, program_id, day
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
             )
             .bind(self.movement_id)
             .bind(self.reps)
@@ -170,6 +166,8 @@ impl CreateSet {
             .bind(&self.description)
             .bind(self.amount)
             .bind(self.percentage_of_max)
+            .bind(self.program_id)
+            .bind(self.day)
             .fetch_one(&mut **tx)
             .await
             .map_err(|e| handle_error(e, || "failed to insert new set"))?
@@ -181,6 +179,8 @@ impl CreateSet {
 
             Ok(Some(Set {
                 id,
+                program_id: self.program_id,
+                day: self.day,
                 movement_id: self.movement_id,
                 reps: self.reps,
                 reps_is_minimum: self.reps_is_minimum,
@@ -194,32 +194,22 @@ impl CreateSet {
     }
 }
 
-pub async fn delete_one(
-    program_id: Uuid,
-    day: Day,
-    id: Uuid,
-    tx: &mut Transaction<'_, DB>,
-) -> OperationResult<Option<()>> {
-    let set_ids = get_set_ids(program_id, day, true, &mut **tx).await?;
+pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<()>> {
+    let res = sqlx::query_as::<_, (Uuid, Day)>(
+        "DELETE FROM program_sets WHERE id = $1 RETURNING program_id, day",
+    )
+    .bind(id)
+    .fetch_optional(&mut **tx)
+    .await
+    .with_context(|| format!("failed to delete set with id={id}"))?;
 
-    let res = sqlx::query("DELETE FROM program_sets WHERE id = $1")
-        .bind(id)
-        .execute(&mut **tx)
-        .await
-        .with_context(|| format!("failed to delete set with id={id}"))?;
+    if let Some((program_id, day)) = res {
+        let set_ids = get_set_ids(program_id, day, true, &mut **tx).await?;
 
-    if res.rows_affected() == 0 {
-        return Ok(None);
-    }
-
-    if let Some(mut set_ids) = set_ids {
-        let idx_opt = set_ids.iter().position(|set_id| *set_id == id);
-
-        if let Some(idx) = idx_opt {
-            set_ids.remove(idx);
+        if let Some(set_ids) = set_ids {
+            let set_ids = set_ids.into_iter().filter(|set_id| *set_id != id).collect();
+            update_set_ids(program_id, day, set_ids, &mut **tx).await?;
         }
-
-        update_set_ids(program_id, day, set_ids, &mut **tx).await?;
         Ok(Some(()))
     } else {
         Ok(None)
@@ -247,7 +237,7 @@ impl UpdateSet {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Set>> {
-        let res = sqlx::query(
+        let res = sqlx::query_as::<_, (Uuid, Day)>(
             "UPDATE program_sets SET
             movement_id = $1,
             reps = $2,
@@ -256,6 +246,7 @@ impl UpdateSet {
             amount = $5,
             percentage_of_max = $6
             WHERE id = $7
+            RETURNING program_id, day
         ",
         )
         .bind(self.movement_id)
@@ -265,7 +256,7 @@ impl UpdateSet {
         .bind(self.amount)
         .bind(self.percentage_of_max)
         .bind(self.id)
-        .execute(executor)
+        .fetch_optional(executor)
         .await
         .map_err(|e| {
             handle_error(e, || {
@@ -273,18 +264,16 @@ impl UpdateSet {
             })
         })?;
 
-        if res.rows_affected() == 0 {
-            Ok(None)
-        } else {
-            Ok(Some(Set {
-                id: self.id,
-                movement_id: self.movement_id,
-                reps: self.reps,
-                reps_is_minimum: self.reps_is_minimum,
-                description: self.description,
-                amount: self.amount,
-                percentage_of_max: self.percentage_of_max,
-            }))
-        }
+        Ok(res.map(|(program_id, day)| Set {
+            id: self.id,
+            program_id,
+            day,
+            movement_id: self.movement_id,
+            reps: self.reps,
+            reps_is_minimum: self.reps_is_minimum,
+            description: self.description,
+            amount: self.amount,
+            percentage_of_max: self.percentage_of_max,
+        }))
     }
 }

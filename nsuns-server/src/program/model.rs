@@ -183,24 +183,14 @@ impl UpdateProgram {
 
 pub async fn delete_one(
     id: Uuid,
-    tx: &mut Transaction<'_, DB>,
+    executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<Option<ProgramMeta>> {
-    let program = sqlx::query_as::<_, Program>("DELETE FROM programs WHERE id = $1 RETURNING *")
+    sqlx::query_as::<_, ProgramMeta>("DELETE FROM programs WHERE id = $1 RETURNING *")
         .bind(id)
-        .fetch_optional(&mut **tx)
+        .fetch_optional(executor)
         .await
-        .with_context(|| format!("failed to delete program with id={id}"))?;
-
-    if let Some(program) = program {
-        let set_ids = program.all_set_ids();
-
-        Set::delete_where_id_in(&set_ids, &mut **tx)
-            .await
-            .with_context(|| format!("failed to delete sets under program with id={id}"))?;
-        Ok(Some(program.into()))
-    } else {
-        Ok(None)
-    }
+        .with_context(|| format!("failed to delete program with id={id}"))
+        .map_err(Into::into)
 }
 
 #[derive(Debug, Serialize, ToSchema)]

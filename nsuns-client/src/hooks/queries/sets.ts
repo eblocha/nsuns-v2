@@ -7,7 +7,6 @@ import {
 import {
   CreateProgramSet,
   ProgramSet,
-  SetDeleteMeta,
   UpdateProgramSet,
   createSet,
   deleteSet,
@@ -100,7 +99,7 @@ export const useDeleteSet = <TError = unknown, TContext = unknown>(
     CreateMutationOptions<
       void,
       TError,
-      { id: string; meta: SetDeleteMeta },
+      { id: string; meta: { programId: string; day: Day } },
       TContext
     >
   >
@@ -108,7 +107,7 @@ export const useDeleteSet = <TError = unknown, TContext = unknown>(
   const queryClient = useQueryClient();
   const mutation = createMutation({
     ...options,
-    mutationFn: ({ id, meta }) => deleteSet(id, meta),
+    mutationFn: ({ id }) => deleteSet(id),
     onSuccess: (v, vars, ...args) => {
       options?.onSuccess?.(v, vars, ...args);
       queryClient.setQueryData(

@@ -1,8 +1,10 @@
 import { Day } from "../util/days";
-import { bothJson, del, json, noContent, post, put, sendJson } from "./util";
+import { bothJson, del, json, noContent, post, put } from "./util";
 
 export type ProgramSet = {
   id: string;
+  programId: string;
+  day: Day;
   movementId: string;
   reps: number | null;
   repsIsMinimum: boolean;
@@ -11,17 +13,9 @@ export type ProgramSet = {
   percentageOfMax: string | null;
 };
 
-export type CreateProgramSet = Omit<ProgramSet, "id"> & {
-  programId: string;
-  day: Day;
-};
+export type CreateProgramSet = Omit<ProgramSet, "id">;
 
 export type UpdateProgramSet = ProgramSet;
-
-export type SetDeleteMeta = {
-  day: Day;
-  programId: string;
-};
 
 const path = "/api/sets";
 
@@ -37,11 +31,5 @@ export const updateSet = async (set: UpdateProgramSet): Promise<ProgramSet> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const deleteSet = async (
-  id: string,
-  meta: SetDeleteMeta
-): Promise<void> =>
-  del(`${path}/${id}`, {
-    body: JSON.stringify(meta),
-    headers: sendJson().headers,
-  }).then(noContent());
+export const deleteSet = async (id: string): Promise<void> =>
+  del(`${path}/${id}`).then(noContent());

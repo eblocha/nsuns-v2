@@ -57,9 +57,7 @@ pub async fn update_program(
 }
 
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.log_error()?;
-    let res = delete_one(id, &mut tx).await.map(or_404::<_, Json<_>>);
-    commit_ok(res, tx).await.log_error()
+    delete_one(id, &pool).await.map(or_404::<_, Json<_>>)
 }
 
 pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
