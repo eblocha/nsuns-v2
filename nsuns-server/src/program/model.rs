@@ -90,7 +90,13 @@ impl ProgramMeta {
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
     ) -> OperationResult<Vec<Self>> {
-        sqlx::query_as::<_, Self>("SELECT * FROM programs WHERE owner = $1 ORDER BY created_on")
+        sqlx::query_as::<_, Self>("SELECT
+            id,
+            name,
+            description,
+            owner,
+            created_on
+            FROM programs WHERE owner = $1 ORDER BY created_on")
             .bind(owner)
             .fetch_all(executor)
             .await
@@ -102,7 +108,13 @@ impl ProgramMeta {
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>("SELECT * from programs WHERE id = $1")
+        sqlx::query_as::<_, Self>("SELECT
+            id,
+            name,
+            description,
+            owner,
+            created_on
+            FROM programs WHERE id = $1")
             .bind(id)
             .fetch_optional(executor)
             .await
