@@ -90,36 +90,40 @@ impl ProgramMeta {
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
     ) -> OperationResult<Vec<Self>> {
-        sqlx::query_as::<_, Self>("SELECT
+        sqlx::query_as::<_, Self>(
+            "SELECT
             id,
             name,
             description,
             owner,
             created_on
-            FROM programs WHERE owner = $1 ORDER BY created_on")
-            .bind(owner)
-            .fetch_all(executor)
-            .await
-            .with_context(|| format!("failed to select program with owner id={owner}"))
-            .map_err(Into::into)
+            FROM programs WHERE owner = $1 ORDER BY created_on",
+        )
+        .bind(owner)
+        .fetch_all(executor)
+        .await
+        .with_context(|| format!("failed to select program with owner id={owner}"))
+        .map_err(Into::into)
     }
 
     pub async fn select_one(
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>("SELECT
+        sqlx::query_as::<_, Self>(
+            "SELECT
             id,
             name,
             description,
             owner,
             created_on
-            FROM programs WHERE id = $1")
-            .bind(id)
-            .fetch_optional(executor)
-            .await
-            .with_context(|| format!("failed to fetch program with id={id}"))
-            .map_err(Into::into)
+            FROM programs WHERE id = $1",
+        )
+        .bind(id)
+        .fetch_optional(executor)
+        .await
+        .with_context(|| format!("failed to fetch program with id={id}"))
+        .map_err(Into::into)
     }
 }
 

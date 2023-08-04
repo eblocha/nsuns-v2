@@ -6,7 +6,7 @@ use utoipa::{
         response::Response,
         ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
     },
-    IntoParams, ToSchema, PartialSchema,
+    IntoParams, PartialSchema, ToSchema,
 };
 
 use crate::{

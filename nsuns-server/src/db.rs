@@ -94,9 +94,9 @@ where
                 .with_context(|| "failed to commit transaction")?;
         }
         Err(ref e) => {
-            tx.rollback()
-                .await
-                .with_context(|| format!("failed to rollback transaction initiated by previous error: {e:?}"))?;
+            tx.rollback().await.with_context(|| {
+                format!("failed to rollback transaction initiated by previous error: {e:?}")
+            })?;
         }
     };
 
