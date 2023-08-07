@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use config::{builder::BuilderState, Config, ConfigBuilder, File};
 use serde::Deserialize;
 
-use crate::db::DatabaseSettings;
+use crate::{db::DatabaseSettings, metrics::settings::MetricsSettings};
 
 #[derive(Debug, Deserialize)]
 pub struct ServerSettings {
@@ -28,6 +28,8 @@ pub struct Settings {
     pub database: DatabaseSettings,
     #[serde(default)]
     pub server: ServerSettings,
+    #[serde(default)]
+    pub metrics: MetricsSettings,
 }
 
 trait SetEnvOverride {

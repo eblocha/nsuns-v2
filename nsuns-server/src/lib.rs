@@ -11,6 +11,7 @@ use crate::util::shutdown_signal;
 pub mod db;
 pub mod error;
 pub mod maxes;
+pub mod metrics;
 pub mod movements;
 pub mod openapi;
 pub mod profiles;

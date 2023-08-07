@@ -13,6 +13,8 @@ axum = "0.6.18"
 chrono = { version = "0.4.26", features = ["serde"] }
 config = "0.13.3"
 const_format = "0.2.31"
+metrics = "0.21.1"
+metrics-exporter-prometheus = "0.12.1"
 serde = { version = "1.0.171", features = ["derive"] }
 serde_repr = "0.1.16"
 sqlx = { version = "0.7.1", features = ["runtime-tokio-rustls", "any", "postgres", "uuid", "chrono"] }

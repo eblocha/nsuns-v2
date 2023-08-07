@@ -1,4 +1,6 @@
-use axum::Router;
+use std::{fmt::Display, path::Path};
+
+use axum::{middleware, Router};
 use tower_http::{
     catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
@@ -9,9 +11,10 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
-    db::Pool, maxes::router::maxes_router, movements::router::movements_router, openapi::ApiDoc,
-    profiles::router::profiles_router, program::router::programs_router, reps::router::reps_router,
-    sets::router::sets_router, settings::Settings, updates::router::updates_router,
+    db::Pool, maxes::router::maxes_router, metrics::middleware::track_metrics,
+    movements::router::movements_router, openapi::ApiDoc, profiles::router::profiles_router,
+    program::router::programs_router, reps::router::reps_router, sets::router::sets_router,
+    settings::Settings, updates::router::updates_router,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -22,8 +25,30 @@ pub const MAXES_PATH: &str = "/api/maxes";
 pub const REPS_PATH: &str = "/api/reps";
 pub const UPDATES_PATH: &str = "/api/updates";
 
+trait StaticFiles<P> {
+    fn static_files(self, static_dir: Option<P>) -> Self;
+}
+
+impl<S, P> StaticFiles<P> for Router<S>
+where
+    S: Clone + Send + Sync + 'static,
+    P: AsRef<Path> + Display,
+{
+    fn static_files(self, static_dir: Option<P>) -> Self {
+        if let Some(ref static_dir) = static_dir {
+            let serve_dir = ServeDir::new(static_dir)
+                .precompressed_gzip()
+                .not_found_service(ServeFile::new(format!("{static_dir}/index.html")));
+
+            self.fallback_service(serve_dir)
+        } else {
+            self
+        }
+    }
+}
+
 pub fn router(pool: Pool, settings: &Settings) -> Router {
-    let app = Router::new()
+    Router::new()
         .nest(PROFILES_PATH, profiles_router())
         .nest(PROGRAMS_PATH, programs_router())
         .nest(SETS_PATH, sets_router())
@@ -38,15 +63,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
-        .with_state(pool);
-
-    if let Some(ref static_dir) = settings.server.static_dir {
-        let serve_dir = ServeDir::new(static_dir)
-            .precompressed_gzip()
-            .not_found_service(ServeFile::new(format!("{static_dir}/index.html")));
-
-        app.fallback_service(serve_dir)
-    } else {
-        app
-    }
+        .with_state(pool)
+        .static_files(settings.server.static_dir.as_ref())
+        .route_layer(middleware::from_fn(track_metrics))
 }
