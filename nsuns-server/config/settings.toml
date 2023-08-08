@@ -8,5 +8,6 @@ migrations = "db/migrations"
 timeout = [1, 0]             # [seconds, nanos]
 
 [server]
-port = 8080
 static_dir = "assets"
+
+[metrics.enabled]

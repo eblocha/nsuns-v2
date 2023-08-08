@@ -4,11 +4,15 @@ use anyhow::{Context, Result};
 use config::{builder::BuilderState, Config, ConfigBuilder, File};
 use serde::Deserialize;
 
-use crate::{db::DatabaseSettings, metrics::settings::MetricsSettings};
+use crate::{db::DatabaseSettings, feature::Feature, metrics::settings::MetricsSettings};
+
+fn default_server_port() -> u16 {
+    8080
+}
 
 #[derive(Debug, Deserialize)]
 pub struct ServerSettings {
-    #[serde(default)]
+    #[serde(default = "default_server_port")]
     pub port: u16,
     #[serde(default)]
     pub static_dir: Option<String>,
@@ -17,9 +21,17 @@ pub struct ServerSettings {
 impl Default for ServerSettings {
     fn default() -> Self {
         Self {
-            port: 8080,
+            port: default_server_port(),
             static_dir: Default::default(),
         }
+    }
+}
+
+pub type MetricsFeature = Feature<MetricsSettings>;
+
+impl Default for MetricsFeature {
+    fn default() -> Self {
+        Self::Enabled(Default::default())
     }
 }
 
@@ -29,7 +41,7 @@ pub struct Settings {
     #[serde(default)]
     pub server: ServerSettings,
     #[serde(default)]
-    pub metrics: MetricsSettings,
+    pub metrics: MetricsFeature,
 }
 
 trait SetEnvOverride {

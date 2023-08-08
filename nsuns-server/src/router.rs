@@ -48,7 +48,7 @@ where
 }
 
 pub fn router(pool: Pool, settings: &Settings) -> Router {
-    Router::new()
+    let app = Router::new()
         .nest(PROFILES_PATH, profiles_router())
         .nest(PROGRAMS_PATH, programs_router())
         .nest(SETS_PATH, sets_router())
@@ -64,6 +64,11 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
         .with_state(pool)
-        .static_files(settings.server.static_dir.as_ref())
-        .route_layer(middleware::from_fn(track_metrics))
+        .static_files(settings.server.static_dir.as_ref());
+
+    if settings.metrics.is_enabled() {
+        app.route_layer(middleware::from_fn(track_metrics))
+    } else {
+        app
+    }
 }

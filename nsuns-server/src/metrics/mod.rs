@@ -10,7 +10,7 @@ pub mod router;
 pub mod settings;
 
 pub fn initialize_metrics_server(settings: &MetricsSettings) -> Result<Router> {
-    return router(settings);
+    router(settings)
 }
 
 pub async fn metrics_server(settings: &MetricsSettings) -> Result<()> {
