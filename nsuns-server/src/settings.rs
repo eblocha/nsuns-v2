@@ -1,4 +1,7 @@
-use std::{env::var, ffi::OsStr};
+use std::{
+    env::{var, VarError},
+    ffi::OsStr,
+};
 
 use anyhow::{Context, Result};
 use config::{builder::BuilderState, Config, ConfigBuilder, File};
@@ -81,6 +84,15 @@ impl<S: BuilderState> SetEnvOverride for ConfigBuilder<S> {
     }
 }
 
+fn env_bool<E>(env_var: E) -> bool
+where
+    E: AsRef<OsStr>,
+{
+    var(env_var)
+        .map(|v| !v.is_empty())
+        .unwrap_or_else(|err| !matches!(err, VarError::NotPresent))
+}
+
 impl Settings {
     pub fn new() -> Result<Self> {
         let config_source = var("CONFIG_SOURCE").unwrap_or_else(|_| "config/settings.toml".into());
@@ -89,8 +101,6 @@ impl Settings {
 
         let builder = Config::builder()
             .add_source(File::with_name(&config_source))
-            .set_default("server.port", 8080)
-            .unwrap()
             .set_env_override_unwrap("server.port", "SERVER_PORT")
             .set_env_override_unwrap("server.static_dir", "STATIC_FILES_DIR")
             .set_env_override_unwrap("database.host", "DATABASE_HOST")
@@ -104,5 +114,11 @@ impl Settings {
         config
             .and_then(|cfg| cfg.try_deserialize())
             .with_context(|| format!("failed to parse settings from file: {config_source}"))
+            .map(|mut settings: Settings| {
+                if env_bool("METRICS_DISABLE") {
+                    settings.metrics = Feature::Disabled;
+                }
+                settings
+            })
     }
 }
