@@ -1,8 +1,9 @@
-use std::{fmt::Debug, path::Path, time::Duration};
+use std::{fmt::Debug, time::Duration};
 
 use anyhow::Context;
 use serde::Deserialize;
 use sqlx::{
+    migrate::MigrationSource,
     postgres::{PgConnectOptions, PgPoolOptions},
     Acquire, Postgres, Transaction,
 };
@@ -54,9 +55,9 @@ pub fn create_connection_pool(settings: &DatabaseSettings) -> Pool {
         .connect_lazy_with(options)
 }
 
-pub async fn run_migrations<'a>(
-    migrations: &Path,
-    acquire: impl Acquire<'a, Database = DB>,
+pub async fn run_migrations(
+    migrations: impl MigrationSource<'_>,
+    acquire: impl Acquire<'_, Database = DB>,
 ) -> anyhow::Result<()> {
     let migrator = sqlx::migrate::Migrator::new(migrations)
         .await
