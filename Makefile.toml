@@ -6,6 +6,10 @@ skip_core_tasks = true
 RPI_TARGET = "aarch64-unknown-linux-gnu"
 CLIENT_DIR = "nsuns-client"
 SERVER_DIR = "nsuns-server"
+# Which config file to bundle with the build
+SERVER_CONFIG = "${SERVER_DIR}/config/settings.toml"
+# Where the server should look for config if the CONFIG_SOURCE env var is missing at runtime
+DEFAULT_CONFIG_SOURCE = "config/settings.toml"
 
 # BUILD
 
@@ -16,7 +20,7 @@ command = "yarn"
 args = ["build", "--assetsDir=.", "--outDir=../dist/assets", "--emptyOutDir"]
 
 [tasks.build-server-rpi]
-description = "Compiles the server into a binary for the raspberry pi architecture."
+description = "Compiles the server for the raspberry pi architecture."
 command = "cargo"
 args = ["build", "--release", "--target=${RPI_TARGET}"]
 
@@ -25,9 +29,23 @@ description = "Builds client and server, then packages all assets into ./dist."
 dependencies = ["build-client", "build-server-rpi"]
 script = '''
 cp "target/${RPI_TARGET}/release/nsuns-server" ./dist
-cp -r nsuns-server/config ./dist
-cp -r nsuns-server/db ./dist
+mkdir -p ./dist/config
+cp "${SERVER_CONFIG}" "./dist/${DEFAULT_CONFIG_SOURCE}"
+cp -r "${SERVER_DIR}/db" ./dist
 '''
+
+# CI
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+
+[tasks.fmt-check]
+command = "cargo"
+args = ["fmt", "--check"]
+
+[tasks.ci]
+dependencies = ["fmt-check", "test", "build"]
 
 # RUN
 

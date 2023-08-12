@@ -95,7 +95,11 @@ where
 
 impl Settings {
     pub fn new() -> Result<Self> {
-        let config_source = var("CONFIG_SOURCE").unwrap_or_else(|_| "config/settings.toml".into());
+        let config_source = var("CONFIG_SOURCE").unwrap_or_else(|_| {
+            option_env!("DEFAULT_CONFIG_SOURCE")
+                .unwrap_or("config/settings.toml")
+                .into()
+        });
 
         tracing::info!("reading config from {config_source}");
 
