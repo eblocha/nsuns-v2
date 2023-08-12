@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "serve": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "fmt-check": "prettier . --check",
+    "fmt": "prettier . --write"
   },
   "license": "GPL-2.0",
   "devDependencies": {
