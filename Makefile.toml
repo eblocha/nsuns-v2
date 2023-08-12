@@ -1,0 +1,42 @@
+[config]
+default_to_workspace = false
+skip_core_tasks = true
+
+[env]
+RPI_TARGET = "aarch64-unknown-linux-gnu"
+CLIENT_DIR = "nsuns-client"
+SERVER_DIR = "nsuns-server"
+
+# BUILD
+
+[tasks.build-client]
+description = "Bundles client assets."
+cwd = "${CLIENT_DIR}"
+command = "yarn"
+args = ["build", "--assetsDir=.", "--outDir=../dist/assets", "--emptyOutDir"]
+
+[tasks.build-server-rpi]
+description = "Compiles the server into a binary for the raspberry pi architecture."
+command = "cargo"
+args = ["build", "--release", "--target=${RPI_TARGET}"]
+
+[tasks.build]
+description = "Builds client and server, then packages all assets into ./dist."
+dependencies = ["build-client", "build-server-rpi"]
+script = '''
+cp "target/${RPI_TARGET}/release/nsuns-server" ./dist
+cp -r nsuns-server/config ./dist
+cp -r nsuns-server/db ./dist
+'''
+
+# RUN
+
+[tasks.run-client]
+cwd = "${CLIENT_DIR}"
+command = "yarn"
+args = ["dev"]
+
+[tasks.run-server]
+cwd = "${SERVER_DIR}"
+command = "cargo"
+args = ["run", "${@}"]
