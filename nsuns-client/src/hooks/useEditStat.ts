@@ -52,23 +52,23 @@ export const useEditStat = (props: EditableStatProps) => {
       movement: Movement;
     }) => {
       if (props.stat && props.type === "max" && amount !== null) {
-        updateMax.mutate({
+        await updateMax.mutateAsync({
           id: props.stat.id,
           amount,
         });
       } else if (props.stat && props.type === "reps") {
-        updateReps.mutate({
+        await updateReps.mutateAsync({
           id: props.stat.id,
           amount,
         });
       } else if (props.type === "max" && amount !== null) {
-        createMax.mutate({
+        await createMax.mutateAsync({
           amount,
           movementId: movement.id,
           profileId: props.profileId,
         });
       } else if (props.type === "reps") {
-        createReps.mutate({
+        await createReps.mutateAsync({
           amount,
           movementId: movement.id,
           profileId: props.profileId,

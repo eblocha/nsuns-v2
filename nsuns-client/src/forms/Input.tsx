@@ -4,7 +4,7 @@ import { Control } from "../hooks/forms";
 
 export const Input: Component<
   JSX.InputHTMLAttributes<HTMLInputElement> & {
-    control: Control<any>;
+    control: Control<string>;
     onBlur?: JSX.FocusEventHandler<HTMLInputElement, FocusEvent>;
     onInput?: JSX.InputEventHandler<HTMLInputElement, InputEvent>;
   }

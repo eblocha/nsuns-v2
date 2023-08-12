@@ -20,7 +20,7 @@ export const CreateProfile: Component = () => {
 
   const name = createControl<string>("", { validators: [required()] });
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     if (mutation.isLoading || name.hasErrors()) return;
 
     mutation.mutate({
@@ -31,9 +31,9 @@ export const CreateProfile: Component = () => {
   return (
     <div class="w-full h-full flex flex-col items-center justify-center">
       <form
-        onSubmit={async (e) => {
+        onSubmit={(e) => {
           e.preventDefault();
-          await onSubmit();
+          onSubmit();
         }}
         class="flex flex-col w-80 gap-4"
       >

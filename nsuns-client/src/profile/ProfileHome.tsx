@@ -75,7 +75,7 @@ export const ProfileHome: Component = () => {
               <AddProgram />
               <RefreshButton
                 isFetching={isFetching()}
-                onClick={() => programsQuery.refetch()}
+                onClick={() => void programsQuery.refetch()}
                 class="secondary-button ml-2"
               />
               <A href="/" class="text-button ml-2">

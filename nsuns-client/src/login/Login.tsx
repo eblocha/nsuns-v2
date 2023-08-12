@@ -51,7 +51,7 @@ export const Login: Component = () => {
       </Switch>
       <div class="flex flex-row items-center justify-center">
         <RefreshButton
-          onClick={() => query.refetch()}
+          onClick={() => void query.refetch()}
           isFetching={isFetching()}
           class="secondary-button"
         />

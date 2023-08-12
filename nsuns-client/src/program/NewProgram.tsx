@@ -21,7 +21,7 @@ export const NewProgram: Component = () => {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     if (mutation.isLoading || name.hasErrors()) return;
 
     mutation.mutate({
@@ -35,9 +35,9 @@ export const NewProgram: Component = () => {
     <div class="w-full h-full p-14 border-l border-gray-700 flex flex-col items-start justify-center gap-4">
       <h2 class="text-2xl">Create New Program</h2>
       <form
-        onSubmit={async (e) => {
+        onSubmit={(e) => {
           e.preventDefault();
-          await onSubmit();
+          onSubmit();
         }}
         class="flex flex-col w-80 gap-4"
       >

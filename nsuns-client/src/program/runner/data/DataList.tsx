@@ -59,7 +59,7 @@ const LastAmountCard: Component<StatsProps> = (props) => {
   const last = () => props.stats[props.stats.length - 1];
 
   return (
-    // @ts-ignore: complaining about tagged union types
+    // @ts-expect-error: complaining about tagged union types
     <EditableCard
       stat={last()}
       type={props.type}
@@ -125,7 +125,7 @@ export const DataList: Component = () => {
           <For each={maxesToShow()}>
             {({ movement, maxes, reps }) => (
               <li class="w-full grid grid-cols-2 gap-4 mt-2">
-                {/* @ts-ignore: complaining about tagged union types */}
+                {/* @ts-expect-error: complaining about tagged union types */}
                 <StatRow
                   movement={movement}
                   stats={maxes}

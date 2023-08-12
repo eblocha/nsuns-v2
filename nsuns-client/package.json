@@ -6,13 +6,18 @@
     "start": "vite",
     "dev": "vite",
     "build": "tsc && vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "lint": "eslint ."
   },
   "license": "GPL-2.0",
   "devDependencies": {
     "@types/node": "^20.4.10",
+    "@typescript-eslint/eslint-plugin": "^6.3.0",
+    "@typescript-eslint/parser": "^6.3.0",
     "autoprefixer": "^10.4.14",
+    "eslint": "^8.47.0",
     "postcss": "^8.4.26",
+    "prettier": "3.0.1",
     "solid-devtools": "^0.27.3",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.1.3",
