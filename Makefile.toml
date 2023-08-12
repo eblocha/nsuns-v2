@@ -56,10 +56,16 @@ description = "Check formatting."
 command = "cargo"
 args = ["fmt", "--check"]
 
+[tasks.lint]
+category = "CI"
+description = "Lint."
+command = "cargo"
+args = ["clippy"]
+
 [tasks.ci]
 category = "CI"
 description = "Run the full CI pipeline."
-dependencies = ["fmt-check", "test", "build"]
+dependencies = ["fmt-check", "lint", "test", "build"]
 
 # RUN
 
