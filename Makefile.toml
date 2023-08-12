@@ -32,7 +32,7 @@ description = "Builds client and server, then packages all assets into ./dist."
 dependencies = ["build-client", "build-server-rpi"]
 script = '''
 cp "target/${RPI_TARGET}/release/nsuns-server" ./dist
-mkdir -p ./dist/config
+mkdir -p "./dist/$(dirname $DEFAULT_CONFIG_SOURCE)"
 cp "${SERVER_CONFIG}" "./dist/${DEFAULT_CONFIG_SOURCE}"
 cp -r "${SERVER_DIR}/db" ./dist
 '''
