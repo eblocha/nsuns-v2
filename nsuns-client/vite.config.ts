@@ -1,13 +1,13 @@
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
-import viteCompression from 'vite-plugin-compression';
+import viteCompression from "vite-plugin-compression";
 
 export default defineConfig({
   plugins: [
     solidPlugin(),
     viteCompression({
-      filter: /\.(js|css|ico)$/i
-    })
+      filter: /\.(js|css|ico)$/i,
+    }),
   ],
   server: {
     proxy: {
@@ -17,5 +17,6 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
+    reportCompressedSize: false,
   },
 });
