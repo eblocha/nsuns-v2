@@ -7,6 +7,7 @@ import { ProfileHome } from "./profile/ProfileHome";
 import { NewProgram } from "./program/NewProgram";
 import { ProgramBuilder } from "./program/builder/ProgramBuilder";
 import { ProgramRunner } from "./program/runner/ProgramRunner";
+import { NotFound } from "./NotFound";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,11 @@ export const App: Component = () => {
             <Route path="program/new" component={NewProgram} />
             <Route path="program/:programId" component={ProgramBuilder} />
           </Route>
-          <Route path="/profile/:profileId/program/:programId/run" component={ProgramRunner} />
+          <Route
+            path="/profile/:profileId/program/:programId/run"
+            component={ProgramRunner}
+          />
+          <Route path="*" component={NotFound} />
         </Routes>
       </Router>
     </QueryClientProvider>
