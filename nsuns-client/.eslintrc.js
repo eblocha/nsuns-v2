@@ -8,7 +8,7 @@ module.exports = {
   ],
   plugins: ["@typescript-eslint"],
   env: {
-    browser: false,
+    browser: true,
     node: false,
   },
   parser: "@typescript-eslint/parser",
