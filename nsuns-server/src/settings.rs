@@ -7,7 +7,10 @@ use anyhow::{Context, Result};
 use config::{builder::BuilderState, Config, ConfigBuilder, File};
 use serde::Deserialize;
 
-use crate::{db::DatabaseSettings, feature::Feature, metrics::settings::MetricsSettings};
+use crate::{
+    db::DatabaseSettings, feature::Feature, metrics::settings::MetricsSettings,
+    router::OpenApiSettings,
+};
 
 fn default_server_port() -> u16 {
     8080
@@ -38,6 +41,14 @@ impl Default for MetricsFeature {
     }
 }
 
+pub type OpenApiFeature = Feature<OpenApiSettings>;
+
+impl Default for OpenApiFeature {
+    fn default() -> Self {
+        Self::Disabled
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub database: DatabaseSettings,
@@ -45,6 +56,8 @@ pub struct Settings {
     pub server: ServerSettings,
     #[serde(default)]
     pub metrics: MetricsFeature,
+    #[serde(default)]
+    pub openapi: OpenApiFeature,
 }
 
 trait SetEnvOverride {

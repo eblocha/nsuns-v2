@@ -1,20 +1,25 @@
 use std::{fmt::Display, path::Path};
 
 use axum::{middleware, Router};
+use serde::Deserialize;
 use tower_http::{
     catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
     trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
-    db::Pool, maxes::router::maxes_router, metrics::middleware::track_metrics,
-    movements::router::movements_router, openapi::ApiDoc, profiles::router::profiles_router,
-    program::router::programs_router, reps::router::reps_router, sets::router::sets_router,
-    settings::Settings, updates::router::updates_router,
+    db::Pool,
+    maxes::router::maxes_router,
+    metrics::middleware::track_metrics,
+    movements::router::movements_router,
+    profiles::router::profiles_router,
+    program::router::programs_router,
+    reps::router::reps_router,
+    sets::router::sets_router,
+    settings::{OpenApiFeature, Settings},
+    updates::router::updates_router,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -47,6 +52,61 @@ where
     }
 }
 
+fn default_swagger_path() -> String {
+    "/swagger-ui".to_string()
+}
+
+fn default_openapi_path() -> String {
+    "/api-docs/openapi.json".to_string()
+}
+
+#[derive(Debug, Deserialize)]
+pub struct OpenApiSettings {
+    #[serde(default = "default_swagger_path")]
+    pub swagger_path: String,
+    #[serde(default = "default_openapi_path")]
+    pub openapi_path: String,
+}
+
+impl Default for OpenApiSettings {
+    fn default() -> Self {
+        Self {
+            swagger_path: default_swagger_path(),
+            openapi_path: default_openapi_path(),
+        }
+    }
+}
+
+trait WithOpenApi {
+    fn with_openapi(self, settings: &OpenApiFeature) -> Self;
+}
+
+impl<S> WithOpenApi for Router<S>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    #[cfg(feature = "openapi")]
+    fn with_openapi(self, settings: &OpenApiFeature) -> Self {
+        use crate::{feature::Feature, openapi::ApiDoc};
+        use utoipa::OpenApi;
+        use utoipa_swagger_ui::SwaggerUi;
+
+        if let Feature::Enabled(config) = settings {
+            self.merge(
+                SwaggerUi::new(config.swagger_path.clone())
+                    .url(config.openapi_path.clone(), ApiDoc::openapi()),
+            )
+        } else {
+            self
+        }
+    }
+
+    #[cfg(not(feature = "openapi"))]
+    fn with_openapi(self, _settings: &OpenApiFeature) -> Self {
+        self
+    }
+}
+
 pub fn router(pool: Pool, settings: &Settings) -> Router {
     let app = Router::new()
         .nest(PROFILES_PATH, profiles_router())
@@ -56,7 +116,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .nest(MAXES_PATH, maxes_router())
         .nest(REPS_PATH, reps_router())
         .nest(UPDATES_PATH, updates_router())
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
         .layer(
             TraceLayer::new_for_http()

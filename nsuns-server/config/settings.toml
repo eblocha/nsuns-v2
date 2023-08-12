@@ -11,3 +11,5 @@ timeout = [1, 0]             # [seconds, nanos]
 static_dir = "assets"
 
 [metrics.enabled]
+
+[openapi.enabled]
