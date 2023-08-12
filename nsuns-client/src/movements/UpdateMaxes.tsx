@@ -27,7 +27,10 @@ export const UpdateMaxes: Component<{
           "animate-spin": mutation.isLoading,
         }}
       />
-      <Show when={mutation.isLoading} fallback={"Run Updates"}>
+      <Show
+        when={mutation.isLoading}
+        fallback={"Run Updates"}
+      >
         Updating...
       </Show>
     </button>

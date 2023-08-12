@@ -14,8 +14,8 @@ export const SetSummary: Component<{ sets: ProgramSet[] }> = (props) => {
     <Show when={props.sets.length}>
       <div class="mb-2">
         <p>
-          {props.sets.length} Set{props.sets.length === 1 ? "" : "s"},{" "}
-          {nUnique()} unique movement{nUnique() === 1 ? "" : "s"}
+          {props.sets.length} Set{props.sets.length === 1 ? "" : "s"}, {nUnique()} unique movement
+          {nUnique() === 1 ? "" : "s"}
         </p>
       </div>
     </Show>

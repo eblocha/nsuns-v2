@@ -16,18 +16,36 @@ export const App: Component = () => {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route path="/" component={Login} />
-          <Route path="/profile/new" component={CreateProfile} />
-          <Route path="/profile/:profileId" component={ProfileHome}>
+          <Route
+            path="/"
+            component={Login}
+          />
+          <Route
+            path="/profile/new"
+            component={CreateProfile}
+          />
+          <Route
+            path="/profile/:profileId"
+            component={ProfileHome}
+          >
             <Route path="/" />
-            <Route path="program/new" component={NewProgram} />
-            <Route path="program/:programId" component={ProgramBuilder} />
+            <Route
+              path="program/new"
+              component={NewProgram}
+            />
+            <Route
+              path="program/:programId"
+              component={ProgramBuilder}
+            />
           </Route>
           <Route
             path="/profile/:profileId/program/:programId/run"
             component={ProgramRunner}
           />
-          <Route path="*" component={NotFound} />
+          <Route
+            path="*"
+            component={NotFound}
+          />
         </Routes>
       </Router>
     </QueryClientProvider>

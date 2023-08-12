@@ -26,44 +26,23 @@ export const SetForm: Component<{
   onSubmit?: () => void;
   onClose: () => void;
   title: string;
-  mutationCreate?: CreateMutationResult<
-    unknown,
-    unknown,
-    CreateProgramSet,
-    unknown
-  >;
-  mutationUpdate?: CreateMutationResult<
-    unknown,
-    unknown,
-    UpdateProgramSet & { day: Day; programId: string },
-    unknown
-  >;
-  mutationDelete?: CreateMutationResult<
-    unknown,
-    unknown,
-    { id: string; meta: DeleteSetMeta },
-    unknown
-  >;
+  mutationCreate?: CreateMutationResult<unknown, unknown, CreateProgramSet, unknown>;
+  mutationUpdate?: CreateMutationResult<unknown, unknown, UpdateProgramSet & { day: Day; programId: string }, unknown>;
+  mutationDelete?: CreateMutationResult<unknown, unknown, { id: string; meta: DeleteSetMeta }, unknown>;
   id?: string;
   programId: string;
   dayIndex: Day;
   movements?: Movement[];
 }> = (props) => {
-  const isLoading = () =>
-    props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
+  const isLoading = () => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
 
   const isDeleting = () => !!props.mutationDelete?.isLoading;
 
-  const isError = () =>
-    props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
+  const isError = () => props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
 
-  const error = () =>
-    props.mutationCreate?.error || props.mutationUpdate?.error;
+  const error = () => props.mutationCreate?.error || props.mutationUpdate?.error;
 
-  const disableSubmit = () =>
-    isLoading() ||
-    props.group.hasErrors() ||
-    (props.mutationUpdate && !props.group.dirty());
+  const disableSubmit = () => isLoading() || props.group.hasErrors() || (props.mutationUpdate && !props.group.dirty());
 
   const onSubmit = () => {
     if (disableSubmit()) return;
@@ -90,11 +69,12 @@ export const SetForm: Component<{
     props.onSubmit?.();
   };
 
-  const movementOptions = createMemo<SelectOption[] | undefined>(() =>
-    props.movements?.map((movement) => ({
-      value: movement.id.toString(),
-      name: movement.name,
-    }))
+  const movementOptions = createMemo<SelectOption[] | undefined>(
+    () =>
+      props.movements?.map((movement) => ({
+        value: movement.id.toString(),
+        name: movement.name,
+      }))
   );
 
   const onDelete = () => {
@@ -128,7 +108,10 @@ export const SetForm: Component<{
         />
       </label>
       <div>
-        <label class="w-full" for="reps">
+        <label
+          class="w-full"
+          for="reps"
+        >
           Reps:
         </label>
         <div class="grid grid-cols-2 gap-2">
@@ -199,7 +182,11 @@ export const SetForm: Component<{
             </Show>
           </button>
         </Show>
-        <button type="button" class="secondary-button" onClick={props.onClose}>
+        <button
+          type="button"
+          class="secondary-button"
+          onClick={props.onClose}
+        >
           Cancel
         </button>
         <button
@@ -207,7 +194,10 @@ export const SetForm: Component<{
           class="primary-button w-20 flex flex-row items-center justify-center h-full"
           disabled={disableSubmit()}
         >
-          <Show when={!isLoading()} fallback={<Spinner class="animate-spin" />}>
+          <Show
+            when={!isLoading()}
+            fallback={<Spinner class="animate-spin" />}
+          >
             Confirm
           </Show>
         </button>

@@ -45,9 +45,7 @@ export const ProfileHome: Component = () => {
               </Match>
               <Match when={programsQuery.isError}>
                 <div class="flex flex-col items-center justify-center my-10">
-                  <div class="mb-2">
-                    Failed to fetch programs: {`${programsQuery.error}`}
-                  </div>
+                  <div class="mb-2">Failed to fetch programs: {`${programsQuery.error}`}</div>
                 </div>
               </Match>
               <Match when={programsQuery.isSuccess}>
@@ -58,13 +56,14 @@ export const ProfileHome: Component = () => {
                         class="rounded border mb-2"
                         classList={{
                           shimmer: isFetching(),
-                          "border-blue-500":
-                            program.id.toString() === params.programId,
-                          "border-gray-600":
-                            program.id.toString() !== params.programId,
+                          "border-blue-500": program.id.toString() === params.programId,
+                          "border-gray-600": program.id.toString() !== params.programId,
                         }}
                       >
-                        <ProgramItem program={program} index={i()} />
+                        <ProgramItem
+                          program={program}
+                          index={i()}
+                        />
                       </li>
                     )}
                   </For>
@@ -78,7 +77,10 @@ export const ProfileHome: Component = () => {
                 onClick={() => void programsQuery.refetch()}
                 class="secondary-button ml-2"
               />
-              <A href="/" class="text-button ml-2">
+              <A
+                href="/"
+                class="text-button ml-2"
+              >
                 Switch Profile
               </A>
             </div>

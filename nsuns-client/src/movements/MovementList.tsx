@@ -19,8 +19,7 @@ const Loading: Component = () => {
 };
 
 export const MovementList: Component = () => {
-  const { profileId, movementMap, movementsToMaxesMap, movementsToRepsMap, queryState } =
-    useStats();
+  const { profileId, movementMap, movementsToMaxesMap, movementsToRepsMap, queryState } = useStats();
   const [showForm, setShowForm] = createSignal(false);
 
   return (

@@ -9,10 +9,7 @@ const displaySet = (set: ProgramSet, movement: Movement, max?: number) => {
   const weightComponent = resolvedWeightDisplay(set, max);
   const repsComponent = repsDisplay(set);
 
-  const description =
-    !weightComponent && !repsComponent && set.description
-      ? `: ${set.description}`
-      : "";
+  const description = !weightComponent && !repsComponent && set.description ? `: ${set.description}` : "";
 
   return `${movement.name}${weightComponent}${repsComponent}${description}`;
 };
@@ -35,10 +32,7 @@ export const SetTitle: Component<{
       </h1>
       <h2 class="text-5xl text-gray-400">
         Next:{" "}
-        {(props.next &&
-          props.nextMovement &&
-          displaySet(props.next, props.nextMovement, props.nextMax)) ||
-          " Rest"}
+        {(props.next && props.nextMovement && displaySet(props.next, props.nextMovement, props.nextMax)) || " Rest"}
       </h2>
     </>
   );

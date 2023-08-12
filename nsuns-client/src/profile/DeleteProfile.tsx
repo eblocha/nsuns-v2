@@ -20,8 +20,14 @@ export const DeleteProfile: Component<{
   });
 
   return (
-    <Modal open={props.show} onBackdropClick={props.close}>
-      <div class="bg-gray-900 p-8 rounded" onClick={(e) => e.stopPropagation()}>
+    <Modal
+      open={props.show}
+      onBackdropClick={props.close}
+    >
+      <div
+        class="bg-gray-900 p-8 rounded"
+        onClick={(e) => e.stopPropagation()}
+      >
         <p>Permanently delete profile: {props.profile.name}?</p>
         <div class="grid grid-cols-2 mt-4 ml-auto">
           <button

@@ -23,9 +23,7 @@ export type MergedQueryState = {
   error: Accessor<unknown>;
 };
 
-export const combineQueries = (
-  ...queries: CreateQueryResult[]
-): MergedQueryState => {
+export const combineQueries = (...queries: CreateQueryResult[]): MergedQueryState => {
   return {
     isLoading: () => !queries.every((q) => !q.isLoading),
     isSuccess: () => queries.every((q) => q.isSuccess),

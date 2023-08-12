@@ -1,10 +1,6 @@
 import { Component, For, JSX, Setter, Show, createMemo } from "solid-js";
 import { Movement, ProgramSet } from "../../api";
-import {
-  getSections,
-  plural,
-  resolvedWeightDisplay,
-} from "../../util/setDisplay";
+import { getSections, plural, resolvedWeightDisplay } from "../../util/setDisplay";
 import { Max } from "../../api/maxes";
 import { day, goToToday, today } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
@@ -14,18 +10,14 @@ import { Day, dayNames } from "../../util/days";
 export const displaySet = (set: ProgramSet, max?: number): JSX.Element => {
   const repsComponent =
     set.reps != null
-      ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${
-          set.repsIsMinimum ? "s" : plural(set.reps)
-        }`
+      ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${set.repsIsMinimum ? "s" : plural(set.reps)}`
       : "";
 
   const weightComponent = resolvedWeightDisplay(set, max);
 
   return set.amount
     ? `${weightComponent}${repsComponent}`
-    : set.description || (
-        <span class="italic text-gray-200">No description</span>
-      );
+    : set.description || <span class="italic text-gray-200">No description</span>;
 };
 
 export const SetList: Component<{
@@ -36,9 +28,7 @@ export const SetList: Component<{
   movementsToMaxesMap?: Record<string, Max[]>;
   day: Day;
 }> = (props) => {
-  const sections = createMemo(() =>
-    getSections(props.sets ?? [], props.movementMap ?? {})
-  );
+  const sections = createMemo(() => getSections(props.sets ?? [], props.movementMap ?? {}));
 
   return (
     <div class="w-full h-full flex flex-col border rounded border-gray-700 overflow-hidden">
@@ -88,9 +78,7 @@ export const SetList: Component<{
                         >
                           {displaySet(
                             set,
-                            props.movementsToMaxesMap &&
-                              getLatestMax(props.movementsToMaxesMap, set)
-                                ?.amount
+                            props.movementsToMaxesMap && getLatestMax(props.movementsToMaxesMap, set)?.amount
                           )}
                         </button>
                       </li>

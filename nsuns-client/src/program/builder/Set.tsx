@@ -6,9 +6,7 @@ import { Day } from "../../util/days";
 
 export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const movement = movements.find((m) => m.id === set.movementId);
-  const percentOfMax = set.percentageOfMax
-    ? movements.find((m) => m.id === set.percentageOfMax)
-    : null;
+  const percentOfMax = set.percentageOfMax ? movements.find((m) => m.id === set.percentageOfMax) : null;
 
   const amountStr = set.amount.toFixed(0);
 
@@ -17,10 +15,7 @@ export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   let weightComponent: string;
 
   if (percentOfMax) {
-    const weightOfComponent =
-      percentOfMax?.id === set.movementId
-        ? " of max"
-        : ` of ${percentOfMax?.name} max`;
+    const weightOfComponent = percentOfMax?.id === set.movementId ? " of max" : ` of ${percentOfMax?.name} max`;
 
     weightComponent = ` ${amountStr}%${weightOfComponent}`;
   } else {

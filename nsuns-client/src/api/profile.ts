@@ -9,8 +9,7 @@ export type CreateProfile = Omit<Profile, "id">;
 
 const path = "/api/profiles";
 
-export const getProfiles = async (): Promise<Profile[]> =>
-  get(path, { headers: acceptJson().headers }).then(json());
+export const getProfiles = async (): Promise<Profile[]> => get(path, { headers: acceptJson().headers }).then(json());
 
 export const getProfile = async (id: string): Promise<Profile> =>
   get(`${path}/${id}`, { headers: acceptJson().headers }).then(json());

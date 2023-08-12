@@ -41,7 +41,10 @@ export const NewProgram: Component = () => {
         }}
         class="flex flex-col w-80 gap-4"
       >
-        <label for="program-name" class="flex flex-row items-center gap-2">
+        <label
+          for="program-name"
+          class="flex flex-row items-center gap-2"
+        >
           <div>
             <span class="text-red-500">*</span>Title
           </div>
@@ -57,7 +60,10 @@ export const NewProgram: Component = () => {
         </label>
 
         <div class="flex flex-row items-center justify-end">
-          <A href="../.." class="text-button">
+          <A
+            href="../.."
+            class="text-button"
+          >
             Cancel
           </A>
           <button

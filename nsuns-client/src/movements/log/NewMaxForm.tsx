@@ -50,7 +50,11 @@ export const NewMaxForm: Component<{
         <span>lbs</span>
       </div>
       <div class="flex flex-row items-center justify-end gap-2">
-        <button class="secondary-button" type="button" onClick={props.onClose}>
+        <button
+          class="secondary-button"
+          type="button"
+          onClick={props.onClose}
+        >
           Cancel
         </button>
         <button

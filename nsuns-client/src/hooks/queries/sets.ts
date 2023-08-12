@@ -1,9 +1,4 @@
-import {
-  CreateMutationOptions,
-  createMutation,
-  createQuery,
-  useQueryClient,
-} from "@tanstack/solid-query";
+import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
 import {
   CreateProgramSet,
   ProgramSet,
@@ -19,9 +14,7 @@ import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
 import { Day } from "../../util/days";
 
-export type ProgramSummaryQueryData = QueryData<
-  ReturnType<typeof useProgramSummaryQuery>
->;
+export type ProgramSummaryQueryData = QueryData<ReturnType<typeof useProgramSummaryQuery>>;
 
 export const useProgramSummaryQuery = (programId: Accessor<string>) => {
   return createQuery({
@@ -32,9 +25,7 @@ export const useProgramSummaryQuery = (programId: Accessor<string>) => {
 };
 
 export const useCreateSet = <TError = unknown, TContext = unknown>(
-  options?: Partial<
-    CreateMutationOptions<ProgramSet, TError, CreateProgramSet, TContext>
-  >
+  options?: Partial<CreateMutationOptions<ProgramSet, TError, CreateProgramSet, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({
@@ -60,12 +51,7 @@ export const useCreateSet = <TError = unknown, TContext = unknown>(
 
 export const useEditSet = <TError = unknown, TContext = unknown>(
   options?: Partial<
-    CreateMutationOptions<
-      ProgramSet,
-      TError,
-      UpdateProgramSet & { programId: string; day: Day },
-      TContext
-    >
+    CreateMutationOptions<ProgramSet, TError, UpdateProgramSet & { programId: string; day: Day }, TContext>
   >
 ) => {
   const queryClient = useQueryClient();
@@ -74,20 +60,15 @@ export const useEditSet = <TError = unknown, TContext = unknown>(
     mutationFn: updateSet,
     onSuccess: (set, variables, ...args) => {
       options?.onSuccess?.(set, variables, ...args);
-      queryClient.setQueryData(
-        QueryKeys.programs.summary(variables.programId),
-        (summary?: ProgramSummaryQueryData) => {
-          const prop = getSetsPropByDay(variables.day);
-          return (
-            summary && {
-              ...summary,
-              [prop]:
-                updateInArray(summary[prop], set, (s) => s.id === set.id) ??
-                summary[prop],
-            }
-          );
-        }
-      );
+      queryClient.setQueryData(QueryKeys.programs.summary(variables.programId), (summary?: ProgramSummaryQueryData) => {
+        const prop = getSetsPropByDay(variables.day);
+        return (
+          summary && {
+            ...summary,
+            [prop]: updateInArray(summary[prop], set, (s) => s.id === set.id) ?? summary[prop],
+          }
+        );
+      });
     },
   });
 
@@ -96,18 +77,11 @@ export const useEditSet = <TError = unknown, TContext = unknown>(
 
 export type DeleteSetMeta = {
   programId: string;
-  day: Day
-}
+  day: Day;
+};
 
 export const useDeleteSet = <TError = unknown, TContext = unknown>(
-  options?: Partial<
-    CreateMutationOptions<
-      void,
-      TError,
-      { id: string; meta: DeleteSetMeta },
-      TContext
-    >
-  >
+  options?: Partial<CreateMutationOptions<void, TError, { id: string; meta: DeleteSetMeta }, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({
@@ -115,18 +89,15 @@ export const useDeleteSet = <TError = unknown, TContext = unknown>(
     mutationFn: ({ id }) => deleteSet(id),
     onSuccess: (v, vars, ...args) => {
       options?.onSuccess?.(v, vars, ...args);
-      queryClient.setQueryData(
-        QueryKeys.programs.summary(vars.meta.programId),
-        (summary?: ProgramSummaryQueryData) => {
-          const prop = getSetsPropByDay(vars.meta.day);
-          return (
-            summary && {
-              ...summary,
-              [prop]: summary[prop].filter((s) => s.id !== vars.id),
-            }
-          );
-        }
-      );
+      queryClient.setQueryData(QueryKeys.programs.summary(vars.meta.programId), (summary?: ProgramSummaryQueryData) => {
+        const prop = getSetsPropByDay(vars.meta.day);
+        return (
+          summary && {
+            ...summary,
+            [prop]: summary[prop].filter((s) => s.id !== vars.id),
+          }
+        );
+      });
     },
   });
   return mutation;

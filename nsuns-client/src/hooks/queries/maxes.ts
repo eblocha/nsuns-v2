@@ -1,17 +1,5 @@
-import {
-  CreateMutationOptions,
-  createMutation,
-  createQuery,
-  useQueryClient,
-} from "@tanstack/solid-query";
-import {
-  CreateMax,
-  Max,
-  UpdateMax,
-  createMax,
-  getMaxes,
-  updateMax,
-} from "../../api/maxes";
+import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { CreateMax, Max, UpdateMax, createMax, getMaxes, updateMax } from "../../api/maxes";
 import { Accessor } from "solid-js";
 import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
@@ -35,12 +23,9 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
     mutationFn: createMax,
     onSuccess: (max, ...args) => {
       options?.onSuccess?.(max, ...args);
-      queryClient.setQueryData(
-        QueryKeys.maxes(max.profileId),
-        (maxes?: MaxesQueryData) => {
-          return maxes && [...maxes, max];
-        }
-      );
+      queryClient.setQueryData(QueryKeys.maxes(max.profileId), (maxes?: MaxesQueryData) => {
+        return maxes && [...maxes, max];
+      });
     },
   });
   return mutation;

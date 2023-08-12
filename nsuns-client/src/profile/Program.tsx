@@ -15,7 +15,7 @@ const DeleteProgram: Component<{
   close: () => void;
   program: Program;
 }> = (props) => {
-  const params = useParams<{ programId?: string, profileId: string }>();
+  const params = useParams<{ programId?: string; profileId: string }>();
   const navigateToProfileHome = useNavigateToProfileHome();
 
   const mutation = useDeleteProgram({
@@ -28,8 +28,14 @@ const DeleteProgram: Component<{
   });
 
   return (
-    <Modal open={props.show} onBackdropClick={props.close}>
-      <div class="bg-gray-900 p-8 rounded" onClick={(e) => e.stopPropagation()}>
+    <Modal
+      open={props.show}
+      onBackdropClick={props.close}
+    >
+      <div
+        class="bg-gray-900 p-8 rounded"
+        onClick={(e) => e.stopPropagation()}
+      >
         <p>Delete Program: {props.program.name}?</p>
         <div class="grid grid-cols-2 mt-4 ml-auto">
           <button
@@ -72,9 +78,7 @@ export const ProgramItem: Component<{
         class={`w-full ${styles.program} hover:bg-gray-900 flex flex-row`}
       >
         <div class="w-full flex flex-row justify-between items-center">
-          <span class="flex-grow">
-            {props.program.name ?? `Program ${props.index}`}
-          </span>
+          <span class="flex-grow">{props.program.name ?? `Program ${props.index}`}</span>
           <button
             class="text-button mr-2 hover:text-red-500 focus:text-red-500 hover:transition-colors focus:transition-colors"
             onClick={(e) => {
@@ -84,7 +88,10 @@ export const ProgramItem: Component<{
           >
             <Trash />
           </button>
-          <A href={`program/${props.program.id}/run`} class="text-button">
+          <A
+            href={`program/${props.program.id}/run`}
+            class="text-button"
+          >
             <Play />
           </A>
         </div>
@@ -104,7 +111,10 @@ export const LoadingProgram: Component = () => {
 
 export const AddProgram: Component = () => {
   return (
-    <A href="program/new" class="text-button-outline">
+    <A
+      href="program/new"
+      class="text-button-outline"
+    >
       <div class="flex flex-row items-center justify-start gap-2">
         <Plus />
         <span>New Program</span>

@@ -18,10 +18,7 @@ export const useMovementsToMaxesMap = (maxes: Accessor<Max[]>) => {
   });
 };
 
-export const getLatestMax = (
-  movementsToMaxesMap: Record<string, Max[]>,
-  set: ProgramSet
-): Max | undefined => {
+export const getLatestMax = (movementsToMaxesMap: Record<string, Max[]>, set: ProgramSet): Max | undefined => {
   if (set.percentageOfMax) {
     const maxes = movementsToMaxesMap[set.percentageOfMax];
     return maxes?.[maxes.length - 1];

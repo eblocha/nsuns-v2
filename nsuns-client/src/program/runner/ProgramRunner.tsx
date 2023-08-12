@@ -14,14 +14,23 @@ export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();
 
   return (
-    <ProgramProvider profileId={params.profileId} programId={params.programId}>
+    <ProgramProvider
+      profileId={params.profileId}
+      programId={params.programId}
+    >
       <div class="w-full h-full overflow-hidden flex flex-col">
         <div class="w-full flex-shrink-0 flex flex-row">
           <nav class="flex flex-col items-center p-2 flex-shrink-0 gap-2">
-            <A href="/" class="text-button">
+            <A
+              href="/"
+              class="text-button"
+            >
               <User />
             </A>
-            <A href="../" class="text-button">
+            <A
+              href="../"
+              class="text-button"
+            >
               <Edit />
             </A>
           </nav>

@@ -44,13 +44,7 @@ export const useEditStat = (props: EditableStatProps) => {
   const createReps = useCreateRepsMutation(options);
 
   const mutation = createMutation({
-    mutationFn: async ({
-      amount,
-      movement,
-    }: {
-      amount: number | null;
-      movement: Movement;
-    }) => {
+    mutationFn: async ({ amount, movement }: { amount: number | null; movement: Movement }) => {
       if (props.stat && props.type === "max" && amount !== null) {
         await updateMax.mutateAsync({
           id: props.stat.id,

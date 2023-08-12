@@ -7,9 +7,7 @@ export const plural = (value: number) => (value === 1 ? "" : "s");
  */
 export const repsDisplay = (set: ProgramSet) => {
   return set.reps != null
-    ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${
-        set.repsIsMinimum ? "s" : plural(set.reps)
-      }`
+    ? ` for ${set.reps}${set.repsIsMinimum ? "+" : ""} rep${set.repsIsMinimum ? "s" : plural(set.reps)}`
     : "";
 };
 
@@ -20,13 +18,9 @@ export const round = (value: number) => Math.round(value / 5) * 5;
  */
 export const resolvedWeightDisplay = (set: ProgramSet, max?: number) => {
   if (set.percentageOfMax) {
-    return max === undefined
-      ? ""
-      : ` ${round((set.amount / 100) * max).toFixed(0)} lbs`;
+    return max === undefined ? "" : ` ${round((set.amount / 100) * max).toFixed(0)} lbs`;
   } else {
-    return set.amount
-      ? ` ${set.amount.toFixed(0)} lb${plural(set.amount)}`
-      : "";
+    return set.amount ? ` ${set.amount.toFixed(0)} lb${plural(set.amount)}` : "";
   }
 };
 
@@ -35,10 +29,7 @@ export type Section = {
   sets: { set: ProgramSet; index: number }[];
 };
 
-export const getSections = (
-  sets: ProgramSet[],
-  movements: Record<string, Movement>
-) => {
+export const getSections = (sets: ProgramSet[], movements: Record<string, Movement>) => {
   const sections: Section[] = [];
 
   let currentSection: Section | null = null;

@@ -7,5 +7,5 @@ export const QueryKeys = {
     list: (profileId: string) => ["programs", profileId],
     summary: (programId: string) => ["programs", programId],
   },
-  reps: (profileId: string) => ["reps", profileId]
+  reps: (profileId: string) => ["reps", profileId],
 } as const;

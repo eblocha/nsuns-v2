@@ -1,11 +1,4 @@
-import {
-  Component,
-  Match,
-  Show,
-  Switch,
-  createRenderEffect,
-  createSignal,
-} from "solid-js";
+import { Component, Match, Show, Switch, createRenderEffect, createSignal } from "solid-js";
 import { Profile, getProfile } from "../api";
 import { createQuery } from "@tanstack/solid-query";
 import { Input } from "../forms/Input";
@@ -25,8 +18,7 @@ const EditProfileName: Component<{ profile: Profile }> = (props) => {
     },
   });
 
-  const disableSubmit = () =>
-    mutation.isLoading || name.hasErrors() || !name.isChanged();
+  const disableSubmit = () => mutation.isLoading || name.hasErrors() || !name.isChanged();
 
   const onSubmit = () => {
     if (disableSubmit()) return;
@@ -45,9 +37,16 @@ const EditProfileName: Component<{ profile: Profile }> = (props) => {
         onSubmit();
       }}
     >
-      <Input control={name} class="ghost-input flex-grow" required={true} />
+      <Input
+        control={name}
+        class="ghost-input flex-grow"
+        required={true}
+      />
       <Show when={name.isChanged()}>
-        <button class="primary-button text-base" disabled={disableSubmit()}>
+        <button
+          class="primary-button text-base"
+          disabled={disableSubmit()}
+        >
           Save
         </button>
       </Show>

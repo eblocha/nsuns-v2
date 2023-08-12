@@ -36,10 +36,7 @@ export const required =
     };
   };
 
-export const createControl = <T>(
-  initialValue: T,
-  options?: InputOptions<T>
-): Control<T> => {
+export const createControl = <T>(initialValue: T, options?: InputOptions<T>): Control<T> => {
   const [initial, setInitial] = createSignal(initialValue);
 
   const [value, setValue] = createSignal(initial());
@@ -48,8 +45,7 @@ export const createControl = <T>(
 
   const isChanged = () => value() !== initial();
 
-  const errorMessageMapping: Record<string, string> =
-    options?.errorMessageMapping ?? DEFAULT_ERROR_MESSAGES;
+  const errorMessageMapping: Record<string, string> = options?.errorMessageMapping ?? DEFAULT_ERROR_MESSAGES;
 
   const errors = createMemo(() => {
     const current = value();
@@ -66,9 +62,7 @@ export const createControl = <T>(
 
   const errorMessages = () =>
     Object.entries(errors())
-      .map(([name, isErrored]) =>
-        isErrored ? errorMessageMapping[name] : undefined
-      )
+      .map(([name, isErrored]) => (isErrored ? errorMessageMapping[name] : undefined))
       .filter((value): value is string => !!value);
 
   const hasErrors = createMemo(() => !Object.values(errors()).every((v) => !v));
@@ -119,18 +113,10 @@ export type ControlGroup<R extends Record<string, Control<any>>> = {
   reset: (values?: Partial<ControlValues<R>> | undefined) => void;
 };
 
-export const createControlGroup = <R extends Record<string, Control<any>>>(
-  controls: R
-): ControlGroup<R> => {
-  const dirty = createMemo(
-    () => !Object.values(controls).every((control) => !control.dirty())
-  );
-  const touched = createMemo(
-    () => !Object.values(controls).every((control) => !control.touched())
-  );
-  const changed = createMemo(
-    () => !Object.values(controls).every((control) => !control.isChanged())
-  );
+export const createControlGroup = <R extends Record<string, Control<any>>>(controls: R): ControlGroup<R> => {
+  const dirty = createMemo(() => !Object.values(controls).every((control) => !control.dirty()));
+  const touched = createMemo(() => !Object.values(controls).every((control) => !control.touched()));
+  const changed = createMemo(() => !Object.values(controls).every((control) => !control.isChanged()));
 
   const errors = createMemo(() => {
     const errMap: Record<string, ErrorInfo> = {};
@@ -139,30 +125,20 @@ export const createControlGroup = <R extends Record<string, Control<any>>>(
     }
   });
 
-  const hasErrors = createMemo(
-    () => !Object.values(controls).every((control) => !control.hasErrors())
-  );
+  const hasErrors = createMemo(() => !Object.values(controls).every((control) => !control.hasErrors()));
 
-  const showErrors = createMemo(
-    () => !Object.values(controls).every((control) => control.showErrors())
-  );
+  const showErrors = createMemo(() => !Object.values(controls).every((control) => control.showErrors()));
 
   const value = () => {
     const value: ControlValues<R> = {} as ControlValues<R>;
     for (const key in controls) {
-      value[key] = controls[key]!.value() as ControlValue<
-        R[Extract<keyof R, string>]
-      >;
+      value[key] = controls[key]!.value() as ControlValue<R[Extract<keyof R, string>]>;
     }
     return value;
   };
 
   const reset = (values?: Partial<ControlValues<R>>) =>
-    batch(() =>
-      Object.entries(controls).forEach(([key, control]) =>
-        control.reset(values?.[key])
-      )
-    );
+    batch(() => Object.entries(controls).forEach(([key, control]) => control.reset(values?.[key])));
 
   return {
     controls,

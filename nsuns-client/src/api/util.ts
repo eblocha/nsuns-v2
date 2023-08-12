@@ -19,8 +19,7 @@ export class HeaderBuilder {
   }
 }
 
-export const bothJson = () =>
-  new HeaderBuilder().contentType(applicationJson).accept(applicationJson);
+export const bothJson = () => new HeaderBuilder().contentType(applicationJson).accept(applicationJson);
 
 export const acceptJson = () => new HeaderBuilder().accept(applicationJson);
 

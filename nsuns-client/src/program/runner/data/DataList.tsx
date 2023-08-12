@@ -24,9 +24,7 @@ const EditableCard: Component<EditableStatProps> = (props) => {
 
   return (
     <div class="rounded flex flex-col border border-gray-600 text-xl">
-      <div class="text-center flex-shrink-0 p-3 border-b border-gray-600 bg-gray-900">
-        {props.movement?.name}
-      </div>
+      <div class="text-center flex-shrink-0 p-3 border-b border-gray-600 bg-gray-900">{props.movement?.name}</div>
       <div
         class="flex-grow flex flex-col items-center justify-center p-3 text-4xl"
         classList={{
@@ -70,18 +68,23 @@ const LastAmountCard: Component<StatsProps> = (props) => {
 };
 
 const StatRow: Component<StatsProps> = (props) => {
-  const points = createMemo(() =>
-    props.stats?.map((stat, index) => ({
-      x: index,
-      y: stat.amount ?? 0,
-    }))
+  const points = createMemo(
+    () =>
+      props.stats?.map((stat, index) => ({
+        x: index,
+        y: stat.amount ?? 0,
+      }))
   );
 
   return (
     <div class="grid grid-cols-4 gap-4">
       <LastAmountCard {...props} />
       <div class="col-span-3 h-32 text-blue-500 p-1 mt-auto">
-        <Graph data={points()} weight={4} fillOpacity="10%" />
+        <Graph
+          data={points()}
+          weight={4}
+          fillOpacity="10%"
+        />
       </div>
     </div>
   );

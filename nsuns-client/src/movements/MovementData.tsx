@@ -1,12 +1,4 @@
-import {
-  Component,
-  Match,
-  Show,
-  Switch,
-  createEffect,
-  createSignal,
-  onCleanup,
-} from "solid-js";
+import { Component, Match, Show, Switch, createEffect, createSignal, onCleanup } from "solid-js";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
 import { Movement } from "../api";

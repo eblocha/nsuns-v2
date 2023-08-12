@@ -49,10 +49,7 @@ export const getSetsPropByDay = (day: Day) => {
   }
 };
 
-export const getSetsByDay = (
-  summary: ProgramSummary,
-  day: Day
-): ProgramSet[] => {
+export const getSetsByDay = (summary: ProgramSummary, day: Day): ProgramSet[] => {
   return summary[getSetsPropByDay(day)];
 };
 
@@ -67,9 +64,8 @@ export const createProgram = async (program: CreateProgram): Promise<Program> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const getProgramSummary = async (
-  programId: string
-): Promise<ProgramSummary> => get(`${path}/${programId}`).then(json());
+export const getProgramSummary = async (programId: string): Promise<ProgramSummary> =>
+  get(`${path}/${programId}`).then(json());
 
 export const updateProgram = async (program: UpdateProgram): Promise<Program> =>
   put(path, {

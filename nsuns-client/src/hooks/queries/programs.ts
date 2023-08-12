@@ -1,9 +1,4 @@
-import {
-  CreateMutationOptions,
-  createMutation,
-  createQuery,
-  useQueryClient,
-} from "@tanstack/solid-query";
+import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
 import {
   CreateProgram,
   Program,
@@ -30,9 +25,7 @@ export const useProgramsQuery = (profileId: Accessor<string>) => {
 };
 
 export const useCreateProgram = <TError = unknown, TContext = unknown>(
-  options?: Partial<
-    CreateMutationOptions<Program, TError, CreateProgram, TContext>
-  >
+  options?: Partial<CreateMutationOptions<Program, TError, CreateProgram, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({
@@ -40,10 +33,8 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
     mutationFn: createProgram,
     onSuccess: (program, ...args) => {
       options?.onSuccess?.(program, ...args);
-      queryClient.setQueryData(
-        QueryKeys.programs.list(program.owner),
-        (programs?: ProgramsQueryData) =>
-          programs ? [...programs, program] : undefined
+      queryClient.setQueryData(QueryKeys.programs.list(program.owner), (programs?: ProgramsQueryData) =>
+        programs ? [...programs, program] : undefined
       );
     },
   });
@@ -51,9 +42,7 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
 };
 
 export const useUpdateProgram = <TError = unknown, TContext = unknown>(
-  options?: Partial<
-    CreateMutationOptions<Program, TError, UpdateProgram, TContext>
-  >
+  options?: Partial<CreateMutationOptions<Program, TError, UpdateProgram, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({
@@ -61,10 +50,8 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
     mutationFn: updateProgram,
     onSuccess: (program, ...args) => {
       options?.onSuccess?.(program, ...args);
-      queryClient.setQueryData(
-        QueryKeys.programs.list(program.owner),
-        (programs?: ProgramsQueryData) =>
-          updateInArray(programs, program, (p) => p.id === program.id)
+      queryClient.setQueryData(QueryKeys.programs.list(program.owner), (programs?: ProgramsQueryData) =>
+        updateInArray(programs, program, (p) => p.id === program.id)
       );
       queryClient.setQueryData(
         QueryKeys.programs.summary(program.id),

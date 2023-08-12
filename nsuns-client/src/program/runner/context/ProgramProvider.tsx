@@ -37,7 +37,7 @@ const InnerProvider: Component<{
     isSuccess: () => stats.queryState.isSuccess() && summaryQuery.isSuccess,
   };
 
-  const getSets = (day: Day) => summaryQuery.data ? getSetsByDay(summaryQuery.data, day) : EMPTY;
+  const getSets = (day: Day) => (summaryQuery.data ? getSetsByDay(summaryQuery.data, day) : EMPTY);
 
   const relevantMovements = createMemo(() => {
     const uniqueIds: string[] = [];
@@ -75,9 +75,7 @@ export const ProgramProvider: Component<{
 }> = (props) => {
   return (
     <StatsProvider profileId={props.profileId}>
-      <InnerProvider programId={props.programId}>
-        {props.children}
-      </InnerProvider>
+      <InnerProvider programId={props.programId}>{props.children}</InnerProvider>
     </StatsProvider>
   );
 };

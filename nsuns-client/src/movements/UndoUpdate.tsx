@@ -23,7 +23,10 @@ export const UndoUpdate: Component<{
       disabled={mutation.isLoading}
     >
       <RotateLeft />
-      <Show when={mutation.isLoading} fallback={"Undo Update"}>
+      <Show
+        when={mutation.isLoading}
+        fallback={"Undo Update"}
+      >
         Undoing...
       </Show>
     </button>

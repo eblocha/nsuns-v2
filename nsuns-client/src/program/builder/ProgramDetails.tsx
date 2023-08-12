@@ -45,7 +45,11 @@ export const ProgramDetails: Component<{
     >
       <div class="flex flex-row items-center">
         <div class="flex flex-col items-end text-2xl">
-          <Input control={name} class="ghost-input" required={true} />
+          <Input
+            control={name}
+            class="ghost-input"
+            required={true}
+          />
         </div>
         <Show when={name.isChanged()}>
           <button

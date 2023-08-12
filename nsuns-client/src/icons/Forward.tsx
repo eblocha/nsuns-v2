@@ -1,8 +1,6 @@
 import { Component, JSX } from "solid-js";
 
-export const Forward: Component<JSX.SvgSVGAttributes<SVGSVGElement>> = (
-  props
-) => {
+export const Forward: Component<JSX.SvgSVGAttributes<SVGSVGElement>> = (props) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

@@ -1,34 +1,14 @@
-import {
-  CreateMutationOptions,
-  createMutation,
-  createQuery,
-  useQueryClient,
-} from "@tanstack/solid-query";
-import {
-  CreateProfile,
-  Profile,
-  createProfile,
-  deleteProfile,
-  getProfiles,
-  updateProfile,
-} from "../../api";
+import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { CreateProfile, Profile, createProfile, deleteProfile, getProfiles, updateProfile } from "../../api";
 import { QueryKeys } from "./keys";
 import { QueryData, updateInArray } from "./util";
 
-export type ProfilesQueryData = QueryData<
-  ReturnType<typeof createProfileQuery>
->;
+export type ProfilesQueryData = QueryData<ReturnType<typeof createProfileQuery>>;
 
-export const createProfileQuery = () =>
-  createQuery(QueryKeys.profiles, getProfiles);
+export const createProfileQuery = () => createQuery(QueryKeys.profiles, getProfiles);
 
-export const createCreateProfileMutation = <
-  TError = unknown,
-  TContext = unknown
->(
-  options?: Partial<
-    CreateMutationOptions<Profile, TError, CreateProfile, TContext>
-  >
+export const createCreateProfileMutation = <TError = unknown, TContext = unknown>(
+  options?: Partial<CreateMutationOptions<Profile, TError, CreateProfile, TContext>>
 ) => {
   const queryClient = useQueryClient();
 
@@ -45,10 +25,7 @@ export const createCreateProfileMutation = <
   });
 };
 
-export const createUpdateProfileMutation = <
-  TError = unknown,
-  TContext = unknown
->(
+export const createUpdateProfileMutation = <TError = unknown, TContext = unknown>(
   options?: Partial<CreateMutationOptions<Profile, TError, Profile, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -60,18 +37,13 @@ export const createUpdateProfileMutation = <
       options?.onSuccess?.(profile, ...args);
       queryClient.setQueryData(
         QueryKeys.profiles(),
-        (profiles?: ProfilesQueryData) =>
-          profiles &&
-          updateInArray(profiles, profile, (p) => p.id === profile.id)
+        (profiles?: ProfilesQueryData) => profiles && updateInArray(profiles, profile, (p) => p.id === profile.id)
       );
     },
   });
 };
 
-export const createDeleteProfileMutation = <
-  TError = unknown,
-  TContext = unknown
->(
+export const createDeleteProfileMutation = <TError = unknown, TContext = unknown>(
   options?: Partial<CreateMutationOptions<Profile, TError, string, TContext>>
 ) => {
   const queryClient = useQueryClient();
@@ -83,8 +55,7 @@ export const createDeleteProfileMutation = <
       options?.onSuccess?.(profile, ...args);
       queryClient.setQueryData(
         QueryKeys.profiles(),
-        (profiles?: ProfilesQueryData) =>
-          profiles && profiles.filter((p) => p.id !== profile.id)
+        (profiles?: ProfilesQueryData) => profiles && profiles.filter((p) => p.id !== profile.id)
       );
     },
   });

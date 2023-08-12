@@ -1,16 +1,5 @@
-import {
-  CreateMutationOptions,
-  createMutation,
-  createQuery,
-  useQueryClient,
-} from "@tanstack/solid-query";
-import {
-  CreateMovement,
-  Movement,
-  createMovement,
-  getMovements,
-  updateMovement,
-} from "../../api";
+import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { CreateMovement, Movement, createMovement, getMovements, updateMovement } from "../../api";
 import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
 
@@ -26,9 +15,7 @@ export const useMovementsQuery = () => {
 };
 
 export const useCreateMovement = <TError = unknown, TContext = unknown>(
-  options?: Partial<
-    CreateMutationOptions<Movement, TError, CreateMovement, TContext>
-  >
+  options?: Partial<CreateMutationOptions<Movement, TError, CreateMovement, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = createMutation({

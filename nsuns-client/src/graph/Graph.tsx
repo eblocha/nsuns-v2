@@ -15,19 +15,11 @@ type Bounds = {
 export type GraphStyle = "scatter" | "line";
 
 const getBounds = (data: Point[]): Bounds => {
-  const minX = data.length
-    ? data.reduce((minX, point) => Math.min(point.x, minX), Infinity)
-    : 0;
-  const maxX = data.length
-    ? data.reduce((maxX, point) => Math.max(point.x, maxX), -Infinity)
-    : 0;
+  const minX = data.length ? data.reduce((minX, point) => Math.min(point.x, minX), Infinity) : 0;
+  const maxX = data.length ? data.reduce((maxX, point) => Math.max(point.x, maxX), -Infinity) : 0;
 
-  const minY = data.length
-    ? data.reduce((minY, point) => Math.min(point.y, minY), Infinity)
-    : 0;
-  const maxY = data.length
-    ? data.reduce((maxY, point) => Math.max(point.y, maxY), -Infinity)
-    : 0;
+  const minY = data.length ? data.reduce((minY, point) => Math.min(point.y, minY), Infinity) : 0;
+  const maxY = data.length ? data.reduce((maxY, point) => Math.max(point.y, maxY), -Infinity) : 0;
 
   return {
     minX,
@@ -61,10 +53,7 @@ export const Graph: Component<{
     const { minX, maxX, minY, maxY } = bounds();
     return mergedProps.data.map((point) => ({
       x: maxX === minX ? 50 : ((point.x - minX) / (maxX - minX)) * 100,
-      y:
-        maxY === minY
-          ? 50
-          : ((minY - point.y + (maxY - minY)) / (maxY - minY)) * 100,
+      y: maxY === minY ? 50 : ((minY - point.y + (maxY - minY)) / (maxY - minY)) * 100,
     }));
   });
 
@@ -75,15 +64,18 @@ export const Graph: Component<{
       preserveAspectRatio={mergedProps.data.length <= 1 ? undefined : "none"}
       height={mergedProps.height}
       width={mergedProps.width}
-      viewBox={`${-mergedProps.weight / 2} ${-mergedProps.weight / 2} ${
+      viewBox={`${-mergedProps.weight / 2} ${-mergedProps.weight / 2} ${100 + mergedProps.weight} ${
         100 + mergedProps.weight
-      } ${100 + mergedProps.weight}`}
+      }`}
     >
       <Show
         when={mergedProps.data.length > 1}
         fallback={
           <Show when={mergedProps.data.length}>
-            <SinglePoint point={{ x: 50, y: 50 }} weight={mergedProps.weight} />
+            <SinglePoint
+              point={{ x: 50, y: 50 }}
+              weight={mergedProps.weight}
+            />
           </Show>
         }
       >
@@ -131,18 +123,9 @@ const Line: Component<{
   const fillInstructions = createMemo(() => {
     let path = instructions();
 
-    const maxX = props.data.reduce(
-      (maxX, point) => Math.max(point.x, maxX),
-      -Infinity
-    );
-    const minX = props.data.reduce(
-      (x, point) => Math.min(point.x, x),
-      Infinity
-    );
-    const maxY = props.data.reduce(
-      (maxY, point) => Math.max(point.y, maxY),
-      -Infinity
-    );
+    const maxX = props.data.reduce((maxX, point) => Math.max(point.x, maxX), -Infinity);
+    const minX = props.data.reduce((x, point) => Math.min(point.x, x), Infinity);
+    const maxY = props.data.reduce((maxY, point) => Math.max(point.y, maxY), -Infinity);
 
     path += ` L ${maxX} ${maxY} L ${minX} ${maxY}`;
     return path;

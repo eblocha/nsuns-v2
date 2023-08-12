@@ -38,7 +38,10 @@ export const CreateProfile: Component = () => {
         class="flex flex-col w-80 gap-4"
       >
         <h2 class="text-lg">Create Profile</h2>
-        <label for="name" class="flex flex-row items-center gap-2">
+        <label
+          for="name"
+          class="flex flex-row items-center gap-2"
+        >
           <span class="text-red-500">*</span>Name
           <div class="flex flex-col items-end flex-grow">
             <Input
@@ -52,7 +55,10 @@ export const CreateProfile: Component = () => {
         </label>
 
         <div class="float-right flex flex-row items-center justify-end w-full gap-2">
-          <A href="/" class="text-button text-center">
+          <A
+            href="/"
+            class="text-button text-center"
+          >
             Home
           </A>
           <button

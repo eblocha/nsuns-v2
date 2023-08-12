@@ -16,30 +16,19 @@ export type MovementFormControls = ControlGroup<{
 
 export const MovementForm: Component<{
   group: MovementFormControls;
-  mutationCreate?: CreateMutationResult<
-    Movement,
-    unknown,
-    CreateMovement,
-    unknown
-  >;
+  mutationCreate?: CreateMutationResult<Movement, unknown, CreateMovement, unknown>;
   mutationUpdate?: CreateMutationResult<Movement, unknown, Movement, unknown>;
   id?: string;
   confirmText: string;
   onSubmit?: () => void;
   onClose: () => void;
 }> = (props) => {
-  const isLoading = () =>
-    props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
+  const isLoading = () => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
 
-  const isError = () =>
-    props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
-  const error = () =>
-    props.mutationCreate?.error || props.mutationUpdate?.error;
+  const isError = () => props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
+  const error = () => props.mutationCreate?.error || props.mutationUpdate?.error;
 
-  const disableSubmit = () =>
-    isLoading() ||
-    props.group.hasErrors() ||
-    (props.mutationUpdate && !props.group.dirty());
+  const disableSubmit = () => isLoading() || props.group.hasErrors() || (props.mutationUpdate && !props.group.dirty());
 
   const onSubmit = () => {
     if (disableSubmit()) return;
@@ -102,7 +91,10 @@ export const MovementForm: Component<{
           class="primary-button w-40 flex flex-row items-center justify-center h-10"
           disabled={disableSubmit()}
         >
-          <Show when={!isLoading()} fallback={<Spinner class="animate-spin" />}>
+          <Show
+            when={!isLoading()}
+            fallback={<Spinner class="animate-spin" />}
+          >
             {props.confirmText}
           </Show>
         </button>

@@ -31,5 +31,4 @@ export const updateSet = async (set: UpdateProgramSet): Promise<ProgramSet> =>
     headers: bothJson().headers,
   }).then(json());
 
-export const deleteSet = async (id: string): Promise<void> =>
-  del(`${path}/${id}`).then(noContent());
+export const deleteSet = async (id: string): Promise<void> => del(`${path}/${id}`).then(noContent());

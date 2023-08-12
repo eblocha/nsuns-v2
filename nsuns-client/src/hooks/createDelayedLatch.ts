@@ -4,11 +4,7 @@ import { Accessor, createEffect, createSignal, on, onCleanup } from "solid-js";
  * Delay a signal becoming falsy. Set `invert` true to delay becoming truthy.
  * This will ensure the signal is truthy for at least `delay` ms
  */
-export const createDelayedLatch = <T>(
-  signal: Accessor<T>,
-  delay: number,
-  invert?: boolean
-) => {
+export const createDelayedLatch = <T>(signal: Accessor<T>, delay: number, invert?: boolean) => {
   const [delayed, setDelayed] = createSignal(signal());
 
   let timeout: ReturnType<typeof setTimeout>;

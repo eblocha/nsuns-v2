@@ -8,8 +8,7 @@ import { ChevronDown } from "../icons/ChevronDown";
 import { MovementData } from "./MovementData";
 import { plural } from "../util/setDisplay";
 
-const maxSummary = (amount?: number) =>
-  amount === undefined ? "" : `max ${amount} lb${plural(amount)}`;
+const maxSummary = (amount?: number) => (amount === undefined ? "" : `max ${amount} lb${plural(amount)}`);
 
 export const MovementItem: Component<{
   movement: Movement;
@@ -17,10 +16,7 @@ export const MovementItem: Component<{
   maxes?: Max[];
   reps?: Reps[];
 }> = (props) => {
-  const mergedProps = mergeProps(
-    { maxes: [] as Max[], reps: [] as Reps[] },
-    props
-  );
+  const mergedProps = mergeProps({ maxes: [] as Max[], reps: [] as Reps[] }, props);
 
   const [showForm, setShowForm] = createSignal(false);
   const [isExpanded, setIsExpanded] = createSignal(false);
@@ -46,18 +42,22 @@ export const MovementItem: Component<{
               {props.movement.name}
               <Show when={!isExpanded()}>
                 <span class="italic text-gray-400">
-                  {" " + maxSummary(
-                    mergedProps.maxes[mergedProps.maxes.length - 1]?.amount
-                  )}
+                  {" " + maxSummary(mergedProps.maxes[mergedProps.maxes.length - 1]?.amount)}
                 </span>
               </Show>
             </p>
             <p class="text-sm opacity-80">{props.movement.description}</p>
           </div>
-          <button class="text-button ml-auto" onClick={() => setShowForm(true)}>
+          <button
+            class="text-button ml-auto"
+            onClick={() => setShowForm(true)}
+          >
             <Edit class="text-gray-300" />
           </button>
-          <button class="text-button" onClick={() => setIsExpanded((e) => !e)}>
+          <button
+            class="text-button"
+            onClick={() => setIsExpanded((e) => !e)}
+          >
             <ChevronDown
               classList={{
                 "rotate-180": isExpanded(),

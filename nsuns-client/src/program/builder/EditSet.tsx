@@ -30,9 +30,7 @@ export const EditSet: Component<{
     amount: createControl<string>(props.set.amount.toString(), {
       validators: [required()],
     }),
-    maxMovementId: createControl<string>(
-      props.set.percentageOfMax?.toString() ?? ""
-    ),
+    maxMovementId: createControl<string>(props.set.percentageOfMax?.toString() ?? ""),
   });
 
   return (
