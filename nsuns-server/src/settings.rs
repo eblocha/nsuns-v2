@@ -97,7 +97,7 @@ impl<S: BuilderState> SetEnvOverride for ConfigBuilder<S> {
     }
 }
 
-fn env_bool<E>(env_var: E) -> bool
+fn bool_from_env<E>(env_var: E) -> bool
 where
     E: AsRef<OsStr>,
 {
@@ -132,9 +132,14 @@ impl Settings {
             .and_then(|cfg| cfg.try_deserialize())
             .with_context(|| format!("failed to parse settings from file: {config_source}"))
             .map(|mut settings: Settings| {
-                if env_bool("METRICS_DISABLE") {
+                if bool_from_env("METRICS_DISABLE") {
                     settings.metrics = Feature::Disabled;
                 }
+
+                if bool_from_env("OPENAPI_DISABLE") {
+                    settings.openapi = Feature::Disabled;
+                }
+
                 settings
             })
     }
