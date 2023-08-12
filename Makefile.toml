@@ -1,6 +1,9 @@
 [config]
 default_to_workspace = false
 skip_core_tasks = true
+skip_git_env_info = true
+skip_rust_env_info = true
+skip_crate_env_info = true
 
 [env]
 RPI_TARGET = "aarch64-unknown-linux-gnu"
@@ -44,23 +47,57 @@ dependencies = ["build"]
 
 # CI
 
-[tasks.test]
+[tasks.fmt-check-client]
 category = "CI"
-description = "Run tests."
+description = "Check client formatting."
+cwd = "${CLIENT_DIR}"
+command = "yarn"
+args = ["fmt-check"]
+
+[tasks.fmt-check-server]
+category = "CI"
+description = "Check server formatting."
 command = "cargo"
-args = ["test"]
+args = ["fmt", "--check"]
 
 [tasks.fmt-check]
 category = "CI"
 description = "Check formatting."
+dependencies = ["fmt-check-client", "fmt-check-server"]
+
+[tasks.lint-client]
+category = "CI"
+description = "Lint client code."
+cwd = "${CLIENT_DIR}"
+command = "yarn"
+args = ["lint"]
+
+[tasks.lint-server]
+category = "CI"
+description = "Lint server code."
 command = "cargo"
-args = ["fmt", "--check"]
+args = ["clippy"]
 
 [tasks.lint]
 category = "CI"
-description = "Lint."
+description = "Lint both client and server."
+dependencies = ["lint-client", "lint-server"]
+
+[tasks.test-client]
+category = "CI"
+description = "Run client tests."
+cwd = "${CLIENT_DIR}"
+
+[tasks.test-server]
+category = "CI"
+description = "Run server tests."
 command = "cargo"
-args = ["clippy"]
+args = ["test"]
+
+[tasks.test]
+category = "CI"
+description = "Run tests."
+dependencies = ["test-client", "test-server"]
 
 [tasks.ci]
 category = "CI"

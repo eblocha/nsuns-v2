@@ -13,7 +13,7 @@ export const NewProgram: Component = () => {
   const params = useParams<{ profileId: string }>();
   const navigateToProgram = useNavigateToProgram();
 
-  const name = createControl("", { validators: [required()] });
+  const name = createControl<string>("", { validators: [required()] });
 
   const mutation = useCreateProgram({
     onSuccess: (program) => {

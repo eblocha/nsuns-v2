@@ -5,9 +5,9 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "serve": "vite preview",
-    "lint": "eslint .",
+    "lint": "tsc && eslint .",
     "fmt-check": "prettier . --check",
     "fmt": "prettier . --write"
   },
