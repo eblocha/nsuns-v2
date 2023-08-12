@@ -94,12 +94,17 @@ export const useEditSet = <TError = unknown, TContext = unknown>(
   return mutation;
 };
 
+export type DeleteSetMeta = {
+  programId: string;
+  day: Day
+}
+
 export const useDeleteSet = <TError = unknown, TContext = unknown>(
   options?: Partial<
     CreateMutationOptions<
       void,
       TError,
-      { id: string; meta: { programId: string; day: Day } },
+      { id: string; meta: DeleteSetMeta },
       TContext
     >
   >

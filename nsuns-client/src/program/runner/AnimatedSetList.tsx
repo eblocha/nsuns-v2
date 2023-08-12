@@ -17,7 +17,7 @@ const dayOut = () => (direction() < 0 ? nextDay(day()) : prevDay(day()));
 export const AnimatedSetList: Component = () => {
   const { getSets, movementMap, movementsToMaxesMap } = useProgram();
 
-  let timeout: number;
+  let timeout: ReturnType<typeof setTimeout>;
 
   createEffect(
     on(direction, () => {

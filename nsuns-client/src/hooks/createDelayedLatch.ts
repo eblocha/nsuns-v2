@@ -11,7 +11,7 @@ export const createDelayedLatch = <T>(
 ) => {
   const [delayed, setDelayed] = createSignal(signal());
 
-  let timeout: number;
+  let timeout: ReturnType<typeof setTimeout>;
   let turnedTrue = performance.now();
 
   createEffect(

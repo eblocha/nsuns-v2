@@ -4,17 +4,13 @@ import { Select, SelectOption } from "../../forms/Select";
 import { Checkbox } from "../../forms/Checkbox";
 import { TextArea } from "../../forms/TextArea";
 import { CreateMutationResult } from "@tanstack/solid-query";
-import {
-  CreateProgramSet,
-  Movement,
-  SetDeleteMeta,
-  UpdateProgramSet,
-} from "../../api";
+import { CreateProgramSet, Movement, UpdateProgramSet } from "../../api";
 import { Spinner } from "../../icons/Spinner";
 import { Input } from "../../forms/Input";
 import { Warning } from "../../icons/Warning";
 import { displayError } from "../../util/errors";
 import { Day } from "../../util/days";
+import { DeleteSetMeta } from "../../hooks/queries/sets";
 
 export type SetFormControls = ControlGroup<{
   movementId: Control<string>;
@@ -45,7 +41,7 @@ export const SetForm: Component<{
   mutationDelete?: CreateMutationResult<
     unknown,
     unknown,
-    { id: string; meta: SetDeleteMeta },
+    { id: string; meta: DeleteSetMeta },
     unknown
   >;
   id?: string;
