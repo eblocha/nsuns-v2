@@ -14,17 +14,20 @@ DEFAULT_CONFIG_SOURCE = "config/settings.toml"
 # BUILD
 
 [tasks.build-client]
+category = "Build"
 description = "Bundles client assets."
 cwd = "${CLIENT_DIR}"
 command = "yarn"
 args = ["build", "--assetsDir=.", "--outDir=../dist/assets", "--emptyOutDir"]
 
 [tasks.build-server-rpi]
+category = "Build"
 description = "Compiles the server for the raspberry pi architecture."
 command = "cargo"
 args = ["build", "--release", "--target=${RPI_TARGET}"]
 
 [tasks.build]
+category = "Build"
 description = "Builds client and server, then packages all assets into ./dist."
 dependencies = ["build-client", "build-server-rpi"]
 script = '''
@@ -34,27 +37,42 @@ cp "${SERVER_CONFIG}" "./dist/${DEFAULT_CONFIG_SOURCE}"
 cp -r "${SERVER_DIR}/db" ./dist
 '''
 
+[tasks.default]
+description = "Runs the build task"
+category = "Default"
+dependencies = ["build"]
+
 # CI
 
 [tasks.test]
+category = "CI"
+description = "Run tests."
 command = "cargo"
 args = ["test"]
 
 [tasks.fmt-check]
+category = "CI"
+description = "Check formatting."
 command = "cargo"
 args = ["fmt", "--check"]
 
 [tasks.ci]
+category = "CI"
+description = "Run the full CI pipeline."
 dependencies = ["fmt-check", "test", "build"]
 
 # RUN
 
 [tasks.run-client]
+category = "Run"
+description = "Run the client locally in dev mode."
 cwd = "${CLIENT_DIR}"
 command = "yarn"
 args = ["dev"]
 
 [tasks.run-server]
+category = "Run"
+description = "Run the server locally in dev mode."
 cwd = "${SERVER_DIR}"
 command = "cargo"
 args = ["run", "${@}"]
