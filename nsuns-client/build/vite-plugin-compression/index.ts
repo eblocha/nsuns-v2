@@ -111,7 +111,7 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
     },
     closeBundle: async () => {
       if (opts.verbose) {
-        config.logger.info(chalk.cyan(name));
+        config.logger.info(chalk.cyan(name) + " " + chalk.green(opts.algorithm));
       }
 
       const toCompress: FileInfo[] = [];
