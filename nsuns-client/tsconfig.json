@@ -13,5 +13,6 @@
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
     "incremental": true
-  }
+  },
+  "include": ["**/*.ts", "**/*.mts"]
 }

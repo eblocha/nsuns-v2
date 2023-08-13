@@ -1,11 +1,11 @@
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
-import viteCompression from "vite-plugin-compression";
+import compress from "./build/vite-plugin-compression";
 
 export default defineConfig({
   plugins: [
     solidPlugin(),
-    viteCompression({
+    compress({
       filter: /\.(js|css|ico)$/i,
     }),
   ],
