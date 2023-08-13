@@ -10,27 +10,29 @@ async function exists(path: string) {
 
 export type FileInfo = {
   path: string;
-  size: number;
+  stats: fs.Stats;
 };
 
 /**
  * recursively iterate over the files in the provided path.
- * @param test A test function to filter out unwanted files.
  */
-export async function* files(p: string, test?: (path: string) => boolean): AsyncGenerator<FileInfo, void, void> {
+export async function* files(p: string): AsyncGenerator<FileInfo, void, void> {
   if (!(await exists(p))) return;
 
-  const stat = await fs.promises.stat(p);
+  const stats = await fs.promises.stat(p);
 
-  if (stat.isDirectory()) {
+  if (stats.isDirectory()) {
     for (const dirent of await fs.promises.readdir(p, { withFileTypes: true })) {
-      for await (const result of files(path.join(dirent.path, dirent.name), test)) {
+      for await (const result of files(path.join(dirent.path, dirent.name))) {
         yield result;
       }
     }
   }
 
-  if (!test || test(p)) {
-    yield { path: p, size: stat.size };
-  }
+  const info: FileInfo = {
+    path: p,
+    stats,
+  };
+
+  yield info;
 }
