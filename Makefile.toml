@@ -29,6 +29,9 @@ description = "Compiles the server for the raspberry pi architecture."
 command = "cargo"
 args = ["build", "--release", "--target=${RPI_TARGET}"]
 
+[tasks.build-server-rpi.env]
+RUSTFLAGS = "-C target-feature=+crt-static -C strip=symbols"
+
 [tasks.build]
 category = "Build"
 description = "Builds client and server, then packages all assets into ./dist."
