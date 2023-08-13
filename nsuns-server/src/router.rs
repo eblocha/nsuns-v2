@@ -43,6 +43,8 @@ where
         if let Some(ref static_dir) = static_dir {
             let serve_dir = ServeDir::new(static_dir)
                 .precompressed_gzip()
+                .precompressed_br()
+                .precompressed_deflate()
                 .not_found_service(ServeFile::new(format!("{static_dir}/index.html")));
 
             self.fallback_service(serve_dir)

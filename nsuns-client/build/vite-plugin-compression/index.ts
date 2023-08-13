@@ -4,19 +4,25 @@ import * as zlib from "zlib";
 import chalk from "chalk";
 import { Plugin, ResolvedConfig, normalizePath } from "vite";
 import { FileInfo, files } from "./fs";
+import { Transform } from "stream";
 
 export type FileTestFn = (info: FileInfo) => boolean;
+
+export type Algorithm = "gzip" | "deflate" | "brotli";
 
 export type PluginOptions = {
   filter: RegExp | FileTestFn;
   minSize: number;
-  summary: boolean;
+  verbose: boolean;
+  algorithm: Algorithm;
+  ext?: string;
 };
 
 const defaultOptions: PluginOptions = {
   filter: /\.(html|css|js|json|mjs)$/i,
   minSize: 1024,
-  summary: true,
+  verbose: true,
+  algorithm: "gzip",
 };
 
 type CompressionResult = {
@@ -30,14 +36,36 @@ type CompressionResultDisplay = {
   size: string;
 };
 
+const getExt = (algorithm: Algorithm): string => {
+  switch (algorithm) {
+    case "gzip":
+      return ".gz";
+    case "brotli":
+      return ".br";
+    case "deflate":
+      return ".zz";
+  }
+};
+
+const getTransform = (algorithm: Algorithm): Transform => {
+  switch (algorithm) {
+    case "gzip":
+      return zlib.createGzip();
+    case "brotli":
+      return zlib.createBrotliCompress();
+    case "deflate":
+      return zlib.createDeflate();
+  }
+};
+
 const displaySize = (bytes: number): string => {
   return `${(bytes / 1000).toFixed(2)} kB`;
 };
 
-const highlightFileName = (name: string): string => {
+const highlightFileName = (name: string, ignoreExt?: string): string => {
   const parsed = path.parse(name);
 
-  const ext = parsed.ext == ".gz" ? path.parse(parsed.name).ext : parsed.ext;
+  const ext = parsed.ext == ignoreExt ? path.parse(parsed.name).ext : parsed.ext;
 
   switch (ext.toLowerCase()) {
     case ".css":
@@ -69,6 +97,8 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
           return info.stats.size >= opts.minSize && (opts.filter as FileTestFn)(info);
         };
 
+  const ext = opts.ext || getExt(opts.algorithm);
+
   return {
     name,
     apply: "build",
@@ -80,6 +110,10 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
         : path.resolve(resolved.root, resolved.build.outDir);
     },
     closeBundle: async () => {
+      if (opts.verbose) {
+        config.logger.info(chalk.cyan(name));
+      }
+
       const toCompress: FileInfo[] = [];
 
       for await (const info of files(outputPath)) {
@@ -94,11 +128,11 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
             new Promise<CompressionResult>((resolve, reject) => {
               let total = 0;
 
-              const outputPath = info.path + ".gz";
+              const outputPath = info.path + ext;
 
               return fs
                 .createReadStream(info.path)
-                .pipe(zlib.createGzip())
+                .pipe(getTransform(opts.algorithm))
                 .on("data", (chunk: { length: number }) => {
                   total += chunk.length;
                 })
@@ -115,12 +149,12 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
         )
       );
 
-      if (results.length == 0 || !opts.summary) return;
+      if (results.length == 0 || !opts.verbose) return;
 
       const displayResults: CompressionResultDisplay[] = results.map((result) => {
         const assetPath = normalizePath(path.relative(outputPath, result.path));
-        const prettifiedPath = chalk.dim(config.build.outDir + "/") + highlightFileName(assetPath);
-        const size = chalk.dim.bold(`${displaySize(result.compressedBytes)}`);
+        const prettifiedPath = chalk.dim(config.build.outDir + "/") + highlightFileName(assetPath, ext);
+        const size = chalk.dim.bold(displaySize(result.compressedBytes));
 
         return {
           path: prettifiedPath,
@@ -130,8 +164,6 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
 
       const longestPath = displayResults.reduce((max, result) => Math.max(max, result.path.length), 0);
       const longestSize = displayResults.reduce((max, result) => Math.max(max, result.size.length), 0);
-
-      config.logger.info(chalk.cyan(name));
 
       for (const result of displayResults) {
         const spacing = " ".repeat(longestPath + longestSize - result.path.length - result.size.length);
