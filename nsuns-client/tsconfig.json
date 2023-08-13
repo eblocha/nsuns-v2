@@ -14,5 +14,5 @@
     "noUncheckedIndexedAccess": true,
     "incremental": true
   },
-  "include": ["**/*.ts", "**/*.mts"]
+  "include": ["**/*.ts", "**/*.mts", "**/*.tsx"]
 }
