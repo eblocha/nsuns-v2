@@ -130,8 +130,7 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
 
               const outputPath = info.path + ext;
 
-              return fs
-                .createReadStream(info.path)
+              fs.createReadStream(info.path)
                 .pipe(getTransform(opts.algorithm))
                 .on("data", (chunk: { length: number }) => {
                   total += chunk.length;
