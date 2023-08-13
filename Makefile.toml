@@ -41,6 +41,7 @@ cp "target/${RPI_TARGET}/release/nsuns-server" ./dist
 mkdir -p "./dist/$(dirname $DEFAULT_CONFIG_SOURCE)"
 cp "${SERVER_CONFIG}" "./dist/${DEFAULT_CONFIG_SOURCE}"
 cp -r "${SERVER_DIR}/db" ./dist
+cp docker-compose.yml ./dist
 '''
 
 [tasks.default]
