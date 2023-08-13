@@ -91,6 +91,8 @@ dependencies = ["lint-client", "lint-server"]
 category = "CI"
 description = "Run client tests."
 cwd = "${CLIENT_DIR}"
+command = "yarn"
+args = ["test"]
 
 [tasks.test-server]
 category = "CI"

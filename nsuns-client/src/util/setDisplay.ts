@@ -29,7 +29,7 @@ export type Section = {
   sets: { set: ProgramSet; index: number }[];
 };
 
-export const getSections = (sets: ProgramSet[], movements: Record<string, Movement>) => {
+export const getSections = (sets: ProgramSet[], movements: Record<string, Movement>): Section[] => {
   const sections: Section[] = [];
 
   let currentSection: Section | null = null;
