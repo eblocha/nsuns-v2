@@ -3,3 +3,7 @@ members = ["nsuns-server"]
 # Only check / build main crates by default (check all with `--workspace`)
 default-members = ["nsuns-server"]
 resolver = "2"
+
+[profile.release]
+lto = "thin"
+strip = true
