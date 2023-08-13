@@ -151,8 +151,11 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
       if (results.length == 0 || !opts.verbose) return;
 
       const displayResults: CompressionResultDisplay[] = results.map((result) => {
-        const assetPath = normalizePath(path.relative(outputPath, result.path));
-        const prettifiedPath = chalk.dim(config.build.outDir + "/") + highlightFileName(assetPath, ext);
+        const asset = path.join(config.build.outDir, path.relative(outputPath, result.path));
+        const assetDir = path.dirname(asset);
+        const assetName = path.basename(asset);
+
+        const prettifiedPath = chalk.dim(normalizePath(assetDir) + "/") + highlightFileName(assetName, ext);
         const size = chalk.dim.bold(displaySize(result.compressedBytes));
 
         return {
