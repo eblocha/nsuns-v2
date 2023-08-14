@@ -7,7 +7,7 @@ export default defineConfig({
     solidPlugin(),
     compress({
       filter: /\.(js|css|ico)$/i,
-      algorithm: "brotli"
+      algorithm: "brotli",
     }),
   ],
   server: {
