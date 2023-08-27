@@ -23,10 +23,8 @@ async fn main() -> Result<()> {
     let api_future = api_server(&settings);
 
     if let MetricsFeature::Enabled(ref metrics_settings) = settings.metrics {
-        let (api_server, metrics_server) =
-            tokio::join!(api_future, metrics_server(metrics_settings));
-
-        api_server.and(metrics_server).log_error()
+        tokio::try_join!(api_future, metrics_server(metrics_settings)).log_error()?;
+        Ok(())
     } else {
         api_future.await.log_error()
     }
