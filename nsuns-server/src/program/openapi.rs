@@ -10,7 +10,7 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::{created, id_path_param, ok, param_in_default, JsonContent},
+    openapi::extensions::{created, id_path_param, ok, param_in_default, JsonContent},
     router::PROGRAMS_PATH,
 };
 

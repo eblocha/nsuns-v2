@@ -1,10 +1,5 @@
 use anyhow::{Context, Result};
-use nsuns_server::{
-    api_server,
-    error::LogError,
-    metrics::metrics_server,
-    settings::{MetricsFeature, Settings},
-};
+use nsuns_server::{api_server, error::LogError, metrics::metrics_server, settings::Settings};
 use tracing_subscriber::prelude::*;
 
 #[tokio::main]
@@ -22,10 +17,6 @@ async fn main() -> Result<()> {
 
     let api_future = api_server(&settings);
 
-    if let MetricsFeature::Enabled(ref metrics_settings) = settings.metrics {
-        tokio::try_join!(api_future, metrics_server(metrics_settings)).log_error()?;
-        Ok(())
-    } else {
-        api_future.await.log_error()
-    }
+    tokio::try_join!(api_future, metrics_server(&settings.metrics)).log_error()?;
+    Ok(())
 }

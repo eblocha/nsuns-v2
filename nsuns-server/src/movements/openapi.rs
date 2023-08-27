@@ -9,7 +9,7 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::{created, ok, JsonContent},
+    openapi::extensions::{created, ok, JsonContent},
     router::MOVEMENTS_PATH,
 };
 

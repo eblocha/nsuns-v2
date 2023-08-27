@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+use crate::feature::Feature;
+
 fn default_metrics_port() -> u16 {
     9100
 }
@@ -22,5 +24,13 @@ impl Default for MetricsSettings {
             port: default_metrics_port(),
             path: default_metrics_path(),
         }
+    }
+}
+
+pub type MetricsFeature = Feature<MetricsSettings>;
+
+impl Default for MetricsFeature {
+    fn default() -> Self {
+        Self::Enabled(Default::default())
     }
 }

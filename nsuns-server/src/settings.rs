@@ -8,8 +8,8 @@ use config::{builder::BuilderState, Config, ConfigBuilder, File};
 use serde::Deserialize;
 
 use crate::{
-    db::DatabaseSettings, feature::Feature, metrics::settings::MetricsSettings,
-    router::OpenApiSettings,
+    db::DatabaseSettings, feature::Feature, metrics::settings::MetricsFeature,
+    openapi::settings::OpenApiFeature,
 };
 
 fn default_server_port() -> u16 {
@@ -30,22 +30,6 @@ impl Default for ServerSettings {
             port: default_server_port(),
             static_dir: Default::default(),
         }
-    }
-}
-
-pub type MetricsFeature = Feature<MetricsSettings>;
-
-impl Default for MetricsFeature {
-    fn default() -> Self {
-        Self::Enabled(Default::default())
-    }
-}
-
-pub type OpenApiFeature = Feature<OpenApiSettings>;
-
-impl Default for OpenApiFeature {
-    fn default() -> Self {
-        Self::Disabled
     }
 }
 

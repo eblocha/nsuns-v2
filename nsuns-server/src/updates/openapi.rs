@@ -8,7 +8,7 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::{ok, JsonContent},
+    openapi::extensions::{ok, JsonContent},
     router::UPDATES_PATH,
 };
 

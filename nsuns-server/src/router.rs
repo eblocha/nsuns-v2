@@ -1,7 +1,6 @@
 use std::{fmt::Display, path::Path};
 
-use axum::{middleware, Router};
-use serde::Deserialize;
+use axum::Router;
 use tower_http::{
     catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
@@ -10,12 +9,8 @@ use tower_http::{
 use tracing::Level;
 
 use crate::{
-    db::Pool,
-    maxes,
-    metrics::middleware::track_metrics,
-    movements, profiles, program, reps, sets,
-    settings::{OpenApiFeature, Settings},
-    updates,
+    db::Pool, maxes, metrics::middleware::WithMetrics, movements, openapi::WithOpenApi, profiles,
+    program, reps, sets, settings::Settings, updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -50,63 +45,8 @@ where
     }
 }
 
-fn default_swagger_path() -> String {
-    "/swagger-ui".to_string()
-}
-
-fn default_openapi_path() -> String {
-    "/api-docs/openapi.json".to_string()
-}
-
-#[derive(Debug, Deserialize)]
-pub struct OpenApiSettings {
-    #[serde(default = "default_swagger_path")]
-    pub swagger_path: String,
-    #[serde(default = "default_openapi_path")]
-    pub openapi_path: String,
-}
-
-impl Default for OpenApiSettings {
-    fn default() -> Self {
-        Self {
-            swagger_path: default_swagger_path(),
-            openapi_path: default_openapi_path(),
-        }
-    }
-}
-
-trait WithOpenApi {
-    fn with_openapi(self, settings: &OpenApiFeature) -> Self;
-}
-
-impl<S> WithOpenApi for Router<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
-    #[cfg(feature = "openapi")]
-    fn with_openapi(self, settings: &OpenApiFeature) -> Self {
-        use crate::{feature::Feature, openapi::ApiDoc};
-        use utoipa::OpenApi;
-        use utoipa_swagger_ui::SwaggerUi;
-
-        if let Feature::Enabled(config) = settings {
-            self.merge(
-                SwaggerUi::new(config.swagger_path.clone())
-                    .url(config.openapi_path.clone(), ApiDoc::openapi()),
-            )
-        } else {
-            self
-        }
-    }
-
-    #[cfg(not(feature = "openapi"))]
-    fn with_openapi(self, _settings: &OpenApiFeature) -> Self {
-        self
-    }
-}
-
 pub fn router(pool: Pool, settings: &Settings) -> Router {
-    let app = Router::new()
+    Router::new()
         .nest(PROFILES_PATH, profiles::router())
         .nest(PROGRAMS_PATH, program::router())
         .nest(SETS_PATH, sets::router())
@@ -122,11 +62,6 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
         .with_state(pool)
-        .static_files(settings.server.static_dir.as_ref());
-
-    if settings.metrics.is_enabled() {
-        app.route_layer(middleware::from_fn(track_metrics))
-    } else {
-        app
-    }
+        .static_files(settings.server.static_dir.as_ref())
+        .with_metrics(&settings.metrics)
 }
