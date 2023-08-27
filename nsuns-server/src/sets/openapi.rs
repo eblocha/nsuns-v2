@@ -4,13 +4,13 @@ use utoipa::{
         path::{OperationBuilder, PathItemBuilder},
         request_body::RequestBodyBuilder,
         response::Response,
-        ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
+        ComponentsBuilder, PathItemType, PathsBuilder, ResponseBuilder,
     },
     ToSchema,
 };
 
 use crate::{
-    openapi::{created, id_path_param, no_content, ok, APPLICATION_JSON},
+    openapi::{created, id_path_param, no_content, ok, JsonContent},
     router::SETS_PATH,
 };
 
@@ -29,9 +29,7 @@ impl WithSetsDefinition for ComponentsBuilder {
 }
 
 fn set_response() -> Response {
-    ResponseBuilder::new()
-        .content(APPLICATION_JSON, Content::new(Set::schema().1))
-        .build()
+    ResponseBuilder::new().json_content(Set::schema().1).build()
 }
 
 const TAG: &str = "Sets";
@@ -41,7 +39,7 @@ impl WithSetsDefinition for PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(CreateSet::schema().1))
+                    .json_content(CreateSet::schema().1)
                     .build(),
             ))
             .response(created(), set_response())
@@ -51,7 +49,7 @@ impl WithSetsDefinition for PathsBuilder {
         let put_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(UpdateSet::schema().1))
+                    .json_content(UpdateSet::schema().1)
                     .build(),
             ))
             .response(ok(), set_response())

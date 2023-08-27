@@ -2,7 +2,9 @@ use axum::http::StatusCode;
 use utoipa::{
     openapi::{
         path::{Parameter, ParameterBuilder, ParameterIn},
-        ComponentsBuilder, Info, OpenApiBuilder, PathsBuilder, Required,
+        request_body::RequestBodyBuilder,
+        ComponentsBuilder, Content, Info, OpenApiBuilder, PathsBuilder, RefOr, Required,
+        ResponseBuilder, Schema,
     },
     OpenApi,
 };
@@ -70,5 +72,29 @@ impl OpenApi for ApiDoc {
             .paths(paths)
             .components(Some(components))
             .build()
+    }
+}
+
+pub trait JsonContent {
+    fn json_content<S>(self, schema: S) -> Self
+    where
+        S: Into<RefOr<Schema>>;
+}
+
+impl JsonContent for ResponseBuilder {
+    fn json_content<S>(self, schema: S) -> Self
+    where
+        S: Into<RefOr<Schema>>,
+    {
+        self.content(APPLICATION_JSON, Content::new(schema))
+    }
+}
+
+impl JsonContent for RequestBodyBuilder {
+    fn json_content<S>(self, schema: S) -> Self
+    where
+        S: Into<RefOr<Schema>>,
+    {
+        self.content(APPLICATION_JSON, Content::new(schema))
     }
 }

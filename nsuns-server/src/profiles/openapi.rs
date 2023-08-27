@@ -4,13 +4,13 @@ use utoipa::{
         path::{OperationBuilder, PathItemBuilder},
         request_body::RequestBodyBuilder,
         response::Response,
-        ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
+        ComponentsBuilder, PathItemType, PathsBuilder, ResponseBuilder,
     },
     PartialSchema, ToSchema,
 };
 
 use crate::{
-    openapi::{created, id_path_param, ok, APPLICATION_JSON},
+    openapi::{created, id_path_param, ok, JsonContent},
     router::PROFILES_PATH,
 };
 
@@ -28,7 +28,7 @@ impl WithProfilesDefinition for ComponentsBuilder {
 
 fn profile_response() -> Response {
     ResponseBuilder::new()
-        .content(APPLICATION_JSON, Content::new(Profile::schema().1))
+        .json_content(Profile::schema().1)
         .build()
 }
 
@@ -40,7 +40,7 @@ impl WithProfilesDefinition for PathsBuilder {
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Vec::<Profile>::schema()))
+                    .json_content(Vec::<Profile>::schema())
                     .build(),
             )
             .tag(TAG)
@@ -55,7 +55,7 @@ impl WithProfilesDefinition for PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(CreateProfile::schema().1))
+                    .json_content(CreateProfile::schema().1)
                     .build(),
             ))
             .response(created(), profile_response())
@@ -65,7 +65,7 @@ impl WithProfilesDefinition for PathsBuilder {
         let put_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Profile::schema().1))
+                    .json_content(Profile::schema().1)
                     .build(),
             ))
             .response(ok(), profile_response())

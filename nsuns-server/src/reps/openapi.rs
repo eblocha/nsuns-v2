@@ -3,13 +3,13 @@ use utoipa::{
         path::{OperationBuilder, PathItemBuilder},
         request_body::RequestBodyBuilder,
         response::Response,
-        ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
+        ComponentsBuilder, PathItemType, PathsBuilder, ResponseBuilder,
     },
     IntoParams, PartialSchema, ToSchema,
 };
 
 use crate::{
-    openapi::{created, ok, param_in_default, APPLICATION_JSON},
+    openapi::{created, ok, param_in_default, JsonContent},
     router::REPS_PATH,
 };
 
@@ -32,7 +32,7 @@ impl WithRepsDefinition for ComponentsBuilder {
 
 fn reps_response() -> Response {
     ResponseBuilder::new()
-        .content(APPLICATION_JSON, Content::new(Reps::schema().1))
+        .json_content(Reps::schema().1)
         .build()
 }
 
@@ -45,7 +45,7 @@ impl WithRepsDefinition for PathsBuilder {
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Vec::<Reps>::schema()))
+                    .json_content(Vec::<Reps>::schema())
                     .build(),
             )
             .tag(TAG)
@@ -54,7 +54,7 @@ impl WithRepsDefinition for PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(CreateReps::schema().1))
+                    .json_content(CreateReps::schema().1)
                     .build(),
             ))
             .response(created(), reps_response())
@@ -64,7 +64,7 @@ impl WithRepsDefinition for PathsBuilder {
         let put_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(CreateReps::schema().1))
+                    .json_content(CreateReps::schema().1)
                     .build(),
             ))
             .response(ok(), reps_response())

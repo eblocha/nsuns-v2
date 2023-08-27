@@ -2,13 +2,13 @@ use utoipa::{
     openapi::{
         path::{OperationBuilder, PathItemBuilder},
         request_body::RequestBodyBuilder,
-        ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
+        ComponentsBuilder, PathItemType, PathsBuilder, ResponseBuilder,
     },
     ToSchema,
 };
 
 use crate::{
-    openapi::{ok, APPLICATION_JSON},
+    openapi::{ok, JsonContent},
     router::UPDATES_PATH,
 };
 
@@ -34,13 +34,13 @@ impl WithUpdatesDefinition for PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Updates::schema().1))
+                    .json_content(Updates::schema().1)
                     .build(),
             ))
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(UpdatedState::schema().1))
+                    .json_content(UpdatedState::schema().1)
                     .description("The new maxes and reps as a result of the updates")
                     .build(),
             )
@@ -53,13 +53,13 @@ impl WithUpdatesDefinition for PathsBuilder {
         let delete_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Updates::schema().1))
+                    .json_content(Updates::schema().1)
                     .build(),
             ))
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Removed::schema().1))
+                    .json_content(Removed::schema().1)
                     .description("The reps and maxes that were removed")
                     .build(),
             )

@@ -4,13 +4,13 @@ use utoipa::{
         path::{OperationBuilder, PathItemBuilder},
         request_body::RequestBodyBuilder,
         response::Response,
-        ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
+        ComponentsBuilder, PathItemType, PathsBuilder, ResponseBuilder,
     },
     IntoParams, PartialSchema, ToSchema,
 };
 
 use crate::{
-    openapi::{created, id_path_param, ok, param_in_default, APPLICATION_JSON},
+    openapi::{created, id_path_param, ok, param_in_default, JsonContent},
     router::PROGRAMS_PATH,
 };
 
@@ -34,7 +34,7 @@ impl WithProgramsDefintions for ComponentsBuilder {
 
 fn program_response() -> Response {
     ResponseBuilder::new()
-        .content(APPLICATION_JSON, Content::new(ProgramMeta::schema().1))
+        .json_content(ProgramMeta::schema().1)
         .build()
 }
 
@@ -47,7 +47,7 @@ impl WithProgramsDefintions for PathsBuilder {
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Vec::<ProgramMeta>::schema()))
+                    .json_content(Vec::<ProgramMeta>::schema())
                     .build(),
             )
             .tag(TAG)
@@ -56,7 +56,7 @@ impl WithProgramsDefintions for PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(CreateProgram::schema().1))
+                    .json_content(CreateProgram::schema().1)
                     .build(),
             ))
             .response(created(), program_response())
@@ -66,7 +66,7 @@ impl WithProgramsDefintions for PathsBuilder {
         let put_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(UpdateProgram::schema().1))
+                    .json_content(UpdateProgram::schema().1)
                     .build(),
             ))
             .response(ok(), program_response())
@@ -86,7 +86,7 @@ impl WithProgramsDefintions for PathsBuilder {
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(ProgramSummary::schema().1))
+                    .json_content(ProgramSummary::schema().1)
                     .build(),
             )
             .tag(TAG)

@@ -3,13 +3,13 @@ use utoipa::{
         path::{OperationBuilder, PathItemBuilder},
         request_body::RequestBodyBuilder,
         response::Response,
-        ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
+        ComponentsBuilder, PathItemType, PathsBuilder, ResponseBuilder,
     },
     PartialSchema, ToSchema,
 };
 
 use crate::{
-    openapi::{created, ok, APPLICATION_JSON},
+    openapi::{created, ok, JsonContent},
     router::MOVEMENTS_PATH,
 };
 
@@ -28,7 +28,7 @@ impl WithMovementsDefinition for ComponentsBuilder {
 
 fn movement_response() -> Response {
     ResponseBuilder::new()
-        .content(APPLICATION_JSON, Content::new(Movement::schema().1))
+        .json_content(Movement::schema().1)
         .build()
 }
 
@@ -40,7 +40,7 @@ impl WithMovementsDefinition for PathsBuilder {
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Vec::<Movement>::schema()))
+                    .json_content(Vec::<Movement>::schema())
                     .build(),
             )
             .tag(TAG)
@@ -49,7 +49,7 @@ impl WithMovementsDefinition for PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(CreateMovement::schema().1))
+                    .json_content(CreateMovement::schema().1)
                     .build(),
             ))
             .response(created(), movement_response())
@@ -59,7 +59,7 @@ impl WithMovementsDefinition for PathsBuilder {
         let put_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Movement::schema().1))
+                    .json_content(Movement::schema().1)
                     .build(),
             ))
             .response(ok(), movement_response())

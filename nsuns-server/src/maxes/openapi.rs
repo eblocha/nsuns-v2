@@ -3,13 +3,13 @@ use utoipa::{
         path::{OperationBuilder, PathItemBuilder},
         request_body::RequestBodyBuilder,
         response::Response,
-        ComponentsBuilder, Content, PathItemType, PathsBuilder, ResponseBuilder,
+        ComponentsBuilder, PathItemType, PathsBuilder, ResponseBuilder,
     },
     IntoParams, PartialSchema, ToSchema,
 };
 
 use crate::{
-    openapi::{created, ok, param_in_default, APPLICATION_JSON},
+    openapi::{created, ok, param_in_default, JsonContent},
     router::MAXES_PATH,
 };
 
@@ -31,9 +31,7 @@ impl WithMaxesDefinition for ComponentsBuilder {
 }
 
 fn max_response() -> Response {
-    ResponseBuilder::new()
-        .content(APPLICATION_JSON, Content::new(Max::schema().1))
-        .build()
+    ResponseBuilder::new().json_content(Max::schema().1).build()
 }
 
 const TAG: &str = "Maxes";
@@ -45,7 +43,7 @@ impl WithMaxesDefinition for PathsBuilder {
             .response(
                 ok(),
                 ResponseBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(Vec::<Max>::schema()))
+                    .json_content(Vec::<Max>::schema())
                     .build(),
             )
             .tag(TAG)
@@ -54,7 +52,7 @@ impl WithMaxesDefinition for PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(CreateMax::schema().1))
+                    .json_content(CreateMax::schema().1)
                     .build(),
             ))
             .response(created(), max_response())
@@ -64,7 +62,7 @@ impl WithMaxesDefinition for PathsBuilder {
         let put_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
-                    .content(APPLICATION_JSON, Content::new(UpdateMax::schema().1))
+                    .json_content(UpdateMax::schema().1)
                     .build(),
             ))
             .response(ok(), max_response())
