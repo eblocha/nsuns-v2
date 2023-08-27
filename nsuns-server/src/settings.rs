@@ -57,10 +57,9 @@ trait SetEnvOverride {
 
     /// Convenience method to unwrap a result from `set_env_override`.
     /// This is useful if the config key is static, and known to parse correctly.
-    fn set_env_override_unwrap<K, E>(self, key: K, env_var: E) -> Self
+    fn set_env_override_unwrap<E>(self, key: &'static str, env_var: E) -> Self
     where
         Self: Sized,
-        K: AsRef<str>,
         E: AsRef<OsStr>,
     {
         self.set_env_override(key, env_var).unwrap()
