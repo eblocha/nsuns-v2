@@ -4,7 +4,7 @@ use crate::db::Pool;
 
 use super::handler::{create_movement, movements_index, update_movement};
 
-pub fn movements_router() -> Router<Pool> {
+pub fn router() -> Router<Pool> {
     Router::new().route(
         "/",
         get(movements_index)

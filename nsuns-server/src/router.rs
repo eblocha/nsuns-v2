@@ -11,15 +11,11 @@ use tracing::Level;
 
 use crate::{
     db::Pool,
-    maxes::router::maxes_router,
+    maxes,
     metrics::middleware::track_metrics,
-    movements::router::movements_router,
-    profiles::router::profiles_router,
-    program::router::programs_router,
-    reps::router::reps_router,
-    sets::router::sets_router,
+    movements, profiles, program, reps, sets,
     settings::{OpenApiFeature, Settings},
-    updates::router::updates_router,
+    updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -111,13 +107,13 @@ where
 
 pub fn router(pool: Pool, settings: &Settings) -> Router {
     let app = Router::new()
-        .nest(PROFILES_PATH, profiles_router())
-        .nest(PROGRAMS_PATH, programs_router())
-        .nest(SETS_PATH, sets_router())
-        .nest(MOVEMENTS_PATH, movements_router())
-        .nest(MAXES_PATH, maxes_router())
-        .nest(REPS_PATH, reps_router())
-        .nest(UPDATES_PATH, updates_router())
+        .nest(PROFILES_PATH, profiles::router())
+        .nest(PROGRAMS_PATH, program::router())
+        .nest(SETS_PATH, sets::router())
+        .nest(MOVEMENTS_PATH, movements::router())
+        .nest(MAXES_PATH, maxes::router())
+        .nest(REPS_PATH, reps::router())
+        .nest(UPDATES_PATH, updates::router())
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
         .layer(

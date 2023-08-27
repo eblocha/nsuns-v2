@@ -4,7 +4,7 @@ use crate::db::Pool;
 
 use super::handler::{create_profile, delete_profile, get_profile, profiles_index, update_profile};
 
-pub fn profiles_router() -> Router<Pool> {
+pub fn router() -> Router<Pool> {
     Router::new()
         .route(
             "/",

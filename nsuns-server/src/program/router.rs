@@ -6,7 +6,7 @@ use super::handler::{
     create_program, delete_program, profile_programs, program_summary, update_program,
 };
 
-pub fn programs_router() -> Router<Pool> {
+pub fn router() -> Router<Pool> {
     Router::new()
         .route(
             "/",
