@@ -25,6 +25,15 @@ pub struct UpdatedState {
     pub reps: Vec<Reps>,
 }
 
+fn get_inc_amount(latest_reps: Option<i32>) -> f64 {
+    match latest_reps {
+        Some(reps) if reps >= 6 => 15_f64,
+        Some(reps) if (4..=5).contains(&reps) => 10_f64,
+        Some(reps) if (2..=3).contains(&reps) => 5_f64,
+        _ => 0_f64,
+    }
+}
+
 async fn run_updates(
     tx: &mut Transaction<'_, DB>,
     updates: Updates,
@@ -39,15 +48,7 @@ async fn run_updates(
             let latest_reps =
                 Reps::select_latest(movement_id, updates.profile_id, &mut **tx).await?;
 
-            let inc = match latest_reps {
-                Some(reps) => match reps.amount {
-                    Some(amt) if amt >= 6 => 15_f64,
-                    Some(amt) if (4..=5).contains(&amt) => 10_f64,
-                    Some(amt) if (2..=3).contains(&amt) => 5_f64,
-                    _ => 0_f64,
-                },
-                _ => 0_f64,
-            };
+            let inc = get_inc_amount(latest_reps.and_then(|r| r.amount));
 
             let new_max = CreateMax {
                 amount: latest_max.amount + inc,
@@ -119,4 +120,36 @@ pub async fn undo(State(pool): State<Pool>, Json(updates): Json<Updates>) -> imp
     let mut tx = transaction(&pool).await.log_error()?;
     let res = undo_updates(&mut tx, updates).await.map(Json);
     commit_ok(res, tx).await.log_error()
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::updates::handler::get_inc_amount;
+
+    #[test]
+    fn test_inc_has_reps() {
+        let cases = [
+            (7, 15_f64),
+            (6, 15_f64),
+            (5, 10_f64),
+            (4, 10_f64),
+            (3, 5_f64),
+            (2, 5_f64),
+            (1, 0_f64),
+            (0, 0_f64),
+        ];
+
+        for (reps, inc) in cases {
+            assert_eq!(
+                inc,
+                get_inc_amount(Some(reps)),
+                "{reps} reps did not increase max by {inc}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_inc_no_reps() {
+        assert_eq!(0_f64, get_inc_amount(None));
+    }
 }
