@@ -1,6 +1,6 @@
-mod setup;
+mod common;
 
-use axum_test_helper::{RequestBuilder, TestClient};
+use axum_test_helper::TestClient;
 use nsuns_server::{
     movements::model::{CreateMovement, Movement},
     profiles::model::{CreateProfile, Profile},
@@ -8,27 +8,12 @@ use nsuns_server::{
     router::{MOVEMENTS_PATH, PROFILES_PATH, PROGRAMS_PATH, SETS_PATH},
     sets::model::{CreateSet, Day, Set},
 };
-use serde::Serialize;
 
-trait JsonBody {
-    fn json_body<T>(self, body: &T) -> Self
-    where
-        T: ?Sized + Serialize;
-}
-
-impl JsonBody for RequestBuilder {
-    fn json_body<T>(self, body: &T) -> Self
-    where
-        T: ?Sized + Serialize,
-    {
-        self.body(serde_json::to_string(body).unwrap())
-            .header("Content-Type", "application/json")
-    }
-}
+use common::util::JsonBody;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn create_program() {
-    let router = setup::init().await;
+    let router = common::setup::init().await;
     let client = TestClient::new(router);
 
     // create a profile

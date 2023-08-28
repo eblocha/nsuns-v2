@@ -15,7 +15,7 @@ use crate::{
     error::{ErrorWithStatus, OperationResult},
 };
 
-#[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Max {
     #[schema(value_type = String, format = Int64)]

@@ -11,14 +11,14 @@ use crate::{
     reps::model::{delete_latest_reps, CreateReps, Reps},
 };
 
-#[derive(Debug, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Updates {
     pub profile_id: Uuid,
     pub movement_ids: Vec<Uuid>,
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatedState {
     pub maxes: Vec<Max>,
