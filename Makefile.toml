@@ -94,11 +94,37 @@ cwd = "${CLIENT_DIR}"
 command = "yarn"
 args = ["test"]
 
+[tasks.start-test-db]
+category = "CI"
+description = "Start a database for integration testing"
+cwd = "${SERVER_DIR}"
+script = '''
+echo "Starting test database"
+docker compose --file tests/docker-compose.yml up -d --wait
+'''
+
+[tasks.stop-test-db]
+category = "CI"
+description = "Stop the test database"
+cwd = "${SERVER_DIR}"
+script = '''
+echo "Stopping test database"
+docker compose --file tests/docker-compose.yml down
+'''
+
+[tasks.test-server-internal]
+private = true
+category = "CI"
+command = "cargo"
+args = ["test"]
+
 [tasks.test-server]
 category = "CI"
 description = "Run server tests."
-command = "cargo"
-args = ["test"]
+run_task = { name = [
+  "start-test-db",
+  "test-server-internal",
+], fork = true, cleanup_task = "stop-test-db" }
 
 [tasks.test]
 category = "CI"

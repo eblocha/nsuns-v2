@@ -10,7 +10,6 @@ use nsuns_server::{
 };
 use serde::Serialize;
 use serial_test::serial;
-use testcontainers::clients::Cli;
 
 trait JsonBody {
     fn json_body<T>(self, body: &T) -> Self
@@ -31,9 +30,8 @@ impl JsonBody for RequestBuilder {
 #[tokio::test(flavor = "multi_thread")]
 #[serial]
 async fn create_program() {
-    let docker = Cli::docker();
-    let env = setup::init(&docker).await;
-    let client = TestClient::new(env.router);
+    let router = setup::init().await;
+    let client = TestClient::new(router);
 
     // create a profile
     let create_profile = CreateProfile {
