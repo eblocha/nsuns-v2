@@ -13,6 +13,7 @@ SERVER_DIR = "nsuns-server"
 SERVER_CONFIG = "${SERVER_DIR}/config/settings.toml"
 # Where the server should look for config if the CONFIG_SOURCE env var is missing at runtime
 DEFAULT_CONFIG_SOURCE = "config/settings.toml"
+COMPOSE_FILE = "${SERVER_DIR}/tests/docker-compose.yml"
 
 # BUILD
 
@@ -97,19 +98,17 @@ args = ["test"]
 [tasks.start-test-db]
 category = "CI"
 description = "Start a database for integration testing"
-cwd = "${SERVER_DIR}"
 script = '''
 echo "Starting test database"
-docker compose --file tests/docker-compose.yml up -d --wait
+docker compose --file "${COMPOSE_FILE}" up -d --wait
 '''
 
 [tasks.stop-test-db]
 category = "CI"
 description = "Stop the test database"
-cwd = "${SERVER_DIR}"
 script = '''
 echo "Stopping test database"
-docker compose --file tests/docker-compose.yml down
+docker compose --file "${COMPOSE_FILE}" down
 '''
 
 [tasks.test-server-internal]
