@@ -7,7 +7,8 @@ use hyper::{server::conn::AddrIncoming, Server};
 use crate::{
     db::{create_connection_pool, run_migrations},
     router::router,
-    settings::Settings, util::shutdown_signal,
+    settings::Settings,
+    util::shutdown_signal,
 };
 
 pub fn bind(port: u16) -> anyhow::Result<AddrIncoming> {
