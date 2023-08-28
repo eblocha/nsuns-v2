@@ -42,7 +42,7 @@ async fn randomize_db(mut settings: DatabaseSettings) -> anyhow::Result<Database
     Ok(settings)
 }
 
-pub async fn init<'a>() -> Router {
+pub async fn init() -> Router {
     server::initialize(&Settings {
         server: ServerSettings {
             port: 0,
