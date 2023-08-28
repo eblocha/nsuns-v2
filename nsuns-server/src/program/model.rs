@@ -82,7 +82,7 @@ impl Program {
     }
 }
 
-#[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
+#[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgramMeta {
     pub id: Uuid,
@@ -218,7 +218,7 @@ pub async fn delete_one(
         .map_err(Into::into)
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgramSummary {
     pub program: ProgramMeta,

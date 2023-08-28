@@ -1,5 +1,7 @@
 use anyhow::{Context, Result};
-use nsuns_server::{api_server, error::LogError, metrics::metrics_server, settings::Settings};
+use nsuns_server::{
+    error::LogError, metrics::server as metrics_server, server, settings::Settings,
+};
 use tracing_subscriber::prelude::*;
 
 #[tokio::main]
@@ -15,8 +17,10 @@ async fn main() -> Result<()> {
         .with_context(|| "failed to load settings")
         .log_error()?;
 
-    let api_future = api_server(&settings);
-
-    tokio::try_join!(api_future, metrics_server(&settings.metrics)).log_error()?;
+    tokio::try_join!(
+        server::run(&settings),
+        metrics_server::run(&settings.metrics)
+    )
+    .log_error()?;
     Ok(())
 }

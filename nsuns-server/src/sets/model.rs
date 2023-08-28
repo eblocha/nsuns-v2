@@ -40,7 +40,7 @@ pub enum Day {
     Saturday,
 }
 
-#[derive(Debug, Serialize, Clone, sqlx::FromRow, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Set {
     pub id: Uuid,
