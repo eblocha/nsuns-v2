@@ -9,7 +9,6 @@ use nsuns_server::{
     sets::model::{CreateSet, Day, Set},
 };
 use serde::Serialize;
-use serial_test::serial;
 
 trait JsonBody {
     fn json_body<T>(self, body: &T) -> Self
@@ -28,7 +27,6 @@ impl JsonBody for RequestBuilder {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[serial]
 async fn create_program() {
     let router = setup::init().await;
     let client = TestClient::new(router);
