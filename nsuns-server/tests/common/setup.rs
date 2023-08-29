@@ -43,7 +43,9 @@ pub async fn init() -> Router {
             migrations: "db/migrations".to_string(),
             max_connections: default_max_connections(),
             timeout: default_timeout(),
-        }).await.unwrap(),
+        })
+        .await
+        .unwrap(),
         metrics: MetricsFeature::Disabled,
         openapi: OpenApiFeature::Disabled,
     })
