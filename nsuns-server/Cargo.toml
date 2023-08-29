@@ -33,7 +33,6 @@ validator = { version = "0.16.1", features = ["derive"] }
 [dev-dependencies]
 axum-macros = "0.3.7"
 axum-test-helper = "0.3.0"
-lazy_static = "1.4.0"
 serde_json = "1.0.103"
 
 [features]

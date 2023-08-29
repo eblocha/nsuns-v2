@@ -1178,7 +1178,6 @@ dependencies = [
  "config",
  "const_format",
  "hyper",
- "lazy_static",
  "metrics",
  "metrics-exporter-prometheus",
  "serde",
