@@ -8,7 +8,7 @@ use crate::{
     db::{create_connection_pool, run_migrations},
     router::router,
     settings::Settings,
-    util::shutdown_signal,
+    shutdown::shutdown_signal,
 };
 
 pub fn bind(port: u16) -> anyhow::Result<AddrIncoming> {

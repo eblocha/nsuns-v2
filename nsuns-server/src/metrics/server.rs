@@ -2,7 +2,7 @@ use anyhow::Context;
 use axum::Router;
 use hyper::Server;
 
-use crate::{feature::Feature, server::bind, util::shutdown_signal};
+use crate::{feature::Feature, server::bind, shutdown::shutdown_signal};
 
 use super::{
     router::router,

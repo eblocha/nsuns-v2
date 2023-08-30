@@ -13,6 +13,7 @@ mod serde_display;
 pub mod server;
 pub mod sets;
 pub mod settings;
+pub mod shutdown;
 pub mod updates;
 pub mod util;
 pub mod validation;
