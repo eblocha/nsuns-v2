@@ -1,3 +1,5 @@
+//! Transforms to apply to responses before returning from handlers.
+
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},

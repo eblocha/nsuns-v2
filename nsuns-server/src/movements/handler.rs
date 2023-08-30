@@ -1,6 +1,6 @@
 use axum::{extract::State, response::IntoResponse, Json};
 
-use crate::{db::Pool, error::LogError, util::or_404, validation::ValidatedJson};
+use crate::{db::Pool, error::LogError, response_transforms::or_404, validation::ValidatedJson};
 
 use super::model::{CreateMovement, Movement};
 
