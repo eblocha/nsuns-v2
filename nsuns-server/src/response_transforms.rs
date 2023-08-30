@@ -8,6 +8,8 @@ use axum::{
 /// Set the status code to 201
 pub fn created<T>(body: T) -> (StatusCode, T)
 where
+    // nothing about this function requires T to implement IntoResponse, but it makes for better error messages
+    // if we do something like result.map(created).map(Json), which should be result.map(Json).map(created)
     T: IntoResponse,
 {
     (StatusCode::CREATED, body)
