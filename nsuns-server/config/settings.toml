@@ -1,3 +1,4 @@
+#:schema ./settings.schema.json
 [database]
 username = "postgres"
 password = "postgres"
