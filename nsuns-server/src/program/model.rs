@@ -58,28 +58,6 @@ impl Program {
             .with_context(|| format!("failed to fetch program with id={id}"))
             .map_err(Into::into)
     }
-
-    pub fn all_set_ids(&self) -> Vec<Uuid> {
-        let size = self.set_ids_sunday.len()
-            + self.set_ids_monday.len()
-            + self.set_ids_tuesday.len()
-            + self.set_ids_wednesday.len()
-            + self.set_ids_thursday.len()
-            + self.set_ids_friday.len()
-            + self.set_ids_saturday.len();
-
-        let mut out: Vec<Uuid> = Vec::with_capacity(size);
-
-        out.extend(&self.set_ids_sunday);
-        out.extend(&self.set_ids_monday);
-        out.extend(&self.set_ids_tuesday);
-        out.extend(&self.set_ids_wednesday);
-        out.extend(&self.set_ids_thursday);
-        out.extend(&self.set_ids_friday);
-        out.extend(&self.set_ids_saturday);
-
-        out
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, ToSchema, PartialEq)]
