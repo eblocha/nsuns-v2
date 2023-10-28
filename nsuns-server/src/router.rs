@@ -3,8 +3,9 @@ use std::{fmt::Display, path::Path};
 use axum::Router;
 use tower_http::{
     catch_panic::CatchPanicLayer,
+    compression::{predicate::SizeAbove, CompressionLayer},
     services::{ServeDir, ServeFile},
-    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer}, compression::{CompressionLayer, predicate::SizeAbove},
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
 
