@@ -9,7 +9,13 @@ import { ProgramBuilder } from "./program/builder/ProgramBuilder";
 import { ProgramRunner } from "./program/runner/ProgramRunner";
 import { NotFound } from "./NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export const App: Component = () => {
   return (
