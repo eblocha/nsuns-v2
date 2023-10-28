@@ -6,6 +6,7 @@ import { day, goToToday, today } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
 import { Moon } from "../../icons/Moon";
 import { Day, dayNames } from "../../util/days";
+import { SetComponent } from "./Set";
 
 export const displaySet = (set: ProgramSet, max?: number): JSX.Element => {
   const repsComponent =
@@ -68,19 +69,15 @@ export const SetList: Component<{
                   <For each={section.sets}>
                     {({ set, index }) => (
                       <li class="w-full mb-1 rounded">
-                        <button
+                        <SetComponent
                           onClick={() => props.setCurrentSet(index)}
-                          class="text-button rounded w-full text-left"
-                          classList={{
-                            "text-button": props.currentSet !== index,
-                            "primary-button": props.currentSet === index,
-                          }}
+                          isActive={props.currentSet === index}
                         >
                           {displaySet(
                             set,
                             props.movementsToMaxesMap && getLatestMax(props.movementsToMaxesMap, set)?.amount
                           )}
-                        </button>
+                        </SetComponent>
                       </li>
                     )}
                   </For>
