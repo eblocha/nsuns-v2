@@ -316,6 +316,7 @@ pub async fn update_set_ids(
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct ReorderSets {
     pub program_id: Uuid,
     #[schema(value_type = i16)]
