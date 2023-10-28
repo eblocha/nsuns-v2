@@ -4,12 +4,12 @@ use axum_test_helper::TestClient;
 use nsuns_server::{
     maxes::model::{CreateMax, Max},
     movements::model::{CreateMovement, Movement},
-    profiles::model::{CreateProfile, Profile},
     reps::model::{CreateReps, Reps},
-    router::{MAXES_PATH, MOVEMENTS_PATH, PROFILES_PATH, REPS_PATH, UPDATES_PATH},
+    router::{MAXES_PATH, MOVEMENTS_PATH, REPS_PATH, UPDATES_PATH},
     updates::handler::{UpdatedState, Updates},
 };
 
+use common::setup::setup_profile;
 use common::util::JsonBody;
 
 #[tokio::test(flavor = "multi_thread")]
@@ -17,19 +17,7 @@ async fn run_updates() {
     let router = common::setup::init().await;
     let client = TestClient::new(router);
 
-    // create a profile
-    let create_profile = CreateProfile {
-        name: "Test".into(),
-    };
-
-    let profile_id = client
-        .post(PROFILES_PATH)
-        .json_body(&create_profile)
-        .send()
-        .await
-        .json::<Profile>()
-        .await
-        .id;
+    let profile_id = setup_profile(&client).await.id;
 
     // create a movement
     let create_bench_press = CreateMovement {

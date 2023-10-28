@@ -2,70 +2,14 @@ mod common;
 
 use axum_test_helper::TestClient;
 use nsuns_server::{
-    movements::model::{CreateMovement, Movement},
-    profiles::model::{CreateProfile, Profile},
-    program::model::{CreateProgram, ProgramMeta, ProgramSummary, ReorderSets},
-    router::{MOVEMENTS_PATH, PROFILES_PATH, PROGRAMS_PATH, SETS_PATH},
+    program::model::{ProgramSummary, ReorderSets},
+    router::{PROGRAMS_PATH, SETS_PATH},
     sets::model::{CreateSet, Day, Set},
 };
 
 use common::util::JsonBody;
+use common::setup::{InitialProgramState, setup_program_state};
 use uuid::Uuid;
-
-struct InitialProgramState {
-    pub program_meta: ProgramMeta,
-    pub movement: Movement,
-}
-
-async fn setup_program_state(client: &TestClient) -> InitialProgramState {
-    // create a profile
-    let create_profile = CreateProfile {
-        name: "Test".into(),
-    };
-
-    let profile_id = client
-        .post(PROFILES_PATH)
-        .json_body(&create_profile)
-        .send()
-        .await
-        .json::<Profile>()
-        .await
-        .id;
-
-    // create a movement
-    let create_bench_press = CreateMovement {
-        name: "Bench Press".to_string(),
-        description: None,
-    };
-
-    let movement = client
-        .post(MOVEMENTS_PATH)
-        .json_body(&create_bench_press)
-        .send()
-        .await
-        .json::<Movement>()
-        .await;
-
-    // create an empty program
-    let create_program = CreateProgram {
-        description: None,
-        name: "Test".to_string(),
-        owner: profile_id,
-    };
-
-    let program_meta = client
-        .post(PROGRAMS_PATH)
-        .json_body(&create_program)
-        .send()
-        .await
-        .json::<ProgramMeta>()
-        .await;
-
-    InitialProgramState {
-        program_meta,
-        movement,
-    }
-}
 
 async fn get_summary(client: &TestClient, id: Uuid) -> ProgramSummary {
     client
