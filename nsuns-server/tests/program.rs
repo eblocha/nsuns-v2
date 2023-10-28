@@ -2,13 +2,16 @@ mod common;
 
 use axum_test_helper::TestClient;
 use nsuns_server::{
-    program::model::{ProgramSummary, ReorderSets},
+    program::{
+        model::{ProgramSummary, ReorderSets},
+        router::REORDER_SETS_PATH,
+    },
     router::{PROGRAMS_PATH, SETS_PATH},
     sets::model::{CreateSet, Day, Set},
 };
 
+use common::setup::{setup_program_state, InitialProgramState};
 use common::util::JsonBody;
-use common::setup::{InitialProgramState, setup_program_state};
 use uuid::Uuid;
 
 async fn get_summary(client: &TestClient, id: Uuid) -> ProgramSummary {
@@ -113,7 +116,7 @@ async fn reorder_sets() {
 
     // reorder the set
     let reordered = client
-        .post(&format!("{PROGRAMS_PATH}/reorder-sets"))
+        .post(&format!("{PROGRAMS_PATH}{REORDER_SETS_PATH}"))
         .json_body::<ReorderSets>(&ReorderSets {
             program_id: program_meta.id,
             day: Day::Monday,

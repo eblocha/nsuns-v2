@@ -326,11 +326,14 @@ pub struct ReorderSets {
     pub to: usize,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct SetId(Uuid);
+
 impl ReorderSets {
     pub async fn reorder<'a>(
         &self,
         tx: &mut Transaction<'a, DB>,
-    ) -> OperationResult<Option<Vec<Uuid>>> {
+    ) -> OperationResult<Option<Vec<SetId>>> {
         if let Some(mut set_ids) = get_set_ids(self.program_id, self.day, true, &mut **tx).await? {
             if self.from >= set_ids.len() || self.to >= set_ids.len() {
                 return Err(ErrorWithStatus {
@@ -343,7 +346,7 @@ impl ReorderSets {
                 update_set_ids(self.program_id, self.day, &set_ids, &mut **tx).await?;
             }
 
-            return Ok(Some(set_ids));
+            return Ok(Some(set_ids.into_iter().map(SetId).collect()));
         }
 
         Ok(None)

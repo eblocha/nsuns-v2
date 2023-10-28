@@ -9,6 +9,8 @@ use super::handler::{
     create_program, delete_program, profile_programs, program_summary, reorder_sets, update_program,
 };
 
+pub const REORDER_SETS_PATH: &str = "/reorder-sets";
+
 pub fn router() -> Router<Pool> {
     Router::new()
         .route(
@@ -17,6 +19,6 @@ pub fn router() -> Router<Pool> {
                 .post(create_program)
                 .put(update_program),
         )
-        .route("/reorder-sets", post(reorder_sets))
+        .route(REORDER_SETS_PATH, post(reorder_sets))
         .route("/:id", get(program_summary).delete(delete_program))
 }

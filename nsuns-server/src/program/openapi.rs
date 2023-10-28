@@ -16,7 +16,8 @@ use crate::{
 
 use super::{
     handler::ProgramQuery,
-    model::{CreateProgram, ProgramMeta, ProgramSummary, UpdateProgram},
+    model::{CreateProgram, ProgramMeta, ProgramSummary, ReorderSets, SetId, UpdateProgram},
+    router::REORDER_SETS_PATH,
 };
 
 pub trait WithProgramsDefintions {
@@ -92,12 +93,33 @@ impl WithProgramsDefintions for PathsBuilder {
             .tag(TAG)
             .build();
 
+        let reorder_op = OperationBuilder::new()
+            .request_body(Some(
+                RequestBodyBuilder::new()
+                    .json_content(ReorderSets::schema().1)
+                    .build(),
+            ))
+            .response(
+                ok(),
+                ResponseBuilder::new()
+                    .json_content(Vec::<SetId>::schema())
+                    .build(),
+            )
+            .tag(TAG)
+            .build();
+
         self.path(
             PROGRAMS_PATH,
             PathItemBuilder::new()
                 .operation(PathItemType::Get, get_op)
                 .operation(PathItemType::Post, post_op)
                 .operation(PathItemType::Put, put_op)
+                .build(),
+        )
+        .path(
+            concatcp!(PROGRAMS_PATH, REORDER_SETS_PATH),
+            PathItemBuilder::new()
+                .operation(PathItemType::Post, reorder_op)
                 .build(),
         )
         .path(
