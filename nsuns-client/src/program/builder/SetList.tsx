@@ -4,14 +4,25 @@ import { DragDropProvider, DragDropSensors, DragOverlay, SortableProvider, close
 import { Movement, ProgramSet } from "../../api";
 import { SetComponent, displaySet } from "./Set";
 import { Day } from "../../util/days";
+import { useReorderSets } from "../../hooks/queries/programs";
 
 export const SetList: Component<{
   sets: ProgramSet[];
   movements: Movement[];
   dayIndex: Day;
   programId: string;
-  onReorder: (from: number, to: number) => void;
 }> = (props) => {
+  const { mutate } = useReorderSets();
+
+  const reorderSets = (from: number, to: number) => {
+    mutate({
+      programId: props.programId,
+      day: props.dayIndex,
+      from,
+      to,
+    });
+  };
+
   const [activeItem, setActiveItem] = createSignal<number | null>(null);
 
   const setIds = () => props.sets.map((set) => set.id);
@@ -35,7 +46,7 @@ export const SetList: Component<{
       const fromIndex = ids.indexOf(draggable.id as string);
       const toIndex = ids.indexOf(droppable.id as string);
       if (fromIndex !== toIndex) {
-        props.onReorder(fromIndex, toIndex);
+        reorderSets(fromIndex, toIndex);
       }
     }
   };

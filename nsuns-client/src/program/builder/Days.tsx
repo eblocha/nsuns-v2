@@ -7,7 +7,6 @@ import { SetSummary } from "./SetSummary";
 import { ChevronDown } from "../../icons/ChevronDown";
 import { Day, dayNames } from "../../util/days";
 import { SetList } from "./SetList";
-import { useReorderSets } from "../../hooks/queries/programs";
 
 const EMPTY: never[] = [];
 
@@ -56,17 +55,6 @@ export const Days: Component<{ summary: ProgramSummary }> = (props) => {
 
   const movements = () => query.data ?? EMPTY;
 
-  const { mutate } = useReorderSets();
-
-  const reorderSets = (day: Day, from: number, to: number) => {
-    mutate({
-      programId: props.summary.program.id,
-      day,
-      from,
-      to,
-    });
-  };
-
   return (
     <ul>
       <For each={dayNames}>
@@ -94,9 +82,6 @@ export const Days: Component<{ summary: ProgramSummary }> = (props) => {
                     dayIndex={index() as Day}
                     movements={movements()}
                     programId={props.summary.program.id}
-                    onReorder={(from, to) => {
-                      reorderSets(index() as Day, from, to);
-                    }}
                   />
                 </Show>
 
