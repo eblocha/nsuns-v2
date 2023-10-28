@@ -3,6 +3,7 @@ import { Movement, ProgramSet } from "../../api";
 import { EditSet } from "./EditSet";
 import { plural, repsDisplay } from "../../util/setDisplay";
 import { Day } from "../../util/days";
+import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
 
 export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const movement = movements.find((m) => m.id === set.movementId);
@@ -33,28 +34,37 @@ export const SetComponent: Component<{
   dayIndex: Day;
   programId: string;
 }> = (props) => {
+  const sortable = createSortable(props.set.id);
+  const dndCtx = useDragDropContext();
   const [isEditing, setIsEditing] = createSignal(false);
 
   return (
-    <Show
-      when={isEditing()}
-      fallback={
-        <button
-          onClick={() => setIsEditing(true)}
-          class="w-full h-full text-left text-button"
-        >
-          {displaySet(props.set, props.movements)}
-          <div class="text-sm opacity-60">{props.set.description}</div>
-        </button>
-      }
-    >
-      <EditSet
-        close={() => setIsEditing(false)}
-        set={props.set}
-        dayIndex={props.dayIndex}
-        programId={props.programId}
-        movements={props.movements}
-      />
-    </Show>
+    <>
+      <button
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        use:sortable
+        onClick={() => setIsEditing(true)}
+        class="w-full h-full text-left text-button"
+        classList={{
+          "opacity-25": sortable.isActiveDraggable,
+          "transition-transform": !!dndCtx?.[0]?.active.draggable,
+          // setting hidden to stay in the dom for dnd track this correctly
+          hidden: isEditing(),
+        }}
+      >
+        {displaySet(props.set, props.movements)}
+        <div class="text-sm opacity-60">{props.set.description}</div>
+      </button>
+      <Show when={isEditing()}>
+        <EditSet
+          close={() => setIsEditing(false)}
+          set={props.set}
+          dayIndex={props.dayIndex}
+          programId={props.programId}
+          movements={props.movements}
+        />
+      </Show>
+    </>
   );
 };

@@ -2,10 +2,13 @@ import { CreateMutationOptions, createMutation, createQuery, useQueryClient } fr
 import {
   CreateProgram,
   Program,
+  ReorderSets,
   UpdateProgram,
   createProgram,
   deleteProgram,
   getProfilePrograms,
+  getSetsPropByDay,
+  reorderSets,
   updateProgram,
 } from "../../api";
 import { Accessor } from "solid-js";
@@ -79,6 +82,56 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
         QueryKeys.programs.list(program.owner),
         (programs?: ProgramsQueryData) => programs?.filter((p) => p.id !== id)
       );
+    },
+  });
+  return mutation;
+};
+
+export const useReorderSets = <TError = unknown, TContext = unknown>(
+  options?: Partial<CreateMutationOptions<string[], TError, ReorderSets, TContext>>
+) => {
+  const queryClient = useQueryClient();
+  const mutation = createMutation({
+    ...options,
+    mutationFn: reorderSets,
+    onMutate: (reorder, ...args) => {
+      // optimistic update
+      queryClient.setQueryData(QueryKeys.programs.summary(reorder.programId), (summary?: ProgramSummaryQueryData) => {
+        const dayProp = getSetsPropByDay(reorder.day);
+
+        if (summary) {
+          const existingSets = summary[dayProp];
+
+          const updatedItems = existingSets.slice();
+          updatedItems.splice(reorder.to, 0, ...updatedItems.splice(reorder.from, 1));
+
+          return {
+            ...summary,
+            [dayProp]: updatedItems,
+          };
+        }
+
+        return undefined;
+      });
+      return options?.onMutate?.(reorder, ...args);
+    },
+    onError: async (error, reorder, ...args) => {
+      // refetch if the reorder failed
+      await queryClient.invalidateQueries({ queryKey: QueryKeys.programs.summary(reorder.programId) });
+      options?.onError?.(error, reorder, ...args);
+    },
+    onSuccess: (setIds, reorder, ...args) => {
+      options?.onSuccess?.(setIds, reorder, ...args);
+      queryClient.setQueryData(QueryKeys.programs.summary(reorder.programId), (summary?: ProgramSummaryQueryData) => {
+        const dayProp = getSetsPropByDay(reorder.day);
+        const existingSets = summary?.[dayProp];
+        return (
+          summary && {
+            ...summary,
+            [dayProp]: setIds.map((id) => existingSets!.find((set) => set.id === id)),
+          }
+        );
+      });
     },
   });
   return mutation;

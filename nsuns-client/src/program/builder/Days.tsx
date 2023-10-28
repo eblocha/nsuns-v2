@@ -3,10 +3,11 @@ import { ProgramSummary, getSetsByDay } from "../../api";
 import { Plus } from "../../icons/Plus";
 import { NewSet } from "./NewSet";
 import { useMovementsQuery } from "../../hooks/queries/movements";
-import { SetComponent } from "./Set";
 import { SetSummary } from "./SetSummary";
 import { ChevronDown } from "../../icons/ChevronDown";
 import { Day, dayNames } from "../../util/days";
+import { SetList } from "./SetList";
+import { useReorderSets } from "../../hooks/queries/programs";
 
 const EMPTY: never[] = [];
 
@@ -55,6 +56,17 @@ export const Days: Component<{ summary: ProgramSummary }> = (props) => {
 
   const movements = () => query.data ?? EMPTY;
 
+  const { mutate } = useReorderSets();
+
+  const reorderSets = (day: Day, from: number, to: number) => {
+    mutate({
+      programId: props.summary.program.id,
+      day,
+      from,
+      to,
+    });
+  };
+
   return (
     <ul>
       <For each={dayNames}>
@@ -77,18 +89,15 @@ export const Days: Component<{ summary: ProgramSummary }> = (props) => {
                     </li>
                   }
                 >
-                  <For each={getSets(index())}>
-                    {(set) => (
-                      <li class="rounded border border-gray-700 mb-2">
-                        <SetComponent
-                          set={set}
-                          movements={movements()}
-                          dayIndex={index() as Day}
-                          programId={props.summary.program.id}
-                        />
-                      </li>
-                    )}
-                  </For>
+                  <SetList
+                    sets={getSets(index())}
+                    dayIndex={index() as Day}
+                    movements={movements()}
+                    programId={props.summary.program.id}
+                    onReorder={(from, to) => {
+                      reorderSets(index() as Day, from, to);
+                    }}
+                  />
                 </Show>
 
                 <li>

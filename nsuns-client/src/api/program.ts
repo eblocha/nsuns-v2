@@ -28,6 +28,13 @@ export type ProgramSummary = {
   setsSaturday: ProgramSet[];
 };
 
+export type ReorderSets = {
+  programId: string;
+  day: Day;
+  from: number;
+  to: number;
+};
+
 const path = "/api/programs";
 
 export const getSetsPropByDay = (day: Day) => {
@@ -76,4 +83,10 @@ export const updateProgram = async (program: UpdateProgram): Promise<Program> =>
 export const deleteProgram = async (id: string): Promise<Program> =>
   del(`${path}/${id}`, {
     headers: acceptJson().headers,
+  }).then(json());
+
+export const reorderSets = async (reorder: ReorderSets): Promise<string[]> =>
+  post(`${path}/reorder-sets`, {
+    body: JSON.stringify(reorder),
+    headers: bothJson().headers,
   }).then(json());
