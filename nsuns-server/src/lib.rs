@@ -17,3 +17,4 @@ pub mod settings;
 pub mod shutdown;
 pub mod updates;
 pub mod validation;
+mod vec;

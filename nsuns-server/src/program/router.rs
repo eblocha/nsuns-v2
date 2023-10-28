@@ -1,9 +1,12 @@
-use axum::{routing::get, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 
 use crate::db::Pool;
 
 use super::handler::{
-    create_program, delete_program, profile_programs, program_summary, update_program,
+    create_program, delete_program, profile_programs, program_summary, reorder_sets, update_program,
 };
 
 pub fn router() -> Router<Pool> {
@@ -14,5 +17,6 @@ pub fn router() -> Router<Pool> {
                 .post(create_program)
                 .put(update_program),
         )
+        .route("/reorder", post(reorder_sets))
         .route("/:id", get(program_summary).delete(delete_program))
 }

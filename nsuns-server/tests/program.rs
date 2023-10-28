@@ -4,18 +4,20 @@ use axum_test_helper::TestClient;
 use nsuns_server::{
     movements::model::{CreateMovement, Movement},
     profiles::model::{CreateProfile, Profile},
-    program::model::{CreateProgram, ProgramMeta, ProgramSummary},
+    program::model::{CreateProgram, ProgramMeta, ProgramSummary, ReorderSets},
     router::{MOVEMENTS_PATH, PROFILES_PATH, PROGRAMS_PATH, SETS_PATH},
     sets::model::{CreateSet, Day, Set},
 };
 
 use common::util::JsonBody;
+use uuid::Uuid;
 
-#[tokio::test(flavor = "multi_thread")]
-async fn create_program() {
-    let router = common::setup::init().await;
-    let client = TestClient::new(router);
+struct InitialProgramState {
+    pub program_meta: ProgramMeta,
+    pub movement: Movement,
+}
 
+async fn setup_program_state(client: &TestClient) -> InitialProgramState {
     // create a profile
     let create_profile = CreateProfile {
         name: "Test".into(),
@@ -36,14 +38,13 @@ async fn create_program() {
         description: None,
     };
 
-    let bench_id = client
+    let movement = client
         .post(MOVEMENTS_PATH)
         .json_body(&create_bench_press)
         .send()
         .await
         .json::<Movement>()
-        .await
-        .id;
+        .await;
 
     // create an empty program
     let create_program = CreateProgram {
@@ -60,14 +61,39 @@ async fn create_program() {
         .json::<ProgramMeta>()
         .await;
 
+    InitialProgramState {
+        program_meta,
+        movement,
+    }
+}
+
+async fn get_summary(client: &TestClient, id: Uuid) -> ProgramSummary {
+    client
+        .get(&format!("{PROGRAMS_PATH}/{id}"))
+        .send()
+        .await
+        .json::<ProgramSummary>()
+        .await
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn create_program() {
+    let router = common::setup::init().await;
+    let client = TestClient::new(router);
+
+    let InitialProgramState {
+        program_meta,
+        movement,
+    } = setup_program_state(&client).await;
+
     // add a set to the program
     let bench_set = CreateSet {
         amount: 70.0,
         day: Day::Monday,
         description: None,
-        movement_id: bench_id,
+        movement_id: movement.id,
         program_id: program_meta.id,
-        percentage_of_max: Some(bench_id),
+        percentage_of_max: Some(movement.id),
         reps: Some(10),
         reps_is_minimum: false,
     };
@@ -81,12 +107,7 @@ async fn create_program() {
         .await;
 
     // check that the program summary includes the set
-    let summary = client
-        .get(&format!("{PROGRAMS_PATH}/{id}", id = program_meta.id))
-        .send()
-        .await
-        .json::<ProgramSummary>()
-        .await;
+    let summary = get_summary(&client, program_meta.id).await;
 
     assert_eq!(vec![bench_set], summary.sets_monday);
     assert!(
@@ -95,4 +116,78 @@ async fn create_program() {
         summary.sets_sunday
     );
     assert_eq!(program_meta, summary.program);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn reorder_sets() {
+    let router = common::setup::init().await;
+    let client = TestClient::new(router);
+
+    let InitialProgramState {
+        program_meta,
+        movement,
+    } = setup_program_state(&client).await;
+
+    // add 2 sets to the program
+    let bench_set = CreateSet {
+        amount: 70.0,
+        day: Day::Monday,
+        description: None,
+        movement_id: movement.id,
+        program_id: program_meta.id,
+        percentage_of_max: Some(movement.id),
+        reps: Some(10),
+        reps_is_minimum: false,
+    };
+
+    let bench_set_2 = CreateSet {
+        amount: 70.0,
+        day: Day::Monday,
+        description: None,
+        movement_id: movement.id,
+        program_id: program_meta.id,
+        percentage_of_max: Some(movement.id),
+        reps: Some(10),
+        reps_is_minimum: false,
+    };
+
+    let bench_set = client
+        .post(SETS_PATH)
+        .json_body(&bench_set)
+        .send()
+        .await
+        .json::<Set>()
+        .await;
+
+    let bench_set_2 = client
+        .post(SETS_PATH)
+        .json_body(&bench_set_2)
+        .send()
+        .await
+        .json::<Set>()
+        .await;
+
+    // reorder the set
+    let reordered = client
+        .post(&format!("{PROGRAMS_PATH}/reorder"))
+        .json_body::<ReorderSets>(&ReorderSets {
+            program_id: program_meta.id,
+            day: Day::Monday,
+            from: 0,
+            to: 1,
+        })
+        .send()
+        .await
+        .json::<Vec<Uuid>>()
+        .await;
+
+    // check that the program summary has the correct order
+    let summary = get_summary(&client, program_meta.id).await;
+
+    assert_eq!(
+        vec![bench_set_2.clone(), bench_set.clone()],
+        summary.sets_monday
+    );
+
+    assert_eq!(vec![bench_set_2.id, bench_set.id], reordered);
 }

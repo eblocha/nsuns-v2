@@ -12,6 +12,7 @@ use validator::Validate;
 use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
+    program::model::{get_set_ids, update_set_ids},
 };
 
 fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
@@ -98,59 +99,6 @@ pub struct CreateSet {
     pub percentage_of_max: Option<Uuid>,
 }
 
-fn get_day_column(day: Day) -> &'static str {
-    match day {
-        Day::Sunday => "set_ids_sunday",
-        Day::Monday => "set_ids_monday",
-        Day::Tuesday => "set_ids_tuesday",
-        Day::Wednesday => "set_ids_wednesday",
-        Day::Thursday => "set_ids_thursday",
-        Day::Friday => "set_ids_friday",
-        Day::Saturday => "set_ids_saturday",
-    }
-}
-
-async fn get_set_ids(
-    program_id: Uuid,
-    day: Day,
-    for_update: bool,
-    executor: impl Executor<'_, Database = DB>,
-) -> OperationResult<Option<Vec<Uuid>>> {
-    let day_col = get_day_column(day);
-    let lock_clause = if for_update { "FOR UPDATE" } else { "" };
-
-    let set_ids = sqlx::query_as::<_, (Vec<Uuid>,)>(&format!(
-        "SELECT {day_col} FROM programs WHERE id = $1 {lock_clause}",
-    ))
-    .bind(program_id)
-    .fetch_optional(executor)
-    .await
-    .with_context(|| {
-        format!("failed to fetch existing set ids for day={day:?} and program_id={program_id}",)
-    })?
-    .map(|id| id.0);
-
-    Ok(set_ids)
-}
-
-async fn update_set_ids(
-    program_id: Uuid,
-    day: Day,
-    set_ids: Vec<Uuid>,
-    executor: impl Executor<'_, Database = DB>,
-) -> OperationResult<PgQueryResult> {
-    let day_col = get_day_column(day);
-    sqlx::query(&format!("UPDATE programs SET {day_col} = $1 WHERE id = $2"))
-        .bind(set_ids)
-        .bind(program_id)
-        .execute(executor)
-        .await
-        .with_context(|| {
-            format!("failed to update set ids for day={day:?} and program_id={program_id}",)
-        })
-        .map_err(Into::into)
-}
-
 impl CreateSet {
     pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
         let set_ids = get_set_ids(self.program_id, self.day, true, &mut **tx).await?;
@@ -176,7 +124,7 @@ impl CreateSet {
 
             set_ids.push(id);
 
-            update_set_ids(self.program_id, self.day, set_ids, &mut **tx).await?;
+            update_set_ids(self.program_id, self.day, &set_ids, &mut **tx).await?;
 
             Ok(Some(Set {
                 id,
@@ -209,7 +157,7 @@ pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResu
 
         if let Some(set_ids) = set_ids {
             let set_ids = set_ids.into_iter().filter(|set_id| *set_id != id).collect();
-            update_set_ids(program_id, day, set_ids, &mut **tx).await?;
+            update_set_ids(program_id, day, &set_ids, &mut **tx).await?;
         }
         Ok(Some(()))
     } else {

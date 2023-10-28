@@ -14,7 +14,9 @@ use crate::{
     validation::ValidatedJson,
 };
 
-use super::model::{delete_one, gather_program_summary, CreateProgram, ProgramMeta, UpdateProgram};
+use super::model::{
+    delete_one, gather_program_summary, CreateProgram, ProgramMeta, ReorderSets, UpdateProgram,
+};
 
 #[derive(Debug, Deserialize, IntoParams)]
 #[into_params(parameter_in = Query)]
@@ -54,6 +56,15 @@ pub async fn update_program(
         .await
         .map(or_404::<_, Json<_>>)
         .log_error()
+}
+
+pub async fn reorder_sets(
+    State(pool): State<Pool>,
+    ValidatedJson(reorder): ValidatedJson<ReorderSets>,
+) -> impl IntoResponse {
+    let mut tx = transaction(&pool).await.log_error()?;
+    let res = reorder.reorder(&mut tx).await.map(or_404::<_, Json<_>>);
+    commit_ok(res, tx).await.log_error()
 }
 
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
