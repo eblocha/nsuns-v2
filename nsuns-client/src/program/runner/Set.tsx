@@ -11,7 +11,7 @@ export const SetComponent: Component<{
     if (props.isActive) {
       btn?.scrollIntoView({
         behavior: "smooth",
-        block: "center"
+        block: "center",
       });
     }
   });
