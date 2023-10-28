@@ -4,7 +4,7 @@ use axum::Router;
 use tower_http::{
     catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
-    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer}, compression::{CompressionLayer, predicate::SizeAbove},
 };
 use tracing::Level;
 
@@ -54,6 +54,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .nest(MAXES_PATH, maxes::router())
         .nest(REPS_PATH, reps::router())
         .nest(UPDATES_PATH, updates::router())
+        .layer(CompressionLayer::new().compress_when(SizeAbove::new(1024)))
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
         .layer(

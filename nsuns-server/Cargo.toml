@@ -18,11 +18,24 @@ metrics = "0.21.1"
 metrics-exporter-prometheus = "0.12.1"
 serde = { version = "1.0.171", features = ["derive"] }
 serde_repr = "0.1.16"
-sqlx = { version = "0.7.1", features = ["runtime-tokio-rustls", "any", "postgres", "uuid", "chrono"] }
+sqlx = { version = "0.7.1", features = [
+  "runtime-tokio-rustls",
+  "any",
+  "postgres",
+  "uuid",
+  "chrono",
+] }
 thiserror = "1.0.43"
 tokio = { version = "1.29.1", features = ["full"] }
 tower = { version = "0.4.13", features = ["util", "timeout"] }
-tower-http = { version = "0.4.1", features = ["add-extension", "trace", "cors", "fs", "catch-panic"] }
+tower-http = { version = "0.4.1", features = [
+  "add-extension",
+  "trace",
+  "cors",
+  "fs",
+  "catch-panic",
+  "compression-gzip",
+] }
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 utoipa = { version = "3.4.3", features = ["axum_extras", "uuid"] }
