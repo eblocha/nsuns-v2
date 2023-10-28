@@ -1,5 +1,6 @@
 import { Component, Show, createMemo } from "solid-js";
 import { ProgramSet } from "../../api";
+import { plural } from "../../util/setDisplay";
 
 export const SetSummary: Component<{ sets: ProgramSet[] }> = (props) => {
   const nUnique = createMemo(() => {
@@ -14,8 +15,8 @@ export const SetSummary: Component<{ sets: ProgramSet[] }> = (props) => {
     <Show when={props.sets.length}>
       <div class="mb-2">
         <p>
-          {props.sets.length} Set{props.sets.length === 1 ? "" : "s"}, {nUnique()} unique movement
-          {nUnique() === 1 ? "" : "s"}
+          {props.sets.length} Set{plural(props.sets.length)}, {nUnique()} unique movement
+          {plural(nUnique())}
         </p>
       </div>
     </Show>
