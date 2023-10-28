@@ -34,3 +34,14 @@ export const useNavigateToProgram = () => {
     }
   };
 };
+
+export const useSwitchProfileInRunner = () => {
+  const params = useParams<{ programId?: string }>();
+  const navigate = useNavigate();
+
+  return (profileId: string) => {
+    if (params.programId) {
+      navigate(`/profile/${profileId}/program/${params.programId}/run`);
+    }
+  };
+};
