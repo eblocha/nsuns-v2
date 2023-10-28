@@ -17,6 +17,6 @@ pub fn router() -> Router<Pool> {
                 .post(create_program)
                 .put(update_program),
         )
-        .route("/reorder", post(reorder_sets))
+        .route("/reorder-sets", post(reorder_sets))
         .route("/:id", get(program_summary).delete(delete_program))
 }

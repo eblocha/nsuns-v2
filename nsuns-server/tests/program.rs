@@ -113,7 +113,7 @@ async fn reorder_sets() {
 
     // reorder the set
     let reordered = client
-        .post(&format!("{PROGRAMS_PATH}/reorder"))
+        .post(&format!("{PROGRAMS_PATH}/reorder-sets"))
         .json_body::<ReorderSets>(&ReorderSets {
             program_id: program_meta.id,
             day: Day::Monday,
