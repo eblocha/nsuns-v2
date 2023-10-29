@@ -2,7 +2,7 @@ use axum::Router;
 use tower_http::trace::{DefaultOnResponse, TraceLayer};
 use tracing::Level;
 
-use super::request_span::{DynamicLatencyUnitOnResponse, RequestSpan};
+use super::span::{DynamicLatencyUnitOnResponse, RequestSpan};
 
 pub trait WithTracing {
     fn with_tracing(self) -> Self;
