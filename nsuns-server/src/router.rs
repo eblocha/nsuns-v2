@@ -5,14 +5,12 @@ use tower_http::{
     catch_panic::CatchPanicLayer,
     compression::{predicate::SizeAbove, CompressionLayer},
     services::{ServeDir, ServeFile},
-    trace::{DefaultOnResponse, TraceLayer},
 };
-use tracing::Level;
 
 use crate::{
     db::Pool, health::health_check, maxes, metrics::middleware::WithMetrics, movements,
-    openapi::WithOpenApi, profiles, program, reps, request_span::{RequestSpan, DynamicLatencyUnitOnResponse}, sets,
-    settings::Settings, updates,
+    openapi::WithOpenApi, profiles, program, reps, sets, settings::Settings,
+    tracing::layer::WithTracing, updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -57,18 +55,12 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .nest(MAXES_PATH, maxes::router())
         .nest(REPS_PATH, reps::router())
         .nest(UPDATES_PATH, updates::router())
+        .with_state(pool)
         .route(HEALTH_PATH, get(health_check))
         .layer(CompressionLayer::new().compress_when(SizeAbove::new(1024)))
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(RequestSpan)
-                .on_response(DynamicLatencyUnitOnResponse(
-                    DefaultOnResponse::new().level(Level::INFO),
-                )),
-        )
-        .with_state(pool)
+        .with_tracing()
         .static_files(settings.server.static_dir.as_ref())
         .with_metrics(&settings.metrics)
 }
