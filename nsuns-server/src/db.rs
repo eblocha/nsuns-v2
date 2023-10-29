@@ -1,7 +1,7 @@
 use std::{fmt::Debug, time::Duration};
 
 use anyhow::Context;
-use secrecy::{SecretString, ExposeSecret};
+use secrecy::{ExposeSecret, SecretString};
 use serde::Deserialize;
 use sqlx::{
     migrate::MigrationSource,

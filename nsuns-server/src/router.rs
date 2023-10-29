@@ -1,6 +1,6 @@
 use std::{fmt::Display, path::Path};
 
-use axum::Router;
+use axum::{routing::get, Router};
 use tower_http::{
     catch_panic::CatchPanicLayer,
     compression::{predicate::SizeAbove, CompressionLayer},
@@ -10,8 +10,9 @@ use tower_http::{
 use tracing::Level;
 
 use crate::{
-    db::Pool, maxes, metrics::middleware::WithMetrics, movements, openapi::WithOpenApi, profiles,
-    program, reps, request_span::RequestSpan, sets, settings::Settings, updates,
+    db::Pool, health::health_check, maxes, metrics::middleware::WithMetrics, movements,
+    openapi::WithOpenApi, profiles, program, reps, request_span::RequestSpan, sets,
+    settings::Settings, updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -21,6 +22,7 @@ pub const MOVEMENTS_PATH: &str = "/api/movements";
 pub const MAXES_PATH: &str = "/api/maxes";
 pub const REPS_PATH: &str = "/api/reps";
 pub const UPDATES_PATH: &str = "/api/updates";
+pub const HEALTH_PATH: &str = "/actuator/health";
 
 trait StaticFiles<P> {
     fn static_files(self, static_dir: Option<P>) -> Self;
@@ -55,6 +57,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .nest(MAXES_PATH, maxes::router())
         .nest(REPS_PATH, reps::router())
         .nest(UPDATES_PATH, updates::router())
+        .route(HEALTH_PATH, get(health_check))
         .layer(CompressionLayer::new().compress_when(SizeAbove::new(1024)))
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
