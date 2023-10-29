@@ -8,6 +8,13 @@ services:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      # OTLP gRPC
+      - '4317:4317'
+      # Jaeger UI
+      - '16686:16686'
 
 volumes:
   pgdata:
