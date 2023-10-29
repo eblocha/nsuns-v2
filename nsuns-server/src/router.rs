@@ -11,7 +11,7 @@ use tracing::Level;
 
 use crate::{
     db::Pool, health::health_check, maxes, metrics::middleware::WithMetrics, movements,
-    openapi::WithOpenApi, profiles, program, reps, request_span::RequestSpan, sets,
+    openapi::WithOpenApi, profiles, program, reps, request_span::{RequestSpan, DynamicLatencyUnitOnResponse}, sets,
     settings::Settings, updates,
 };
 
@@ -64,7 +64,9 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(RequestSpan)
-                .on_response(DefaultOnResponse::new().level(Level::INFO)),
+                .on_response(DynamicLatencyUnitOnResponse(
+                    DefaultOnResponse::new().level(Level::INFO),
+                )),
         )
         .with_state(pool)
         .static_files(settings.server.static_dir.as_ref())
