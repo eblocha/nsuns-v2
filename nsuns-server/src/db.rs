@@ -1,6 +1,7 @@
 use std::{fmt::Debug, time::Duration};
 
 use anyhow::Context;
+use secrecy::{SecretString, ExposeSecret};
 use serde::Deserialize;
 use sqlx::{
     migrate::MigrationSource,
@@ -27,7 +28,7 @@ pub struct DatabaseSettings {
     pub port: u16,
     pub database: String,
     pub username: String,
-    pub password: String,
+    pub password: SecretString,
     #[serde(default = "default_timeout")]
     pub timeout: Duration,
     #[serde(default = "default_max_connections")]
@@ -42,7 +43,7 @@ impl From<&DatabaseSettings> for PgConnectOptions {
             .port(val.port)
             .database(&val.database)
             .username(&val.username)
-            .password(&val.password)
+            .password(&val.password.expose_secret())
     }
 }
 

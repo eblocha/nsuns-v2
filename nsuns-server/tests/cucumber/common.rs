@@ -6,6 +6,7 @@ use nsuns_server::{
     server,
     settings::{ServerSettings, Settings},
 };
+use secrecy::ExposeSecret;
 use sqlx::Connection;
 use uuid::Uuid;
 
@@ -13,7 +14,11 @@ use uuid::Uuid;
 async fn randomize_db(mut settings: DatabaseSettings) -> anyhow::Result<DatabaseSettings> {
     let mut conn = sqlx::PgConnection::connect(&format!(
         "postgres://{}:{}@{}:{}/{}",
-        settings.username, settings.password, settings.host, settings.port, settings.database
+        settings.username,
+        settings.password.expose_secret(),
+        settings.host,
+        settings.port,
+        settings.database
     ))
     .await?;
 
@@ -39,7 +44,7 @@ pub async fn init() -> Router {
         database: randomize_db(DatabaseSettings {
             database: "postgres".to_string(),
             host: "localhost".to_string(),
-            password: "postgres".to_string(),
+            password: "postgres".to_string().into(),
             username: "postgres".to_string(),
             port: 5433,
             migrations: "db/migrations".to_string(),

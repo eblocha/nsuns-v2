@@ -16,6 +16,7 @@ const_format = "0.2.31"
 hyper = "0.14.27"
 metrics = "0.21.1"
 metrics-exporter-prometheus = "0.12.1"
+secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.171", features = ["derive"] }
 serde_repr = "0.1.16"
 sqlx = { version = "0.7.1", features = [
