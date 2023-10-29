@@ -1,7 +1,10 @@
 use std::{fmt, time::Duration};
 
 use http::Version;
-use opentelemetry_api::{propagation::TextMapPropagator, trace::SpanKind};
+use opentelemetry_api::{
+    propagation::TextMapPropagator,
+    trace::{SpanKind, TraceContextExt},
+};
 use opentelemetry_http::{HeaderExtractor, HeaderInjector};
 use opentelemetry_sdk::propagation::TraceContextPropagator;
 use opentelemetry_semantic_conventions as semcov;
@@ -105,21 +108,26 @@ pub fn update_span_from_response<B>(span: &tracing::Span, response: &http::Respo
         response.status().as_u16(),
     );
 
-    if response.status().is_server_error() || response.status().is_client_error() {
+    if response.status().is_server_error() {
         span.record(semcov::trace::OTEL_STATUS_CODE.as_str(), "ERROR");
-    } else {
-        span.record(semcov::trace::OTEL_STATUS_CODE.as_str(), "OK");
     }
-
-    span.record(
-        semcov::trace::OTEL_STATUS_DESCRIPTION.as_str(),
-        response.status().canonical_reason(),
-    );
 
     span.record(
         semcov::trace::HTTP_RESPONSE_BODY_SIZE.as_str(),
         response_body_size(response),
     );
+
+    span.record("trace_id", current_trace_id());
+}
+
+pub fn current_trace_id() -> Option<String> {
+    let cx = Span::current().context();
+    let s = cx.span();
+    let span_context = s.span_context();
+
+    span_context
+        .is_valid()
+        .then(|| span_context.trace_id().to_string())
 }
 
 #[inline]
