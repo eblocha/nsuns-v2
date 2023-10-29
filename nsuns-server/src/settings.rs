@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use crate::{
     db::DatabaseSettings, feature::Feature, metrics::settings::MetricsFeature,
-    openapi::settings::OpenApiFeature,
+    openapi::settings::OpenApiFeature, tracing::settings::OpenTelemetryFeature,
 };
 
 fn default_server_port() -> u16 {
@@ -42,6 +42,8 @@ pub struct Settings {
     pub metrics: MetricsFeature,
     #[serde(default)]
     pub openapi: OpenApiFeature,
+    #[serde(default)]
+    pub opentelemetry: OpenTelemetryFeature,
 }
 
 trait SetEnvOverride {

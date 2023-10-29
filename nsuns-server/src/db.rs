@@ -67,6 +67,7 @@ pub async fn run_migrations(
 
     migrator
         .run(acquire)
+        .instrument(tracing::info_span!("apply migrations"))
         .await
         .with_context(|| "failed to perform database migrations")
 }

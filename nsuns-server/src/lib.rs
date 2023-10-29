@@ -16,7 +16,7 @@ pub mod server;
 pub mod sets;
 pub mod settings;
 pub mod shutdown;
-mod tracing;
+pub mod tracing;
 pub mod updates;
 pub mod validation;
 mod vec;
