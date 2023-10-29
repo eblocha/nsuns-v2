@@ -348,7 +348,6 @@ pub struct ReorderSets {
 pub struct SetId(Uuid);
 
 impl ReorderSets {
-
     #[tracing::instrument(name = "ReorderSets::reorder", skip(self, tx))]
     pub async fn reorder<'a>(
         &self,

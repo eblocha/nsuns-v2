@@ -44,7 +44,7 @@ impl From<&DatabaseSettings> for PgConnectOptions {
             .port(val.port)
             .database(&val.database)
             .username(&val.username)
-            .password(&val.password.expose_secret())
+            .password(val.password.expose_secret())
     }
 }
 

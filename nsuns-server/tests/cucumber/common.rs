@@ -4,7 +4,8 @@ use nsuns_server::{
     metrics::settings::MetricsFeature,
     openapi::settings::OpenApiFeature,
     server,
-    settings::{ServerSettings, Settings}, tracing::settings::OpenTelemetryFeature,
+    settings::{ServerSettings, Settings},
+    tracing::settings::OpenTelemetryFeature,
 };
 use secrecy::ExposeSecret;
 use sqlx::Connection;
