@@ -1,5 +1,4 @@
 use axum::{response::IntoResponse, Json};
-use hyper::StatusCode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -9,6 +8,14 @@ pub enum Health {
     Ok,
 }
 
+impl IntoResponse for Health {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Health::Ok => Json(self).into_response(),
+        }
+    }
+}
+
 pub async fn health_check() -> impl IntoResponse {
-    (StatusCode::OK, Json(Health::Ok))
+    Health::Ok
 }

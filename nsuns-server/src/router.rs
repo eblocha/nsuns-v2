@@ -10,7 +10,7 @@ use tower_http::{
 use crate::{
     db::Pool, health::health_check, maxes, metrics::middleware::WithMetrics, movements,
     openapi::WithOpenApi, profiles, program, reps, sets, settings::Settings,
-    tracing::layer::WithTracing, updates,
+    tracing::middleware::WithTracing, updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";

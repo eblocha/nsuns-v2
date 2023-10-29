@@ -3,7 +3,7 @@ use std::future::ready;
 use axum::{routing::get, Router};
 use metrics_exporter_prometheus::PrometheusBuilder;
 
-use crate::tracing::layer::WithTracing;
+use crate::tracing::middleware::WithTracing;
 
 use super::settings::MetricsSettings;
 
