@@ -28,24 +28,33 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             otel.kind = ?SpanKind::Server,
             trace_id = Empty,
             request_id = %request_id,
+            http.request.method = request.method().as_str(),
+            user_agent.original = user_agent(request),
+            network.protocol.name = "http",
+            network.protocol.version = protocol_version(request),
+            server.address = http_host(request),
+            url.path = request.uri().path(),
+            url.query = request.uri().query(),
+            url.scheme = request.uri().scheme_str().unwrap_or_default(),
+            // set in response
+            http.response.status_code = Empty,
+            otel.status_code = Empty,
+            otel.status_description = Empty,
+            http.response.body.size = Empty
         );
 
         tracing_span.set_parent(parent);
-
-        update_span_from_request(&tracing_span, request);
 
         tracing_span
     }
 }
 
-/// Record the request latency with dynamic units.
-///
-/// If the latency is under 1ms, it will be reported in μs.
-/// Otherwise, it will be reported in ms.
+/// Updates the request span with response information and logs a request event.
 #[derive(Debug, Clone)]
-pub struct DynamicLatencyUnitOnResponse(pub DefaultOnResponse);
+pub struct UpdateSpanOnResponse(pub DefaultOnResponse);
 
-impl<B> OnResponse<B> for DynamicLatencyUnitOnResponse {
+impl<B> OnResponse<B> for UpdateSpanOnResponse
+{
     fn on_response(
         self,
         response: &http::Response<B>,
@@ -58,42 +67,17 @@ impl<B> OnResponse<B> for DynamicLatencyUnitOnResponse {
             LatencyUnit::Micros
         };
 
+        update_span_from_response(span, response);
+
         self.0
             .latency_unit(unit)
             .on_response(response, latency, span)
     }
 }
 
-/// Update the given span to record fields from the http request
-pub fn update_span_from_request<B>(span: &tracing::Span, request: &http::Request<B>) {
-    span.record(
-        semcov::trace::HTTP_REQUEST_METHOD.as_str(),
-        request.method().as_str(),
-    );
-    span.record(
-        semcov::trace::USER_AGENT_ORIGINAL.as_str(),
-        user_agent(request),
-    );
-    span.record(
-        semcov::trace::HTTP_RESPONSE_BODY_SIZE.as_str(),
-        response_body_size(request),
-    );
-    span.record(semcov::trace::NETWORK_PROTOCOL_NAME.as_str(), "http");
-    span.record(
-        semcov::trace::NETWORK_PROTOCOL_VERSION.as_str(),
-        protocol_version(request),
-    );
-    span.record(semcov::trace::SERVER_ADDRESS.as_str(), http_host(request));
-    span.record(semcov::trace::URL_PATH.as_str(), request.uri().path());
-    span.record(semcov::trace::URL_QUERY.as_str(), request.uri().query());
-    span.record(
-        semcov::trace::URL_SCHEME.as_str(),
-        request.uri().scheme_str().unwrap_or_default(),
-    );
-}
-
 /// Update the given span to record fields from the http response
-pub fn update_span_from_response<B>(span: &tracing::Span, response: &http::Response<B>) {
+pub fn update_span_from_response<B>(span: &tracing::Span, response: &http::Response<B>)
+{
     span.record(
         semcov::trace::HTTP_RESPONSE_STATUS_CODE.as_str(),
         response.status().as_u16(),
@@ -109,6 +93,11 @@ pub fn update_span_from_response<B>(span: &tracing::Span, response: &http::Respo
         semcov::trace::OTEL_STATUS_DESCRIPTION.as_str(),
         response.status().canonical_reason(),
     );
+
+    span.record(
+        semcov::trace::HTTP_RESPONSE_BODY_SIZE.as_str(),
+        response_body_size(response),
+    );
 }
 
 #[inline]
@@ -119,10 +108,16 @@ fn user_agent<B>(req: &http::Request<B>) -> &str {
 }
 
 #[inline]
-fn response_body_size<B>(req: &http::Request<B>) -> &str {
-    req.headers()
+fn response_body_size<B>(res: &http::Response<B>) -> Option<u64> {
+    res.headers()
         .get(http::header::CONTENT_LENGTH)
-        .map_or("", |h| h.to_str().unwrap_or_default())
+        .map_or(None, |h| {
+            h.to_str()
+                .unwrap_or_default()
+                .parse()
+                .map(Some)
+                .unwrap_or_default()
+        })
 }
 
 #[inline]
@@ -154,9 +149,8 @@ pub trait WithSpan: Sized {
 }
 
 impl<B> WithSpan for http::Request<B> {
+    /// Update outbound requests to contain otel tracing headers for the current span
     fn with_span(mut self, span: &Span) -> Self {
-        update_span_from_request(span, &self);
-
         TraceContextPropagator::new()
             .inject_context(&span.context(), &mut HeaderInjector(self.headers_mut()));
 
@@ -165,9 +159,8 @@ impl<B> WithSpan for http::Request<B> {
 }
 
 impl<B> WithSpan for http::Response<B> {
+    /// Update outbound responses to contain otel tracing headers for the current span
     fn with_span(mut self, span: &Span) -> Self {
-        update_span_from_response(&span, &self);
-
         TraceContextPropagator::new()
             .inject_context(&span.context(), &mut HeaderInjector(self.headers_mut()));
 
