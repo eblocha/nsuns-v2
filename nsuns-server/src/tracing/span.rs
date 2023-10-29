@@ -14,7 +14,6 @@ use tower_http::{
 };
 use tracing::{field::Empty, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
-use uuid::Uuid;
 
 /// Set the request span's parent as the incoming otel span, if present.
 #[derive(Debug, Clone)]
@@ -26,13 +25,10 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
 
         let parent = TraceContextPropagator::new().extract(&extractor);
 
-        let request_id = Uuid::new_v4();
-
         let tracing_span = tracing::info_span!(
             "HTTP request",
             otel.kind = ?SpanKind::Server,
             trace_id = Empty,
-            request_id = %request_id,
             http.request.method = request.method().as_str(),
             user_agent.original = user_agent(request),
             network.protocol.name = "http",
