@@ -1,8 +1,11 @@
-use axum::{Router, middleware::{from_fn, Next}, response::IntoResponse};
-use tower_http::trace::{DefaultOnResponse, TraceLayer};
-use tracing::Level;
+use axum::{
+    middleware::{from_fn, Next},
+    response::IntoResponse,
+    Router,
+};
+use tower_http::trace::TraceLayer;
 
-use super::span::{OpenTelemetryRequestSpan, WithSpan, UpdateSpanOnResponse};
+use super::span::{OpenTelemetryRequestSpan, UpdateSpanOnResponse, WithSpan};
 
 async fn propagate_otel_context<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse {
     next.run(req).await.with_current_span()
@@ -20,9 +23,7 @@ where
         self.route_layer(from_fn(propagate_otel_context)).layer(
             TraceLayer::new_for_http()
                 .make_span_with(OpenTelemetryRequestSpan)
-                .on_response(UpdateSpanOnResponse(
-                    DefaultOnResponse::new().level(Level::INFO),
-                )),
+                .on_response(UpdateSpanOnResponse),
         )
     }
 }
