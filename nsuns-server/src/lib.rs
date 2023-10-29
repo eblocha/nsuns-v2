@@ -8,6 +8,7 @@ pub mod openapi;
 pub mod profiles;
 pub mod program;
 pub mod reps;
+mod request_span;
 pub mod response_transforms;
 pub mod router;
 mod serde_display;

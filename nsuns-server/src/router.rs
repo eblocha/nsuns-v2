@@ -5,13 +5,13 @@ use tower_http::{
     catch_panic::CatchPanicLayer,
     compression::{predicate::SizeAbove, CompressionLayer},
     services::{ServeDir, ServeFile},
-    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+    trace::{DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
 
 use crate::{
     db::Pool, maxes, metrics::middleware::WithMetrics, movements, openapi::WithOpenApi, profiles,
-    program, reps, sets, settings::Settings, updates,
+    program, reps, request_span::RequestSpan, sets, settings::Settings, updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -60,7 +60,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .layer(CatchPanicLayer::new())
         .layer(
             TraceLayer::new_for_http()
-                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .make_span_with(RequestSpan)
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
         .with_state(pool)
