@@ -5,6 +5,7 @@ use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use sqlx::{postgres::PgQueryResult, Executor, Transaction};
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -57,6 +58,7 @@ pub struct Set {
 }
 
 impl Set {
+    #[tracing::instrument(name = "Set::select_where_id_in", skip(ids, executor))]
     pub async fn select_where_id_in(
         ids: &Vec<Uuid>,
         executor: impl Executor<'_, Database = DB>,
@@ -70,6 +72,7 @@ impl Set {
         .await
     }
 
+    #[tracing::instrument(name = "Set::delete_where_id_in", skip(ids, executor))]
     pub async fn delete_where_id_in(
         ids: &Vec<Uuid>,
         executor: impl Executor<'_, Database = DB>,
@@ -100,6 +103,7 @@ pub struct CreateSet {
 }
 
 impl CreateSet {
+    #[tracing::instrument(name = "CreateSet::insert_one", skip(self, tx))]
     pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
         let set_ids = get_set_ids(self.program_id, self.day, true, &mut **tx).await?;
 
@@ -118,6 +122,7 @@ impl CreateSet {
             .bind(self.program_id)
             .bind(self.day)
             .fetch_one(&mut **tx)
+            .instrument(tracing::info_span!("insert set in program_sets"))
             .await
             .map_err(|e| handle_error(e, || "failed to insert new set"))?
             .0;
@@ -143,12 +148,14 @@ impl CreateSet {
     }
 }
 
+#[tracing::instrument(name = "Set::delete", skip(tx))]
 pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<()>> {
     let res = sqlx::query_as::<_, (Uuid, Day)>(
         "DELETE FROM program_sets WHERE id = $1 RETURNING program_id, day",
     )
     .bind(id)
     .fetch_optional(&mut **tx)
+    .instrument(tracing::info_span!("delete set from program_sets"))
     .await
     .with_context(|| format!("failed to delete set with id={id}"))?;
 
@@ -182,6 +189,7 @@ pub struct UpdateSet {
 }
 
 impl UpdateSet {
+    #[tracing::instrument(name = "UpdateSet::update_one", skip(self, executor), fields(id = %self.id))]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,

@@ -16,6 +16,10 @@ const_format = "0.2.31"
 hyper = "0.14.27"
 metrics = "0.21.1"
 metrics-exporter-prometheus = "0.12.1"
+opentelemetry = "0.20.0"
+opentelemetry-jaeger = "0.19.0"
+opentelemetry-stdout = { version = "0.1.0", features = ["trace"] }
+opentelemetry_sdk = "0.20.0"
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.171", features = ["derive"] }
 serde_repr = "0.1.16"
@@ -38,6 +42,7 @@ tower-http = { version = "0.4.1", features = [
   "compression-gzip",
 ] }
 tracing = "0.1.37"
+tracing-opentelemetry = "0.21.0"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 utoipa = { version = "3.4.3", features = ["axum_extras", "uuid"] }
 utoipa-swagger-ui = { version = "3.1.4", features = ["axum"] }

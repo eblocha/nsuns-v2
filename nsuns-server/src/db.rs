@@ -8,6 +8,7 @@ use sqlx::{
     postgres::{PgConnectOptions, PgPoolOptions},
     Acquire, Postgres, Transaction,
 };
+use tracing::Instrument;
 
 use crate::error::{ErrorWithStatus, OperationResult};
 
@@ -72,6 +73,7 @@ pub async fn run_migrations(
 
 /// Acquire a new transaction
 #[inline]
+#[tracing::instrument(name = "begin transaction", skip(acquire))]
 pub async fn transaction<'a>(
     acquire: impl Acquire<'a, Database = DB>,
 ) -> OperationResult<Transaction<'a, DB>> {
@@ -92,13 +94,17 @@ where
     match result {
         Ok(_) => {
             tx.commit()
+                .instrument(tracing::info_span!("commit transaction"))
                 .await
                 .with_context(|| "failed to commit transaction")?;
         }
         Err(ref e) => {
-            tx.rollback().await.with_context(|| {
-                format!("failed to rollback transaction initiated by previous error: {e:?}")
-            })?;
+            tx.rollback()
+                .instrument(tracing::info_span!("rollback transaction"))
+                .await
+                .with_context(|| {
+                    format!("failed to rollback transaction initiated by previous error: {e:?}")
+                })?;
         }
     };
 

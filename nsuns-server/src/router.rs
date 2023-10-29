@@ -60,7 +60,7 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .layer(CompressionLayer::new().compress_when(SizeAbove::new(1024)))
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
-        .with_tracing()
         .static_files(settings.server.static_dir.as_ref())
+        .with_tracing()
         .with_metrics(&settings.metrics)
 }

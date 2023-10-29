@@ -44,6 +44,7 @@ where
 }
 
 impl Max {
+    #[tracing::instrument(name = "Max::select_for_profile", skip(executor))]
     pub async fn select_for_profile(
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -56,31 +57,7 @@ impl Max {
             .map_err(Into::into)
     }
 
-    pub async fn update_one(
-        self,
-        executor: impl Executor<'_, Database = DB>,
-    ) -> OperationResult<Option<Self>> {
-        sqlx::query("UPDATE maxes SET profile_id = $1, movement_id = $2, amount = $3 WHERE id = $4")
-            .bind(self.profile_id)
-            .bind(self.movement_id)
-            .bind(self.amount)
-            .bind(self.id)
-            .execute(executor)
-            .await
-            .map_err(|e| {
-                handle_error(e, || {
-                    format!("failed to update max with id={id}", id = self.id)
-                })
-            })
-            .map(|result| {
-                if result.rows_affected() == 0 {
-                    None
-                } else {
-                    Some(self)
-                }
-            })
-    }
-
+    #[tracing::instrument(name = "Max::select_latest", skip(executor))]
     pub async fn select_latest(
         movement_id: Uuid,
         profile_id: Uuid,
@@ -106,6 +83,7 @@ pub struct CreateMax {
 }
 
 impl CreateMax {
+    #[tracing::instrument(name = "CreateMax::insert_one", skip(self, executor))]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -142,6 +120,11 @@ pub struct UpdateMax {
 }
 
 impl UpdateMax {
+    #[tracing::instrument(
+        name = "UpdateMax::update_one",
+        skip(self, executor),
+        fields(max_id = %self.id)
+    )]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -159,6 +142,7 @@ impl UpdateMax {
     }
 }
 
+#[tracing::instrument(skip(executor))]
 pub async fn delete_latest_maxes(
     profile_id: Uuid,
     movement_id: Uuid,

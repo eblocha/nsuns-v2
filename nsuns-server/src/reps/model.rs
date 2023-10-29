@@ -44,6 +44,7 @@ pub struct Reps {
 }
 
 impl Reps {
+    #[tracing::instrument(name = "Reps::select_for_profile", skip(executor))]
     pub async fn select_for_profile(
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -56,31 +57,7 @@ impl Reps {
             .map_err(Into::into)
     }
 
-    pub async fn update_one(
-        self,
-        executor: impl Executor<'_, Database = DB>,
-    ) -> OperationResult<Option<Self>> {
-        sqlx::query("UPDATE reps SET profile_id = $1, movement_id = $2, amount = $3 WHERE id = $4")
-            .bind(self.profile_id)
-            .bind(self.movement_id)
-            .bind(self.amount)
-            .bind(self.id)
-            .execute(executor)
-            .await
-            .map_err(|e| {
-                handle_error(e, || {
-                    format!("failed to update reps with id={id}", id = self.id)
-                })
-            })
-            .map(|result| {
-                if result.rows_affected() == 0 {
-                    None
-                } else {
-                    Some(self)
-                }
-            })
-    }
-
+    #[tracing::instrument(name = "Reps::select_latest", skip(executor))]
     pub async fn select_latest(
         movement_id: Uuid,
         profile_id: Uuid,
@@ -106,6 +83,7 @@ pub struct CreateReps {
 }
 
 impl CreateReps {
+    #[tracing::instrument(name = "CreateReps::insert_one", skip(self, executor))]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -140,6 +118,7 @@ pub struct UpdateReps {
 }
 
 impl UpdateReps {
+    #[tracing::instrument(name = "UpdateReps::update_one", skip(self, executor), fields(id = %self.id))]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -157,6 +136,7 @@ impl UpdateReps {
     }
 }
 
+#[tracing::instrument(skip(executor))]
 pub async fn delete_latest_reps(
     profile_id: Uuid,
     movement_id: Uuid,

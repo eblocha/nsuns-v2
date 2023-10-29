@@ -6,6 +6,7 @@ use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgQueryResult, Executor, Transaction};
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -48,6 +49,7 @@ struct Program {
 }
 
 impl Program {
+    #[tracing::instrument(name = "Program::select_one", skip(executor))]
     pub async fn select_one(
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -74,6 +76,7 @@ pub struct ProgramMeta {
 }
 
 impl ProgramMeta {
+    #[tracing::instrument(name = "ProgramMeta::select_all_for_profile", skip(executor))]
     pub async fn select_all_for_profile(
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
@@ -94,6 +97,7 @@ impl ProgramMeta {
         .map_err(Into::into)
     }
 
+    #[tracing::instrument(name = "ProgramMeta::select_one", skip(executor))]
     pub async fn select_one(
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -138,6 +142,7 @@ pub struct CreateProgram {
 }
 
 impl CreateProgram {
+    #[tracing::instrument(name = "CreateProgram::insert_one", skip(self, executor))]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -165,6 +170,7 @@ pub struct UpdateProgram {
 }
 
 impl UpdateProgram {
+    #[tracing::instrument(name = "UpdateProgram::update_one", skip(self, executor), fields(id = %self.id))]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -185,6 +191,7 @@ impl UpdateProgram {
     }
 }
 
+#[tracing::instrument(name = "Program::delete_one", skip(executor))]
 pub async fn delete_one(
     id: Uuid,
     executor: impl Executor<'_, Database = DB>,
@@ -210,6 +217,7 @@ pub struct ProgramSummary {
     pub sets_saturday: Vec<Set>,
 }
 
+#[tracing::instrument(skip(tx))]
 pub async fn gather_program_summary(
     id: Uuid,
     tx: &mut Transaction<'_, DB>,
@@ -220,30 +228,37 @@ pub async fn gather_program_summary(
 
     if let Some(program) = program_opt {
         let sets_sunday = Set::select_where_id_in(&program.set_ids_sunday, &mut **tx)
+            .instrument(tracing::info_span!("select sets for sunday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_monday = Set::select_where_id_in(&program.set_ids_monday, &mut **tx)
+            .instrument(tracing::info_span!("select sets for monday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_tuesday = Set::select_where_id_in(&program.set_ids_tuesday, &mut **tx)
+            .instrument(tracing::info_span!("select sets for tuesday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_wednesday = Set::select_where_id_in(&program.set_ids_wednesday, &mut **tx)
+            .instrument(tracing::info_span!("select sets for wednesday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_thursday = Set::select_where_id_in(&program.set_ids_thursday, &mut **tx)
+            .instrument(tracing::info_span!("select sets for thursday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_friday = Set::select_where_id_in(&program.set_ids_friday, &mut **tx)
+            .instrument(tracing::info_span!("select sets for friday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_saturday = Set::select_where_id_in(&program.set_ids_saturday, &mut **tx)
+            .instrument(tracing::info_span!("select sets for saturday"))
             .await
             .with_context(get_ctx)?;
 
@@ -274,6 +289,7 @@ fn get_day_column(day: Day) -> &'static str {
     }
 }
 
+#[tracing::instrument(skip(executor))]
 pub async fn get_set_ids(
     program_id: Uuid,
     day: Day,
@@ -297,6 +313,7 @@ pub async fn get_set_ids(
     Ok(set_ids)
 }
 
+#[tracing::instrument(skip(executor))]
 pub async fn update_set_ids(
     program_id: Uuid,
     day: Day,
@@ -331,6 +348,8 @@ pub struct ReorderSets {
 pub struct SetId(Uuid);
 
 impl ReorderSets {
+
+    #[tracing::instrument(name = "ReorderSets::reorder", skip(self, tx))]
     pub async fn reorder<'a>(
         &self,
         tx: &mut Transaction<'a, DB>,
