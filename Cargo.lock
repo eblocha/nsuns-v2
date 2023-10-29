@@ -1555,6 +1555,7 @@ dependencies = [
  "config",
  "const_format",
  "cucumber",
+ "http",
  "hyper",
  "metrics",
  "metrics-exporter-prometheus",
