@@ -113,11 +113,11 @@ pub fn update_span_from_response<B>(span: &tracing::Span, response: &http::Respo
         response_body_size(response),
     );
 
-    span.record("trace_id", current_trace_id());
+    span.record("trace_id", get_trace_id(span));
 }
 
-pub fn current_trace_id() -> Option<String> {
-    let cx = Span::current().context();
+pub fn get_trace_id(span: &tracing::Span) -> Option<String> {
+    let cx = span.context();
     let s = cx.span();
     let span_context = s.span_context();
 
