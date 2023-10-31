@@ -103,7 +103,7 @@ pub struct CreateSet {
 }
 
 impl CreateSet {
-    #[tracing::instrument(name = "CreateSet::insert_one", skip(self, tx))]
+    #[tracing::instrument(name = "CreateSet::insert_one", skip_all)]
     pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
         let set_ids = get_set_ids(self.program_id, self.day, true, &mut **tx).await?;
 
@@ -189,7 +189,7 @@ pub struct UpdateSet {
 }
 
 impl UpdateSet {
-    #[tracing::instrument(name = "UpdateSet::update_one", skip(self, executor), fields(id = %self.id))]
+    #[tracing::instrument(name = "UpdateSet::update_one", skip_all, fields(id = %self.id))]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,

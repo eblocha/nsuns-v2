@@ -34,7 +34,7 @@ fn get_inc_amount(latest_reps: Option<i32>) -> f64 {
     }
 }
 
-#[tracing::instrument(skip(updates, tx))]
+#[tracing::instrument(skip_all)]
 async fn run_updates(
     tx: &mut Transaction<'_, DB>,
     updates: Updates,
@@ -98,7 +98,7 @@ pub struct Removed {
     pub reps: Vec<DeletedId>,
 }
 
-#[tracing::instrument(skip(updates, tx))]
+#[tracing::instrument(skip_all)]
 async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> OperationResult<Removed> {
     let mut maxes = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());
     let mut reps = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());

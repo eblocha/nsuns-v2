@@ -83,7 +83,7 @@ pub struct CreateMax {
 }
 
 impl CreateMax {
-    #[tracing::instrument(name = "CreateMax::insert_one", skip(self, executor))]
+    #[tracing::instrument(name = "CreateMax::insert_one", skip_all)]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -122,7 +122,7 @@ pub struct UpdateMax {
 impl UpdateMax {
     #[tracing::instrument(
         name = "UpdateMax::update_one",
-        skip(self, executor),
+        skip_all,
         fields(max_id = %self.id)
     )]
     pub async fn update_one(

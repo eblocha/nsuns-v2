@@ -17,7 +17,7 @@ pub fn bind(port: u16) -> anyhow::Result<AddrIncoming> {
     AddrIncoming::bind(&addr).map_err(Into::into)
 }
 
-#[tracing::instrument(skip(settings))]
+#[tracing::instrument(skip_all)]
 pub async fn initialize(settings: &Settings) -> anyhow::Result<Router> {
     let pool = create_connection_pool(&settings.database);
 

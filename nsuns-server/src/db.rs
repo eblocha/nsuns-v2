@@ -74,7 +74,7 @@ pub async fn run_migrations(
 
 /// Acquire a new transaction
 #[inline]
-#[tracing::instrument(name = "begin transaction", skip(acquire))]
+#[tracing::instrument(name = "begin transaction", skip_all)]
 pub async fn transaction<'a>(
     acquire: impl Acquire<'a, Database = DB>,
 ) -> OperationResult<Transaction<'a, DB>> {

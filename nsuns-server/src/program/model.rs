@@ -142,7 +142,7 @@ pub struct CreateProgram {
 }
 
 impl CreateProgram {
-    #[tracing::instrument(name = "CreateProgram::insert_one", skip(self, executor))]
+    #[tracing::instrument(name = "CreateProgram::insert_one", skip_all)]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -348,7 +348,7 @@ pub struct ReorderSets {
 pub struct SetId(Uuid);
 
 impl ReorderSets {
-    #[tracing::instrument(name = "ReorderSets::reorder", skip(self, tx))]
+    #[tracing::instrument(name = "ReorderSets::reorder", skip_all)]
     pub async fn reorder<'a>(
         &self,
         tx: &mut Transaction<'a, DB>,

@@ -83,7 +83,7 @@ pub struct CreateReps {
 }
 
 impl CreateReps {
-    #[tracing::instrument(name = "CreateReps::insert_one", skip(self, executor))]
+    #[tracing::instrument(name = "CreateReps::insert_one", skip_all)]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -118,7 +118,7 @@ pub struct UpdateReps {
 }
 
 impl UpdateReps {
-    #[tracing::instrument(name = "UpdateReps::update_one", skip(self, executor), fields(id = %self.id))]
+    #[tracing::instrument(name = "UpdateReps::update_one", skip_all, fields(id = %self.id))]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,

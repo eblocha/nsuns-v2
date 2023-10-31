@@ -29,7 +29,7 @@ impl Profile {
             .map_err(Into::into)
     }
 
-    #[tracing::instrument(name = "Profile::select_all", skip(executor))]
+    #[tracing::instrument(name = "Profile::select_all", skip_all)]
     pub async fn select_all(
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Profile>> {
@@ -40,7 +40,7 @@ impl Profile {
             .map_err(Into::into)
     }
 
-    #[tracing::instrument(name = "Profile::update_one", skip(self, tx), fields(id = %self.id))]
+    #[tracing::instrument(name = "Profile::update_one", skip_all, fields(id = %self.id))]
     pub async fn update_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Self>> {
         sqlx::query("UPDATE profiles SET name = $1 WHERE id = $2")
             .bind(&self.name)
@@ -80,7 +80,7 @@ pub struct CreateProfile {
 }
 
 impl CreateProfile {
-    #[tracing::instrument(name = "CreateProfile::create_one", skip(self, tx))]
+    #[tracing::instrument(name = "CreateProfile::create_one", skip_all)]
     pub async fn create_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Profile> {
         sqlx::query_as::<_, Profile>("INSERT INTO profiles (name) VALUES ($1) RETURNING *")
             .bind(self.name)
