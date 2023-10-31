@@ -125,6 +125,10 @@ impl Settings {
                     settings.openapi = Feature::Disabled;
                 }
 
+                if bool_from_env("OPENTELEMETRY_DISABLE") {
+                    settings.opentelemetry = Feature::Disabled;
+                }
+
                 settings
             })
     }
