@@ -1,5 +1,3 @@
-use std::{fmt, time::Duration};
-
 use http::Version;
 use opentelemetry_api::{
     propagation::TextMapPropagator,
@@ -8,10 +6,7 @@ use opentelemetry_api::{
 use opentelemetry_http::{HeaderExtractor, HeaderInjector};
 use opentelemetry_sdk::propagation::TraceContextPropagator;
 use opentelemetry_semantic_conventions as semcov;
-use tower_http::{
-    trace::{MakeSpan, OnResponse},
-    LatencyUnit,
-};
+use tower_http::trace::{MakeSpan, OnResponse};
 use tracing::{field::Empty, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
@@ -50,22 +45,6 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
     }
 }
 
-struct Latency {
-    unit: LatencyUnit,
-    duration: Duration,
-}
-
-impl fmt::Display for Latency {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.unit {
-            LatencyUnit::Millis => write!(f, "{} ms", self.duration.as_millis()),
-            LatencyUnit::Micros => write!(f, "{} μs", self.duration.as_micros()),
-            LatencyUnit::Nanos => write!(f, "{} ns", self.duration.as_nanos()),
-            _ => write!(f, "{} s", self.duration.as_secs_f64()),
-        }
-    }
-}
-
 /// Updates the request span with response information and logs a request event.
 #[derive(Debug, Clone)]
 pub struct UpdateSpanOnResponse;
@@ -74,46 +53,25 @@ impl<B> OnResponse<B> for UpdateSpanOnResponse {
     fn on_response(
         self,
         response: &http::Response<B>,
-        latency: std::time::Duration,
+        _latency: std::time::Duration,
         span: &tracing::Span,
     ) {
-        let unit = if latency.as_secs() > 0 || latency.subsec_nanos() > 1_000_000 {
-            LatencyUnit::Millis
-        } else {
-            LatencyUnit::Micros
-        };
-
-        update_span_from_response(span, response);
-
-        let latency = Latency {
-            unit,
-            duration: latency,
-        };
-
-        tracing::info!(
-            %latency,
-            "finished processing request"
+        span.record(
+            semcov::trace::HTTP_RESPONSE_STATUS_CODE.as_str(),
+            response.status().as_u16(),
         );
+
+        if response.status().is_server_error() {
+            span.record(semcov::trace::OTEL_STATUS_CODE.as_str(), "ERROR");
+        }
+
+        span.record(
+            semcov::trace::HTTP_RESPONSE_BODY_SIZE.as_str(),
+            response_body_size(response),
+        );
+
+        span.record("trace_id", get_trace_id(span));
     }
-}
-
-/// Update the given span to record fields from the http response
-pub fn update_span_from_response<B>(span: &tracing::Span, response: &http::Response<B>) {
-    span.record(
-        semcov::trace::HTTP_RESPONSE_STATUS_CODE.as_str(),
-        response.status().as_u16(),
-    );
-
-    if response.status().is_server_error() {
-        span.record(semcov::trace::OTEL_STATUS_CODE.as_str(), "ERROR");
-    }
-
-    span.record(
-        semcov::trace::HTTP_RESPONSE_BODY_SIZE.as_str(),
-        response_body_size(response),
-    );
-
-    span.record("trace_id", get_trace_id(span));
 }
 
 pub fn get_trace_id(span: &tracing::Span) -> Option<String> {

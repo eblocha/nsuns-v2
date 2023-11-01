@@ -7,20 +7,26 @@ use opentelemetry_sdk::{
     Resource,
 };
 use opentelemetry_semantic_conventions as semcov;
-use tracing_subscriber::prelude::*;
+use tracing_subscriber::{filter::LevelFilter, prelude::*};
 
 use super::settings::OpenTelemetryFeature;
 
 pub fn setup_tracing(settings: &OpenTelemetryFeature) -> anyhow::Result<()> {
-    let format_layer = tracing_subscriber::fmt::layer();
+    let format_layer = tracing_subscriber::fmt::layer().compact();
 
     // use json logs in release builds
     #[cfg(not(debug_assertions))]
-    let format_layer = format_layer.json();
+    let format_layer = format_layer
+        .json()
+        .with_span_list(false)
+        .with_current_span(false)
+        .flatten_event(true);
 
     let layered = tracing_subscriber::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env_lossy(),
         )
         .with(format_layer);
 
