@@ -23,7 +23,7 @@ async fn randomize_db(mut settings: DatabaseSettings) -> anyhow::Result<Database
     ))
     .await?;
 
-    let database = format!("db_{}", Uuid::new_v4().to_string().replace("-", "_"));
+    let database = format!("db_{}", Uuid::new_v4().to_string().replace('-', "_"));
 
     sqlx::query(&format!("CREATE DATABASE {database};"))
         .execute(&mut conn)

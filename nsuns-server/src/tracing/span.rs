@@ -87,15 +87,13 @@ pub fn get_trace_id(span: &tracing::Span) -> Option<String> {
 #[inline]
 fn user_agent<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
-        .get(http::header::USER_AGENT)
-        .map_or(None, |h| h.to_str().ok())
+        .get(http::header::USER_AGENT).and_then(|h| h.to_str().ok())
 }
 
 #[inline]
 fn response_body_size<B>(res: &http::Response<B>) -> Option<u64> {
     res.headers()
-        .get(http::header::CONTENT_LENGTH)
-        .map_or(None, |h| {
+        .get(http::header::CONTENT_LENGTH).and_then(|h| {
             h.to_str()
                 .unwrap_or_default()
                 .parse()

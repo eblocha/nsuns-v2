@@ -40,7 +40,7 @@ pub async fn create_set(world: &mut NsunsWorld, movement_name: String, day: Stri
     let movement_id = world
         .movement_world
         .movement_by_name(&movement_name)
-        .expect(&format!(r#"Movement "{movement_name}" not found"#))
+        .unwrap_or_else(|| panic!(r#"Movement "{movement_name}" not found"#))
         .id;
 
     let program_id = world.program_world.unwrap_program_meta().id;
@@ -68,11 +68,9 @@ pub async fn create_set(world: &mut NsunsWorld, movement_name: String, day: Stri
     assert_eq!(StatusCode::CREATED, res.status());
 }
 
-#[then(regex = r#"My program has (\[.*\]) on (\S+)"#)]
+#[then(regex = r"My program has (\[.*\]) on (\S+)")]
 pub async fn test_sets_for_day(world: &mut NsunsWorld, movement_names: String, day: String) {
-    let names: Vec<String> = serde_json::from_str(&movement_names).expect(&format!(
-        "Could not deserialize {movement_names} into array of strings"
-    ));
+    let names: Vec<String> = serde_json::from_str(&movement_names).unwrap_or_else(|_| panic!("Could not deserialize {movement_names} into array of strings"));
 
     let actual_names: Vec<_> = sets_for_day(
         world.program_world.unwrap_program_summary(),
@@ -86,7 +84,7 @@ pub async fn test_sets_for_day(world: &mut NsunsWorld, movement_names: String, d
     assert_eq!(names, actual_names)
 }
 
-#[when(regex = r#"I reorder (\S+) from (\d+) to (\d+)"#)]
+#[when(regex = r"I reorder (\S+) from (\d+) to (\d+)")]
 pub async fn reorder_sets(world: &mut NsunsWorld, day: String, from: usize, to: usize) {
     let program_id = world.program_world.unwrap_program_meta().id;
 
