@@ -3,7 +3,7 @@ use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
     runtime::Tokio,
-    trace::{self, RandomIdGenerator, Sampler},
+    trace::{self, Sampler, XrayIdGenerator},
     Resource,
 };
 use opentelemetry_semantic_conventions as semcov;
@@ -12,11 +12,17 @@ use tracing_subscriber::prelude::*;
 use super::settings::OpenTelemetryFeature;
 
 pub fn setup_tracing(settings: &OpenTelemetryFeature) -> anyhow::Result<()> {
+    let format_layer = tracing_subscriber::fmt::layer();
+
+    // use json logs in release builds
+    #[cfg(not(debug_assertions))]
+    let format_layer = format_layer.json();
+
     let layered = tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
-        .with(tracing_subscriber::fmt::layer());
+        .with(format_layer);
 
     if let OpenTelemetryFeature::Enabled(settings) = settings {
         let otlp_exporter = opentelemetry_otlp::new_exporter()
@@ -30,12 +36,12 @@ pub fn setup_tracing(settings: &OpenTelemetryFeature) -> anyhow::Result<()> {
             .with_trace_config(
                 trace::config()
                     .with_sampler(Sampler::AlwaysOn)
-                    .with_id_generator(RandomIdGenerator::default())
+                    .with_id_generator(XrayIdGenerator::default())
                     .with_max_events_per_span(64)
                     .with_max_attributes_per_span(16)
                     .with_resource(Resource::new(vec![KeyValue::new(
                         semcov::resource::SERVICE_NAME,
-                        "nsuns",
+                        settings.service_name.clone(),
                     )])),
             )
             .install_batch(Tokio)

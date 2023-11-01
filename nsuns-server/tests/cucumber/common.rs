@@ -1,6 +1,6 @@
 use axum::Router;
 use nsuns_server::{
-    db::{default_timeout, DatabaseSettings},
+    db::settings::{default_timeout, DatabaseSettings},
     metrics::settings::MetricsFeature,
     openapi::settings::OpenApiFeature,
     server,

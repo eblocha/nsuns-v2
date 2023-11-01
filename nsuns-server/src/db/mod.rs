@@ -1,4 +1,5 @@
 pub mod pool;
+pub mod settings;
 pub mod transaction;
 
 pub use pool::*;

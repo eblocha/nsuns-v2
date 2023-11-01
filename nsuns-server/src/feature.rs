@@ -1,4 +1,7 @@
+use config::{builder::BuilderState, ConfigBuilder};
 use serde::Deserialize;
+
+use crate::settings::CustomizeConfigBuilder;
 
 #[derive(Debug, Deserialize)]
 pub enum Feature<T> {
@@ -29,5 +32,11 @@ impl<T> From<Feature<T>> for Option<T> {
 impl<T> Feature<T> {
     pub fn is_enabled(&self) -> bool {
         matches!(*self, Feature::Enabled(_))
+    }
+}
+
+impl<S: BuilderState, T: CustomizeConfigBuilder<S>> CustomizeConfigBuilder<S> for Feature<T> {
+    fn customize_builder(builder: ConfigBuilder<S>, prefix: &str) -> ConfigBuilder<S> {
+        T::customize_builder(builder, &format!("{prefix}.enabled"))
     }
 }

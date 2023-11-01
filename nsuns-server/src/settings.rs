@@ -8,7 +8,7 @@ use config::{builder::BuilderState, Config, ConfigBuilder, File};
 use serde::Deserialize;
 
 use crate::{
-    db::DatabaseSettings, feature::Feature, metrics::settings::MetricsFeature,
+    db::settings::DatabaseSettings, feature::Feature, metrics::settings::MetricsFeature,
     openapi::settings::OpenApiFeature, tracing::settings::OpenTelemetryFeature,
 };
 
@@ -33,6 +33,14 @@ impl Default for ServerSettings {
     }
 }
 
+impl<S: BuilderState> CustomizeConfigBuilder<S> for ServerSettings {
+    fn customize_builder(builder: ConfigBuilder<S>, prefix: &str) -> ConfigBuilder<S> {
+        builder
+            .set_env_override_unwrap(&format!("{prefix}.port"), "SERVER_PORT")
+            .set_env_override_unwrap(&format!("{prefix}.static_dir"), "STATIC_FILES_DIR")
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub database: DatabaseSettings,
@@ -46,7 +54,7 @@ pub struct Settings {
     pub opentelemetry: OpenTelemetryFeature,
 }
 
-trait SetEnvOverride {
+pub trait SetEnvOverride {
     fn set_env_override<K, E>(
         self,
         key: K,
@@ -59,7 +67,7 @@ trait SetEnvOverride {
 
     /// Convenience method to unwrap a result from `set_env_override`.
     /// This is useful if the config key is static, and known to parse correctly.
-    fn set_env_override_unwrap<E>(self, key: &'static str, env_var: E) -> Self
+    fn set_env_override_unwrap<E>(self, key: &str, env_var: E) -> Self
     where
         Self: Sized,
         E: AsRef<OsStr>,
@@ -79,6 +87,21 @@ impl<S: BuilderState> SetEnvOverride for ConfigBuilder<S> {
         E: AsRef<OsStr>,
     {
         self.set_override_option(key, var(env_var).ok())
+    }
+}
+
+/// Customize the config builder. Useful for setting overrides to apply from env vars.
+pub trait CustomizeConfigBuilder<S: BuilderState> {
+    fn customize_builder(builder: ConfigBuilder<S>, prefix: &str) -> ConfigBuilder<S>;
+}
+
+trait ApplyCustomizations<S: BuilderState> {
+    fn apply_customizations<C: CustomizeConfigBuilder<S>>(self, prefix: &str) -> Self;
+}
+
+impl<S: BuilderState> ApplyCustomizations<S> for ConfigBuilder<S> {
+    fn apply_customizations<C: CustomizeConfigBuilder<S>>(self, prefix: &str) -> Self {
+        C::customize_builder(self, prefix)
     }
 }
 
@@ -103,13 +126,9 @@ impl Settings {
 
         let builder = Config::builder()
             .add_source(File::with_name(&config_source))
-            .set_env_override_unwrap("server.port", "SERVER_PORT")
-            .set_env_override_unwrap("server.static_dir", "STATIC_FILES_DIR")
-            .set_env_override_unwrap("database.host", "DATABASE_HOST")
-            .set_env_override_unwrap("database.port", "DATABASE_PORT")
-            .set_env_override_unwrap("database.username", "DATABASE_USERNAME")
-            .set_env_override_unwrap("database.password", "DATABASE_PASSWORD")
-            .set_env_override_unwrap("database.migrations", "DATABASE_MIGRATIONS");
+            .apply_customizations::<ServerSettings>("server")
+            .apply_customizations::<DatabaseSettings>("database")
+            .apply_customizations::<OpenTelemetryFeature>("opentelemetry");
 
         let config = builder.build();
 
