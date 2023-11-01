@@ -70,7 +70,8 @@ pub async fn create_set(world: &mut NsunsWorld, movement_name: String, day: Stri
 
 #[then(regex = r"My program has (\[.*\]) on (\S+)")]
 pub async fn test_sets_for_day(world: &mut NsunsWorld, movement_names: String, day: String) {
-    let names: Vec<String> = serde_json::from_str(&movement_names).unwrap_or_else(|_| panic!("Could not deserialize {movement_names} into array of strings"));
+    let names: Vec<String> = serde_json::from_str(&movement_names)
+        .unwrap_or_else(|_| panic!("Could not deserialize {movement_names} into array of strings"));
 
     let actual_names: Vec<_> = sets_for_day(
         world.program_world.unwrap_program_summary(),
