@@ -42,7 +42,7 @@ impl fmt::Display for Latency {
     }
 }
 
-async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse {
+pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse {
     let start = Instant::now();
 
     // info to be logged
@@ -78,7 +78,7 @@ where
     S: Clone + Send + Sync + 'static,
 {
     fn with_tracing(self) -> Self {
-        self.route_layer(from_fn(trace)).layer(
+        self.layer(from_fn(trace)).layer(
             TraceLayer::new_for_http()
                 .make_span_with(OpenTelemetryRequestSpan)
                 .on_response(UpdateSpanOnResponse),
