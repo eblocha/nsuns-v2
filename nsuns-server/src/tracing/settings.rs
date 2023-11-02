@@ -9,6 +9,47 @@ use crate::{
     settings::{CustomizeConfigBuilder, SetEnvOverride},
 };
 
+pub fn default_json_format() -> bool {
+    true
+}
+
+pub fn default_directive() -> String {
+    "info".to_string()
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LogSettings {
+    /// Use json-formatted logs to stdout
+    #[serde(default = "default_json_format")]
+    pub json: bool,
+    /// Logging directive, e.g. "info" to log every crate at INFO level.
+    #[serde(default = "default_directive")]
+    pub directive: String,
+    #[serde(default)]
+    pub opentelemetry: OpenTelemetryFeature,
+}
+
+impl Default for LogSettings {
+    fn default() -> Self {
+        Self {
+            json: default_json_format(),
+            directive: default_directive(),
+            opentelemetry: Default::default(),
+        }
+    }
+}
+
+impl<S: BuilderState> CustomizeConfigBuilder<S> for LogSettings {
+    fn customize_builder(
+        builder: config::ConfigBuilder<S>,
+        prefix: &str,
+    ) -> config::ConfigBuilder<S> {
+        OpenTelemetryFeature::customize_builder(builder, &format!("{prefix}.opentelemetry"))
+            .set_env_override_unwrap(&format!("{prefix}.directive"), "RUST_LOG")
+            .set_env_override_unwrap(&format!("{prefix}.json"), "JSON_LOG")
+    }
+}
+
 pub fn default_exporter_host() -> String {
     // jaeger default port
     "http://localhost:4317".to_string()

@@ -14,4 +14,4 @@ static_dir = "assets"
 
 [openapi.enabled]
 
-[opentelemetry.enabled]
+[logging.opentelemetry.enabled]

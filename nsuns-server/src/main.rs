@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
         .with_context(|| "failed to load settings")
         .log_error()?;
 
-    setup_tracing(&settings.opentelemetry)?;
+    setup_tracing(&settings.logging)?;
 
     tokio::try_join!(
         server::run(&settings),

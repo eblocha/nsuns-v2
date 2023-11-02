@@ -3,61 +3,68 @@ use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
     runtime::Tokio,
-    trace::{self, Sampler, XrayIdGenerator},
+    trace::{self, Sampler, Tracer, XrayIdGenerator},
     Resource,
 };
 use opentelemetry_semantic_conventions as semcov;
-use tracing_subscriber::{filter::LevelFilter, prelude::*};
+use tracing_opentelemetry::OpenTelemetryLayer;
+use tracing_subscriber::{filter::LevelFilter, prelude::*, registry::LookupSpan, fmt};
 
-use super::settings::OpenTelemetryFeature;
+use super::settings::{LogSettings, OpenTelemetryFeature, OpenTelemetrySettings};
 
-pub fn setup_tracing(settings: &OpenTelemetryFeature) -> anyhow::Result<()> {
-    let format_layer = tracing_subscriber::fmt::layer().compact();
+fn otel_layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
+    settings: &OpenTelemetrySettings,
+) -> anyhow::Result<OpenTelemetryLayer<S, Tracer>> {
+    let otlp_exporter = opentelemetry_otlp::new_exporter()
+        .tonic()
+        .with_endpoint(&settings.exporter_host)
+        .with_timeout(settings.exporter_timeout);
 
-    // use json logs in release builds
-    #[cfg(not(debug_assertions))]
-    let format_layer = format_layer
-        .json()
-        .with_span_list(false)
-        .with_current_span(false)
-        .flatten_event(true);
+    let tracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(otlp_exporter)
+        .with_trace_config(
+            trace::config()
+                .with_sampler(Sampler::AlwaysOn)
+                .with_id_generator(XrayIdGenerator::default())
+                .with_max_events_per_span(64)
+                .with_max_attributes_per_span(16)
+                .with_resource(Resource::new(vec![KeyValue::new(
+                    semcov::resource::SERVICE_NAME,
+                    settings.service_name.clone(),
+                )])),
+        )
+        .install_batch(Tokio)
+        .with_context(|| "failed to install otel tracer")?;
 
-    let layered = tracing_subscriber::registry()
+    let opentelemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
+    Ok(opentelemetry)
+}
+
+pub fn setup_tracing(settings: &LogSettings) -> anyhow::Result<()> {
+    let fmt_layer = match settings.json {
+        true => fmt::layer()
+            .json()
+            .with_span_list(false)
+            .with_current_span(false)
+            .flatten_event(true)
+            .boxed(),
+        false => fmt::layer().compact().boxed(),
+    };
+
+    let registry = tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(LevelFilter::INFO.into())
-                .from_env_lossy(),
+                .parse_lossy(&settings.directive),
         )
-        .with(format_layer);
+        .with(fmt_layer);
 
-    if let OpenTelemetryFeature::Enabled(settings) = settings {
-        let otlp_exporter = opentelemetry_otlp::new_exporter()
-            .tonic()
-            .with_endpoint(&settings.exporter_host)
-            .with_timeout(settings.exporter_timeout);
-
-        let tracer = opentelemetry_otlp::new_pipeline()
-            .tracing()
-            .with_exporter(otlp_exporter)
-            .with_trace_config(
-                trace::config()
-                    .with_sampler(Sampler::AlwaysOn)
-                    .with_id_generator(XrayIdGenerator::default())
-                    .with_max_events_per_span(64)
-                    .with_max_attributes_per_span(16)
-                    .with_resource(Resource::new(vec![KeyValue::new(
-                        semcov::resource::SERVICE_NAME,
-                        settings.service_name.clone(),
-                    )])),
-            )
-            .install_batch(Tokio)
-            .with_context(|| "failed to install otel tracer")?;
-
-        let opentelemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-
-        layered.with(opentelemetry).try_init()
+    if let OpenTelemetryFeature::Enabled(settings) = &settings.opentelemetry {
+        registry.with(otel_layer(settings)?).try_init()
     } else {
-        layered.try_init()
+        registry.try_init()
     }
     .with_context(|| "failed to init tracing subscriber")?;
 

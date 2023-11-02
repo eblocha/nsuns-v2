@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use crate::{
     db::settings::DatabaseSettings, feature::Feature, metrics::settings::MetricsFeature,
-    openapi::settings::OpenApiFeature, tracing::settings::OpenTelemetryFeature,
+    openapi::settings::OpenApiFeature, tracing::settings::LogSettings,
 };
 
 fn default_server_port() -> u16 {
@@ -51,7 +51,7 @@ pub struct Settings {
     #[serde(default)]
     pub openapi: OpenApiFeature,
     #[serde(default)]
-    pub opentelemetry: OpenTelemetryFeature,
+    pub logging: LogSettings,
 }
 
 pub trait SetEnvOverride {
@@ -128,7 +128,7 @@ impl Settings {
             .add_source(File::with_name(&config_source))
             .apply_customizations::<ServerSettings>("server")
             .apply_customizations::<DatabaseSettings>("database")
-            .apply_customizations::<OpenTelemetryFeature>("opentelemetry");
+            .apply_customizations::<LogSettings>("logging");
 
         let config = builder.build();
 
@@ -145,7 +145,7 @@ impl Settings {
                 }
 
                 if bool_from_env("OPENTELEMETRY_DISABLE") {
-                    settings.opentelemetry = Feature::Disabled;
+                    settings.logging.opentelemetry = Feature::Disabled;
                 }
 
                 settings

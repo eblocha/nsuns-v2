@@ -5,7 +5,6 @@ use nsuns_server::{
     openapi::settings::OpenApiFeature,
     server,
     settings::{ServerSettings, Settings},
-    tracing::settings::OpenTelemetryFeature,
 };
 use secrecy::ExposeSecret;
 use sqlx::Connection;
@@ -57,7 +56,7 @@ pub async fn init() -> Router {
         .unwrap(),
         metrics: MetricsFeature::Disabled,
         openapi: OpenApiFeature::Disabled,
-        opentelemetry: OpenTelemetryFeature::Disabled,
+        logging: Default::default(),
     })
     .await
     .unwrap()
