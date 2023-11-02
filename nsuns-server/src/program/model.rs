@@ -49,7 +49,7 @@ struct Program {
 }
 
 impl Program {
-    #[tracing::instrument(name = "Program::select_one", skip(executor))]
+    #[tracing::instrument(name = "Program::select_one", skip_all)]
     pub async fn select_one(
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -76,7 +76,7 @@ pub struct ProgramMeta {
 }
 
 impl ProgramMeta {
-    #[tracing::instrument(name = "ProgramMeta::select_all_for_profile", skip(executor))]
+    #[tracing::instrument(name = "ProgramMeta::select_all_for_profile", skip_all)]
     pub async fn select_all_for_profile(
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
@@ -97,7 +97,7 @@ impl ProgramMeta {
         .map_err(Into::into)
     }
 
-    #[tracing::instrument(name = "ProgramMeta::select_one", skip(executor))]
+    #[tracing::instrument(name = "ProgramMeta::select_one", skip_all)]
     pub async fn select_one(
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -170,7 +170,7 @@ pub struct UpdateProgram {
 }
 
 impl UpdateProgram {
-    #[tracing::instrument(name = "UpdateProgram::update_one", skip(self, executor), fields(id = %self.id))]
+    #[tracing::instrument(name = "UpdateProgram::update_one", skip_all)]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -217,7 +217,7 @@ pub struct ProgramSummary {
     pub sets_saturday: Vec<Set>,
 }
 
-#[tracing::instrument(skip(tx))]
+#[tracing::instrument(skip_all)]
 pub async fn gather_program_summary(
     id: Uuid,
     tx: &mut Transaction<'_, DB>,
@@ -289,7 +289,7 @@ fn get_day_column(day: Day) -> &'static str {
     }
 }
 
-#[tracing::instrument(skip(executor))]
+#[tracing::instrument(skip_all)]
 pub async fn get_set_ids(
     program_id: Uuid,
     day: Day,
@@ -313,7 +313,7 @@ pub async fn get_set_ids(
     Ok(set_ids)
 }
 
-#[tracing::instrument(skip(executor))]
+#[tracing::instrument(skip_all)]
 pub async fn update_set_ids(
     program_id: Uuid,
     day: Day,

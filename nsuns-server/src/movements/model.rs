@@ -49,7 +49,7 @@ impl Movement {
             .map_err(Into::into)
     }
 
-    #[tracing::instrument(name = "Movement::update_one", skip_all, fields(movement_id = %self.id))]
+    #[tracing::instrument(name = "Movement::update_one", skip_all)]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,

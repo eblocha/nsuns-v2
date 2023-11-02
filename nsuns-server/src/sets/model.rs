@@ -58,7 +58,7 @@ pub struct Set {
 }
 
 impl Set {
-    #[tracing::instrument(name = "Set::select_where_id_in", skip(ids, executor))]
+    #[tracing::instrument(name = "Set::select_where_id_in", skip_all)]
     pub async fn select_where_id_in(
         ids: &Vec<Uuid>,
         executor: impl Executor<'_, Database = DB>,
@@ -72,7 +72,7 @@ impl Set {
         .await
     }
 
-    #[tracing::instrument(name = "Set::delete_where_id_in", skip(ids, executor))]
+    #[tracing::instrument(name = "Set::delete_where_id_in", skip_all)]
     pub async fn delete_where_id_in(
         ids: &Vec<Uuid>,
         executor: impl Executor<'_, Database = DB>,
@@ -189,7 +189,7 @@ pub struct UpdateSet {
 }
 
 impl UpdateSet {
-    #[tracing::instrument(name = "UpdateSet::update_one", skip_all, fields(id = %self.id))]
+    #[tracing::instrument(name = "UpdateSet::update_one", skip_all)]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
