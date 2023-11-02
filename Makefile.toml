@@ -154,7 +154,7 @@ args = ["dev"]
 
 [tasks.run-server]
 category = "Run"
-env = { STATIC_FILES_DIR = "../dist/assets" }
+env = { STATIC_FILES_DIR = "../dist/assets", JSON_LOG = "false" }
 description = "Run the server locally in dev mode."
 cwd = "${SERVER_DIR}"
 command = "cargo"

@@ -50,7 +50,7 @@ pub fn setup_tracing(settings: &LogSettings) -> anyhow::Result<()> {
             .with_current_span(false)
             .flatten_event(true)
             .boxed(),
-        false => fmt::layer().compact().boxed(),
+        false => fmt::layer().pretty().boxed(),
     };
 
     let registry = tracing_subscriber::registry()
