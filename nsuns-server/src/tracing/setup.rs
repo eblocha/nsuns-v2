@@ -8,7 +8,7 @@ use opentelemetry_sdk::{
 };
 use opentelemetry_semantic_conventions as semcov;
 use tracing_opentelemetry::OpenTelemetryLayer;
-use tracing_subscriber::{filter::LevelFilter, prelude::*, registry::LookupSpan, fmt};
+use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*, registry::LookupSpan};
 
 use super::settings::{LogSettings, OpenTelemetryFeature, OpenTelemetrySettings};
 
