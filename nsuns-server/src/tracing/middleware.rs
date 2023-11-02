@@ -10,7 +10,7 @@ use axum::{
 };
 use tower_http::{trace::TraceLayer, LatencyUnit};
 
-use crate::tracing::span::{get_trace_id, WithSpan};
+use crate::tracing::span::get_trace_id;
 
 use super::span::{OpenTelemetryRequestSpan, UpdateSpanOnResponse};
 
@@ -50,7 +50,7 @@ pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse
     let path = req.uri().path().to_string();
     let query = req.uri().query().map(ToString::to_string);
 
-    let res = next.run(req).await.with_current_span();
+    let res = next.run(req).await;
 
     let trace_id = get_trace_id(&tracing::Span::current());
 

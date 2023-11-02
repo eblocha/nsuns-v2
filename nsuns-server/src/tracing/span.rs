@@ -140,13 +140,3 @@ impl<B> WithSpan for http::Request<B> {
         self
     }
 }
-
-impl<B> WithSpan for http::Response<B> {
-    /// Update outbound responses to contain otel tracing headers for the current span
-    fn with_span(mut self, span: &Span) -> Self {
-        TraceContextPropagator::new()
-            .inject_context(&span.context(), &mut HeaderInjector(self.headers_mut()));
-
-        self
-    }
-}
