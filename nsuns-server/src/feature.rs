@@ -1,6 +1,6 @@
 use config::{builder::BuilderState, ConfigBuilder};
 use serde::{de, Deserialize, Deserializer};
-use serde_json::{Map, Value};
+use serde_json::{Map, Number, Value};
 
 use crate::settings::CustomizeConfigBuilder;
 
@@ -46,52 +46,44 @@ fn parse_failed(v: &Value) -> String {
     format!(r#"failed to parse as boolean: {v:#}"#)
 }
 
-fn try_parse_str(s: &str) -> Option<bool> {
+fn try_parse_str(s: String) -> Result<bool, String> {
     if let Ok(b) = s.parse() {
-        return Some(b);
+        return Ok(b);
     }
 
     let lowercase = s.to_lowercase();
 
     match lowercase.as_str() {
-        "yes" => Some(true),
-        "no" => Some(false),
-        "y" => Some(true),
-        "n" => Some(false),
-        "t" => Some(true),
-        "f" => Some(false),
-        "1" => Some(true),
-        "0" => Some(false),
-        _ => None,
+        "yes" => Ok(true),
+        "no" => Ok(false),
+        "y" => Ok(true),
+        "n" => Ok(false),
+        "t" => Ok(true),
+        "f" => Ok(false),
+        "1" => Ok(true),
+        "0" => Ok(false),
+        _ => Err(parse_failed(&Value::String(s))),
     }
 }
 
+fn try_parse_number(n: Number) -> Result<bool, String> {
+    n.as_u64()
+        .map(|n| match n {
+            1 => Some(true),
+            0 => Some(false),
+            _ => None,
+        })
+        .flatten()
+        .ok_or_else(|| parse_failed(&Value::Number(n)))
+}
+
 fn coerce_bool(v: Value) -> Result<bool, String> {
-    if let Some(b) = v.as_bool() {
-        return Ok(b);
+    match v {
+        Value::Bool(b) => Ok(b),
+        Value::String(s) => try_parse_str(s),
+        Value::Number(n) => try_parse_number(n),
+        v => Err(parse_failed(&v)),
     }
-
-    if let Some(s) = v.as_str() {
-        return try_parse_str(s).ok_or_else(|| parse_failed(&v));
-    }
-
-    if let Some(n) = v.as_i64() {
-        return match n {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => Err(parse_failed(&v)),
-        };
-    }
-
-    if let Some(n) = v.as_u64() {
-        return match n {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => Err(parse_failed(&v)),
-        };
-    }
-
-    Err(parse_failed(&v))
 }
 
 impl<'de, T> Deserialize<'de> for Feature<T>
