@@ -23,6 +23,7 @@ pub struct DatabaseSettings {
     pub username: String,
     pub password: SecretString,
     #[serde(default = "default_timeout")]
+    #[serde(with = "crate::serde_duration")]
     pub timeout: Duration,
     #[serde(default = "default_max_connections")]
     pub max_connections: u32,

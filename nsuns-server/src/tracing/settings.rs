@@ -69,6 +69,7 @@ pub struct OpenTelemetrySettings {
     #[serde(default = "default_exporter_host")]
     pub exporter_host: String,
     #[serde(default = "default_exporter_timeout")]
+    #[serde(with = "crate::serde_duration")]
     pub exporter_timeout: Duration,
     #[serde(default = "default_service_name")]
     pub service_name: String,

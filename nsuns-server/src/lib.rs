@@ -1,4 +1,5 @@
 pub mod db;
+mod serde_duration;
 pub mod error;
 pub mod feature;
 mod health;
