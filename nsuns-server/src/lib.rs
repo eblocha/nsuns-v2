@@ -1,5 +1,4 @@
 pub mod db;
-mod serde_duration;
 pub mod error;
 pub mod feature;
 mod health;
@@ -12,7 +11,7 @@ pub mod program;
 pub mod reps;
 pub mod response_transforms;
 pub mod router;
-mod serde_display;
+mod serde_duration;
 pub mod server;
 pub mod sets;
 pub mod settings;

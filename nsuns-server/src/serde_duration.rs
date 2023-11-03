@@ -15,25 +15,25 @@ fn duration_from_str(s: &str) -> Option<Duration> {
         t[0..t.len() - 2]
             .trim()
             .parse::<u64>()
-            .map(|ns| Duration::from_nanos(ns))
+            .map(Duration::from_nanos)
             .ok()
     } else if t.ends_with("us") {
         t[0..t.len() - 2]
             .trim()
             .parse::<u64>()
-            .map(|us| Duration::from_micros(us))
+            .map(Duration::from_micros)
             .ok()
     } else if t.ends_with("ms") {
         t[0..t.len() - 2]
             .trim()
             .parse::<u64>()
-            .map(|ms| Duration::from_millis(ms))
+            .map(Duration::from_millis)
             .ok()
-    } else if t.ends_with("s") {
+    } else if t.ends_with('s') {
         t[0..t.len() - 1]
             .trim()
             .parse::<u64>()
-            .map(|s| Duration::from_secs(s))
+            .map(Duration::from_secs)
             .ok()
     } else {
         None
@@ -66,14 +66,20 @@ mod tests {
     fn micros() {
         assert_eq!(Some(Duration::from_micros(10)), duration_from_str("10us"));
         assert_eq!(Some(Duration::from_micros(10)), duration_from_str("10 us"));
-        assert_eq!(Some(Duration::from_micros(10)), duration_from_str(" 10 us "));
+        assert_eq!(
+            Some(Duration::from_micros(10)),
+            duration_from_str(" 10 us ")
+        );
     }
 
     #[test]
     fn millis() {
         assert_eq!(Some(Duration::from_millis(10)), duration_from_str("10ms"));
         assert_eq!(Some(Duration::from_millis(10)), duration_from_str("10 ms"));
-        assert_eq!(Some(Duration::from_millis(10)), duration_from_str(" 10 ms "));
+        assert_eq!(
+            Some(Duration::from_millis(10)),
+            duration_from_str(" 10 ms ")
+        );
     }
 
     #[test]

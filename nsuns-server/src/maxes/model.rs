@@ -5,6 +5,7 @@ use axum::http::StatusCode;
 use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, DisplayFromStr};
 use sqlx::Executor;
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -15,11 +16,12 @@ use crate::{
     error::{ErrorWithStatus, OperationResult},
 };
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Max {
     #[schema(value_type = String, format = Int64)]
-    #[serde(with = "crate::serde_display")]
+    #[serde_as(as = "DisplayFromStr")]
     pub id: i64,
     pub profile_id: Uuid,
     pub movement_id: Uuid,
@@ -109,11 +111,12 @@ impl CreateMax {
     }
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateMax {
     #[schema(value_type = String, format = Int64)]
-    #[serde(with = "crate::serde_display")]
+    #[serde_as(as = "DisplayFromStr")]
     pub id: i64,
     #[validate(range(min = 0))]
     pub amount: f64,

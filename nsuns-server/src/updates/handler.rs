@@ -1,5 +1,6 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, DisplayFromStr};
 use sqlx::Transaction;
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -84,10 +85,11 @@ pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> 
     commit_ok(res, tx).await.log_error()
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, ToSchema)]
 pub struct DeletedId(
     #[schema(value_type = String, format = Int64)]
-    #[serde(with = "crate::serde_display")]
+    #[serde_as(as = "DisplayFromStr")]
     i64,
 );
 
