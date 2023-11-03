@@ -44,6 +44,9 @@ impl<S: BuilderState> CustomizeConfigBuilder<S> for MetricsSettings {
         builder: config::ConfigBuilder<S>,
         prefix: &str,
     ) -> config::ConfigBuilder<S> {
-        builder.set_env_override_unwrap(&format!("{prefix}.{ENABLED_KEY}"), "METRICS_ENABLED")
+        builder
+            .set_env_override_unwrap(&format!("{prefix}.{ENABLED_KEY}"), "METRICS_ENABLED")
+            .set_env_override_unwrap(&format!("{prefix}.port"), "METRICS_PORT")
+            .set_env_override_unwrap(&format!("{prefix}.path"), "METRICS_PATH")
     }
 }

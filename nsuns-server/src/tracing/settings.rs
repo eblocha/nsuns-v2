@@ -99,7 +99,7 @@ impl<S: BuilderState> CustomizeConfigBuilder<S> for OpenTelemetrySettings {
         prefix: &str,
     ) -> config::ConfigBuilder<S> {
         builder
-            .set_env_override_unwrap(&format!("{prefix}.{ENABLED_KEY}"), "OPENTELEMETRY_ENABLED")
+            .set_env_override_unwrap(&format!("{prefix}.{ENABLED_KEY}"), "OTEL_ENABLED")
             .set_env_override_unwrap(
                 &format!("{prefix}.exporter_host"),
                 OTEL_EXPORTER_OTLP_ENDPOINT,

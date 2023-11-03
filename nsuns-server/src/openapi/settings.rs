@@ -44,8 +44,10 @@ impl<S: BuilderState> CustomizeConfigBuilder<S> for OpenApiSettings {
         builder: config::ConfigBuilder<S>,
         prefix: &str,
     ) -> config::ConfigBuilder<S> {
-        let builder =
-            builder.set_env_override_unwrap(&format!("{prefix}.{ENABLED_KEY}"), "OPENAPI_ENABLED");
+        let builder = builder
+            .set_env_override_unwrap(&format!("{prefix}.{ENABLED_KEY}"), "OPENAPI_ENABLED")
+            .set_env_override_unwrap(&format!("{prefix}.swagger_path"), "SWAGGER_UI_PATH")
+            .set_env_override_unwrap(&format!("{prefix}.openapi_path"), "OPENAPI_PATH");
 
         #[cfg(not(feature = "openapi"))]
         let builder = builder
