@@ -56,6 +56,8 @@ fn try_parse_str(s: String) -> Result<bool, String> {
     match lowercase.as_str() {
         "yes" => Ok(true),
         "no" => Ok(false),
+        "on" => Ok(true),
+        "off" => Ok(false),
         "y" => Ok(true),
         "n" => Ok(false),
         "t" => Ok(true),
