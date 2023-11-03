@@ -9,10 +9,10 @@ skip_crate_env_info = true
 RPI_TARGET = "aarch64-unknown-linux-gnu"
 CLIENT_DIR = "nsuns-client"
 SERVER_DIR = "nsuns-server"
-# Which config file to bundle with the build
-SERVER_CONFIG = "${SERVER_DIR}/config/settings.toml"
 # Where the server should look for config if the CONFIG_SOURCE env var is missing at runtime
 DEFAULT_CONFIG_SOURCE = "config/settings.toml"
+# Which config file to bundle with the build
+SERVER_CONFIG = "${SERVER_DIR}/${DEFAULT_CONFIG_SOURCE}"
 COMPOSE_FILE = "${SERVER_DIR}/tests/docker-compose.yml"
 CARGO_BUILD_FLAGS = ""
 SERVER_BIN = "target/release/nsuns-server"
@@ -20,6 +20,7 @@ SERVER_BIN = "target/release/nsuns-server"
 [env.rpi]
 CARGO_BUILD_FLAGS = "--target=${RPI_TARGET}"
 SERVER_BIN = "target/${RPI_TARGET}/release/nsuns-server"
+SERVER_CONFIG = "${SERVER_DIR}/config/settings-rpi.toml"
 
 # BUILD
 

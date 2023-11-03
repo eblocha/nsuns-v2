@@ -1,0 +1,17 @@
+[database]
+username = "postgres"
+password = "postgres"
+host = "localhost"
+port = 5432
+database = "postgres"
+migrations = "db/migrations"
+timeout = [1, 0]             # [seconds, nanos]
+
+[server]
+static_dir = "assets"
+
+[metrics.disabled]
+
+[openapi.disabled]
+
+[logging.opentelemetry.disabled]
