@@ -56,6 +56,7 @@ RUSTFLAGS = "-C target-feature=+crt-static -C strip=symbols"
 category = "Build"
 description = "Builds client and server, then packages all assets into ./dist."
 dependencies = ["build-client", "build-server"]
+script_runner = "@shell"
 script = '''
 cp "${SERVER_BIN}" "${DIST}"
 cp -r "${SERVER_CONFIG}" "${DIST}"
@@ -116,6 +117,7 @@ args = ["test"]
 [tasks.start-test-db]
 category = "CI"
 description = "Start a database for integration testing"
+script_runner = "@shell"
 script = '''
 echo "Starting test database"
 docker compose --file "${COMPOSE_FILE}" up -d --wait
@@ -124,6 +126,7 @@ docker compose --file "${COMPOSE_FILE}" up -d --wait
 [tasks.stop-test-db]
 category = "CI"
 description = "Stop the test database"
+script_runner = "@shell"
 script = '''
 echo "Stopping test database"
 docker compose --file "${COMPOSE_FILE}" down
