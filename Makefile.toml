@@ -10,6 +10,7 @@ RPI_TARGET = "aarch64-unknown-linux-gnu"
 CLIENT_DIR = "nsuns-client"
 SERVER_DIR = "nsuns-server"
 CONFIG_ROOT = "config"
+DIST = "dist"
 # Where the server should look for config file(s) if the CONFIG_SOURCE env var is missing at runtime
 DEFAULT_CONFIG_SOURCE = "${CONFIG_ROOT}/settings.toml"
 # Location of server configuration files
@@ -25,16 +26,24 @@ DEFAULT_CONFIG_SOURCE = "${CONFIG_ROOT}/settings.toml,${CONFIG_ROOT}/settings-rp
 
 # BUILD
 
+[tasks.clean]
+category = "Build"
+description = "Cleans the output directory"
+script_runner = "@shell"
+script = 'rm -rf "${DIST}"'
+
 [tasks.build-client]
 category = "Build"
 description = "Bundles client assets."
 cwd = "${CLIENT_DIR}"
+dependencies = ["clean"]
 command = "yarn"
-args = ["build", "--assetsDir=.", "--outDir=../dist/assets", "--emptyOutDir"]
+args = ["build", "--assetsDir=.", "--outDir=../${DIST}/assets", "--emptyOutDir"]
 
 [tasks.build-server]
 category = "Build"
 description = "Compiles the server to a single executable."
+dependencies = ["clean"]
 script = "cargo build --release ${CARGO_BUILD_FLAGS}"
 
 [tasks.build-server.env]
@@ -48,10 +57,10 @@ category = "Build"
 description = "Builds client and server, then packages all assets into ./dist."
 dependencies = ["build-client", "build-server"]
 script = '''
-cp "${SERVER_BIN}" ./dist
-cp -r "${SERVER_CONFIG}" "./dist"
-cp -r "${SERVER_DIR}/db" ./dist
-cp docker-compose.yml ./dist
+cp "${SERVER_BIN}" "${DIST}"
+cp -r "${SERVER_CONFIG}" "${DIST}"
+cp -r "${SERVER_DIR}/db" "${DIST}"
+cp docker-compose.yml "${DIST}"
 '''
 
 [tasks.default]
