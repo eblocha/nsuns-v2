@@ -13,6 +13,8 @@ async fn main() -> Result<()> {
 
     setup_tracing(&settings.logging)?;
 
+    tracing::debug!("loaded configuration:\n{:#?}", settings);
+
     tokio::try_join!(
         server::run(&settings),
         metrics_server::run(&settings.metrics)
