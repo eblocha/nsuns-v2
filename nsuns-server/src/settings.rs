@@ -1,14 +1,14 @@
-use std::{
-    env::{var, VarError},
-    ffi::OsStr,
-};
+use std::{env::var, ffi::OsStr};
 
 use anyhow::{Context, Result};
-use config::{builder::BuilderState, Config, ConfigBuilder, File};
+use config::{
+    builder::{BuilderState, DefaultState},
+    Config, ConfigBuilder, File,
+};
 use serde::Deserialize;
 
 use crate::{
-    db::settings::DatabaseSettings, feature::Feature, metrics::settings::MetricsFeature,
+    db::settings::DatabaseSettings, metrics::settings::MetricsFeature,
     openapi::settings::OpenApiFeature, tracing::settings::LogSettings,
 };
 
@@ -105,26 +105,12 @@ impl<S: BuilderState> ApplyCustomizations<S> for ConfigBuilder<S> {
     }
 }
 
-fn bool_from_env<E>(env_var: E) -> bool
-where
-    E: AsRef<OsStr>,
-{
-    var(env_var)
-        .map(|v| !v.is_empty())
-        .unwrap_or_else(|err| !matches!(err, VarError::NotPresent))
-}
+#[derive(Debug)]
+struct FileSourceList(String);
 
-impl Settings {
-    pub fn new() -> Result<Self> {
-        let config_source = var("CONFIG_SOURCE").unwrap_or_else(|_| {
-            option_env!("DEFAULT_CONFIG_SOURCE")
-                .unwrap_or("config/settings.toml")
-                .into()
-        });
-
-        let builder = Config::builder();
-
-        let builder = config_source
+impl FileSourceList {
+    pub fn configure(&self, builder: ConfigBuilder<DefaultState>) -> ConfigBuilder<DefaultState> {
+        self.0
             .split(",")
             .filter_map(|config_file_name| {
                 let filename = config_file_name.trim();
@@ -137,29 +123,31 @@ impl Settings {
             .fold(builder, |builder, file| {
                 builder.add_source(File::with_name(&file))
             })
+    }
+}
+
+impl Settings {
+    pub fn new() -> Result<Self> {
+        let config_source = FileSourceList(var("CONFIG_SOURCE").unwrap_or_else(|_| {
+            option_env!("DEFAULT_CONFIG_SOURCE")
+                .unwrap_or("config/settings.toml")
+                .into()
+        }));
+
+        let builder = Config::builder();
+
+        let builder = config_source
+            .configure(builder)
             .apply_customizations::<ServerSettings>("server")
             .apply_customizations::<DatabaseSettings>("database")
-            .apply_customizations::<LogSettings>("logging");
+            .apply_customizations::<LogSettings>("logging")
+            .apply_customizations::<OpenApiFeature>("openapi")
+            .apply_customizations::<MetricsFeature>("metrics");
 
         let config = builder.build();
 
         config
             .and_then(|cfg| cfg.try_deserialize())
-            .with_context(|| format!("failed to parse settings! config_source={config_source}"))
-            .map(|mut settings: Settings| {
-                if bool_from_env("METRICS_DISABLE") {
-                    settings.metrics = Feature::Disabled;
-                }
-
-                if bool_from_env("OPENAPI_DISABLE") {
-                    settings.openapi = Feature::Disabled;
-                }
-
-                if bool_from_env("OPENTELEMETRY_DISABLE") {
-                    settings.logging.opentelemetry = Feature::Disabled;
-                }
-
-                settings
-            })
+            .with_context(|| format!("failed to parse settings! config_source={config_source:?}"))
     }
 }

@@ -40,6 +40,60 @@ impl<S: BuilderState, T: CustomizeConfigBuilder<S>> CustomizeConfigBuilder<S> fo
     }
 }
 
+pub const ENABLED_KEY: &str = "enabled";
+
+fn parse_failed(v: &Value) -> String {
+    format!(r#"failed to parse as boolean: {v:#}"#)
+}
+
+fn try_parse_str(s: &str) -> Option<bool> {
+    if let Ok(b) = s.parse() {
+        return Some(b);
+    }
+
+    let lowercase = s.to_lowercase();
+
+    match lowercase.as_str() {
+        "yes" => Some(true),
+        "no" => Some(false),
+        "y" => Some(true),
+        "n" => Some(false),
+        "t" => Some(true),
+        "f" => Some(false),
+        "1" => Some(true),
+        "0" => Some(false),
+        _ => None,
+    }
+}
+
+fn coerce_bool(v: Value) -> Result<bool, String> {
+    if let Some(b) = v.as_bool() {
+        return Ok(b);
+    }
+
+    if let Some(s) = v.as_str() {
+        return try_parse_str(s).ok_or_else(|| parse_failed(&v));
+    }
+
+    if let Some(n) = v.as_i64() {
+        return match n {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => Err(parse_failed(&v)),
+        };
+    }
+
+    if let Some(n) = v.as_u64() {
+        return match n {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => Err(parse_failed(&v)),
+        };
+    }
+
+    Err(parse_failed(&v))
+}
+
 impl<'de, T> Deserialize<'de> for Feature<T>
 where
     T: Deserialize<'de>,
@@ -51,9 +105,9 @@ where
         let mut map = Map::deserialize(deserializer)?;
 
         let enabled = map
-            .remove("enabled")
-            .ok_or_else(|| de::Error::missing_field("enabled"))
-            .map(Deserialize::deserialize)?
+            .remove(ENABLED_KEY)
+            .ok_or_else(|| de::Error::missing_field(ENABLED_KEY))
+            .map(coerce_bool)?
             .map_err(de::Error::custom)?;
         let rest = Value::Object(map);
 

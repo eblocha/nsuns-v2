@@ -1,6 +1,10 @@
+use config::builder::BuilderState;
 use serde::Deserialize;
 
-use crate::feature::Feature;
+use crate::{
+    feature::{Feature, ENABLED_KEY},
+    settings::{CustomizeConfigBuilder, SetEnvOverride},
+};
 
 fn default_swagger_path() -> String {
     "/swagger-ui".to_string()
@@ -32,5 +36,14 @@ pub type OpenApiFeature = Feature<OpenApiSettings>;
 impl Default for OpenApiFeature {
     fn default() -> Self {
         Self::Disabled
+    }
+}
+
+impl<S: BuilderState> CustomizeConfigBuilder<S> for OpenApiSettings {
+    fn customize_builder(
+        builder: config::ConfigBuilder<S>,
+        prefix: &str,
+    ) -> config::ConfigBuilder<S> {
+        builder.set_env_override_unwrap(&format!("{prefix}.{ENABLED_KEY}"), "OPENAPI_ENABLED")
     }
 }
