@@ -6,7 +6,6 @@ use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgQueryResult, Executor, Transaction};
-use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -228,37 +227,30 @@ pub async fn gather_program_summary(
 
     if let Some(program) = program_opt {
         let sets_sunday = Set::select_where_id_in(&program.set_ids_sunday, &mut **tx)
-            .instrument(tracing::info_span!("select sets for sunday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_monday = Set::select_where_id_in(&program.set_ids_monday, &mut **tx)
-            .instrument(tracing::info_span!("select sets for monday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_tuesday = Set::select_where_id_in(&program.set_ids_tuesday, &mut **tx)
-            .instrument(tracing::info_span!("select sets for tuesday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_wednesday = Set::select_where_id_in(&program.set_ids_wednesday, &mut **tx)
-            .instrument(tracing::info_span!("select sets for wednesday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_thursday = Set::select_where_id_in(&program.set_ids_thursday, &mut **tx)
-            .instrument(tracing::info_span!("select sets for thursday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_friday = Set::select_where_id_in(&program.set_ids_friday, &mut **tx)
-            .instrument(tracing::info_span!("select sets for friday"))
             .await
             .with_context(get_ctx)?;
 
         let sets_saturday = Set::select_where_id_in(&program.set_ids_saturday, &mut **tx)
-            .instrument(tracing::info_span!("select sets for saturday"))
             .await
             .with_context(get_ctx)?;
 
