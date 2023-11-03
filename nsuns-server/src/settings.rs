@@ -122,10 +122,21 @@ impl Settings {
                 .into()
         });
 
-        tracing::info!("reading config from {config_source}");
+        let builder = Config::builder();
 
-        let builder = Config::builder()
-            .add_source(File::with_name(&config_source))
+        let builder = config_source
+            .split(",")
+            .filter_map(|config_file_name| {
+                let filename = config_file_name.trim();
+                if filename.is_empty() {
+                    None
+                } else {
+                    Some(filename)
+                }
+            })
+            .fold(builder, |builder, file| {
+                builder.add_source(File::with_name(&file))
+            })
             .apply_customizations::<ServerSettings>("server")
             .apply_customizations::<DatabaseSettings>("database")
             .apply_customizations::<LogSettings>("logging");
@@ -134,7 +145,7 @@ impl Settings {
 
         config
             .and_then(|cfg| cfg.try_deserialize())
-            .with_context(|| format!("failed to parse settings from file: {config_source}"))
+            .with_context(|| format!("failed to parse settings! config_source={config_source}"))
             .map(|mut settings: Settings| {
                 if bool_from_env("METRICS_DISABLE") {
                     settings.metrics = Feature::Disabled;

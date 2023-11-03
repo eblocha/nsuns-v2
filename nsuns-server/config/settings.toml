@@ -10,8 +10,11 @@ timeout = [1, 0]             # [seconds, nanos]
 [server]
 static_dir = "assets"
 
-[metrics.enabled]
+[metrics]
+enabled = true
 
-[openapi.enabled]
+[openapi]
+enabled = true
 
-[logging.opentelemetry.enabled]
+[logging.opentelemetry]
+enabled = true

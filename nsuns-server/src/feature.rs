@@ -1,13 +1,12 @@
 use config::{builder::BuilderState, ConfigBuilder};
-use serde::Deserialize;
+use serde::{de, Deserialize, Deserializer};
+use serde_json::{Map, Value};
 
 use crate::settings::CustomizeConfigBuilder;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 pub enum Feature<T> {
-    #[serde(rename = "enabled")]
     Enabled(T),
-    #[serde(rename = "disabled")]
     Disabled,
 }
 
@@ -37,6 +36,33 @@ impl<T> Feature<T> {
 
 impl<S: BuilderState, T: CustomizeConfigBuilder<S>> CustomizeConfigBuilder<S> for Feature<T> {
     fn customize_builder(builder: ConfigBuilder<S>, prefix: &str) -> ConfigBuilder<S> {
-        T::customize_builder(builder, &format!("{prefix}.enabled"))
+        T::customize_builder(builder, prefix)
+    }
+}
+
+impl<'de, T> Deserialize<'de> for Feature<T>
+where
+    T: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Feature<T>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let mut map = Map::deserialize(deserializer)?;
+
+        let enabled = map
+            .remove("enabled")
+            .ok_or_else(|| de::Error::missing_field("enabled"))
+            .map(Deserialize::deserialize)?
+            .map_err(de::Error::custom)?;
+        let rest = Value::Object(map);
+
+        if enabled {
+            T::deserialize(rest)
+                .map(Feature::Enabled)
+                .map_err(de::Error::custom)
+        } else {
+            Ok(Feature::Disabled)
+        }
     }
 }

@@ -44,7 +44,7 @@ SolidJS was chosen because it's fast and small, and this is intended to run on a
 
 This project uses [cargo-make](https://github.com/sagiegurari/cargo-make) to manage workflows. It must be installed with `cargo install cargo-make`.
 
-Since this is intended to run on a raspberry pi 4, the compile target is set to `aarch64-unknown-linux-gnu`. You must configure cargo to point to the linker for this architecture in order to compile. Create a file called ~/.cargo/config.toml and set the linker for this target:
+Since this is intended to run on a raspberry pi 4, the compile target for the `rpi` profile is set to `aarch64-unknown-linux-gnu`. You must configure cargo to point to the linker for this architecture in order to compile. Create a file called ~/.cargo/config.toml and set the linker for this target:
 
 ```toml
 [target.aarch64-unknown-linux-gnu]

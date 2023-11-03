@@ -26,6 +26,7 @@ opentelemetry_api = "0.20.0"
 opentelemetry_sdk = { version = "0.20.0", features = ["rt-tokio"] }
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.171", features = ["derive"] }
+serde_json = "1.0.103"
 serde_repr = "0.1.16"
 sqlx = { version = "0.7.1", features = [
   "runtime-tokio-rustls",
@@ -57,7 +58,6 @@ validator = { version = "0.16.1", features = ["derive"] }
 axum-macros = "0.3.7"
 axum-test-helper = "0.3.0"
 cucumber = "0.20.1"
-serde_json = "1.0.103"
 
 [features]
 default = []

@@ -1,0 +1,8 @@
+[metrics]
+enabled = false
+
+[openapi]
+enabled = false
+
+[logging.opentelemetry]
+enabled = false
