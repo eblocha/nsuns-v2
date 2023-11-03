@@ -111,7 +111,7 @@ struct FileSourceList(String);
 impl FileSourceList {
     pub fn configure(&self, builder: ConfigBuilder<DefaultState>) -> ConfigBuilder<DefaultState> {
         self.0
-            .split(",")
+            .split(',')
             .filter_map(|config_file_name| {
                 let filename = config_file_name.trim();
                 if filename.is_empty() {
@@ -121,7 +121,7 @@ impl FileSourceList {
                 }
             })
             .fold(builder, |builder, file| {
-                builder.add_source(File::with_name(&file))
+                builder.add_source(File::with_name(file))
             })
     }
 }

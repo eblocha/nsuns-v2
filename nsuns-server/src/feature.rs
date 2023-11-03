@@ -68,12 +68,11 @@ fn try_parse_str(s: String) -> Result<bool, String> {
 
 fn try_parse_number(n: Number) -> Result<bool, String> {
     n.as_u64()
-        .map(|n| match n {
+        .and_then(|n| match n {
             1 => Some(true),
             0 => Some(false),
             _ => None,
         })
-        .flatten()
         .ok_or_else(|| parse_failed(&Value::Number(n)))
 }
 

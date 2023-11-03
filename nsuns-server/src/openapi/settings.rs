@@ -49,7 +49,7 @@ impl<S: BuilderState> CustomizeConfigBuilder<S> for OpenApiSettings {
 
         #[cfg(not(feature = "openapi"))]
         let builder = builder
-            .set_override(&format!("{prefix}.{ENABLED_KEY}"), false)
+            .set_override(format!("{prefix}.{ENABLED_KEY}"), false)
             .unwrap();
 
         builder
