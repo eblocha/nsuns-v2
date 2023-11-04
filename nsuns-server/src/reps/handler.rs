@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::{
     db::Pool,
     response_transforms::{created, or_404},
-    validation::ValidatedJson, log_server_error,
+    validation::ValidatedJson,
 };
 
 use super::model::{CreateReps, Reps, UpdateReps};
@@ -29,26 +29,18 @@ pub async fn reps_index(
     Reps::select_for_profile(query.profile_id, &pool)
         .await
         .map(Json)
-        .map_err(log_server_error!())
 }
 
 pub async fn create_reps(
     State(pool): State<Pool>,
     ValidatedJson(reps): ValidatedJson<CreateReps>,
 ) -> impl IntoResponse {
-    reps.insert_one(&pool)
-        .await
-        .map(Json)
-        .map(created)
-        .map_err(log_server_error!())
+    reps.insert_one(&pool).await.map(Json).map(created)
 }
 
 pub async fn update_reps(
     State(pool): State<Pool>,
     ValidatedJson(reps): ValidatedJson<UpdateReps>,
 ) -> impl IntoResponse {
-    reps.update_one(&pool)
-        .await
-        .map(or_404::<_, Json<_>>)
-        .map_err(log_server_error!())
+    reps.update_one(&pool).await.map(or_404::<_, Json<_>>)
 }

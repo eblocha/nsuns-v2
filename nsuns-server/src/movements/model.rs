@@ -11,6 +11,7 @@ use validator::Validate;
 use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
+    into_log_server_error, log_server_error,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, Validate, ToSchema)]
@@ -29,10 +30,9 @@ where
     C: Display + Send + Sync + 'static,
 {
     match e {
-        sqlx::Error::Database(e) if e.is_unique_violation() => ErrorWithStatus {
-            status: StatusCode::CONFLICT,
-            error: anyhow!("movement name is not unique"),
-        },
+        sqlx::Error::Database(e) if e.is_unique_violation() => {
+            ErrorWithStatus::new(StatusCode::CONFLICT, anyhow!("movement name is not unique"))
+        }
         _ => anyhow!(e).context(context()).into(),
     }
 }
@@ -46,7 +46,7 @@ impl Movement {
             .fetch_all(executor)
             .await
             .with_context(|| "failed to select movements")
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 
     #[tracing::instrument(name = "Movement::update_one", skip_all)]
@@ -72,6 +72,7 @@ impl Movement {
                     Some(self)
                 }
             })
+            .map_err(log_server_error!())
     }
 }
 
@@ -98,5 +99,6 @@ impl CreateMovement {
         .fetch_one(executor)
         .await
         .map_err(|e| handle_error(e, || "failed to insert new movement"))
+        .map_err(log_server_error!())
     }
 }

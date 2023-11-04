@@ -12,6 +12,17 @@ pub struct ErrorWithStatus<E> {
     pub status: StatusCode,
     #[source]
     pub error: E,
+    pub logged: bool,
+}
+
+impl<E> ErrorWithStatus<E> {
+    pub fn new(status: StatusCode, error: E) -> Self {
+        Self {
+            status,
+            error,
+            logged: false,
+        }
+    }
 }
 
 impl<E> From<E> for ErrorWithStatus<E> {
@@ -19,6 +30,7 @@ impl<E> From<E> for ErrorWithStatus<E> {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,
             error,
+            logged: false,
         }
     }
 }
@@ -64,12 +76,12 @@ where
 pub type OperationResult<T, E = anyhow::Error> = core::result::Result<T, ErrorWithStatus<E>>;
 
 /// Create a closure that logs an ErrorWithStatus if it's a server error, then returns the error.
-/// 
+///
 /// Useful for logging errors with `result.map_err(log_server_error!())`
 #[macro_export]
 macro_rules! log_server_error {
     () => {
-        |error| {
+        |error: crate::error::ErrorWithStatus<_>| {
             if error.status.is_server_error() {
                 tracing::error!("{error:?}");
             }
@@ -78,8 +90,25 @@ macro_rules! log_server_error {
     };
 }
 
+/// Create a closure that logs an ErrorWithStatus if it's a server error, then returns the error.
+///
+/// Useful for logging errors with `result.map_err(log_server_error!())`
+#[macro_export]
+macro_rules! into_log_server_error {
+    () => {
+        |error| {
+            let mut error: crate::error::ErrorWithStatus<_> = error.into();
+            if error.status.is_server_error() && !error.logged {
+                error.logged = true;
+                tracing::error!("{error:?}");
+            }
+            error
+        }
+    };
+}
+
 /// Create a closure that logs an error, then returns the error.
-/// 
+///
 /// Useful for logging errors with `result.map_err(log_error!())`
 #[macro_export]
 macro_rules! log_error {

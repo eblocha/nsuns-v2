@@ -4,8 +4,7 @@ use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use sqlx::{postgres::PgQueryResult, Executor, Transaction};
-use tracing::Instrument;
+use sqlx::{Executor, Transaction};
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -13,6 +12,7 @@ use validator::Validate;
 use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
+    into_log_server_error, log_server_error,
     program::model::{get_set_ids, update_set_ids},
 };
 
@@ -22,10 +22,10 @@ where
     C: Display + Send + Sync + 'static,
 {
     match e {
-        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus {
-            status: StatusCode::BAD_REQUEST,
-            error: anyhow!("programId, movementId, or percentageOfMax provided does not exist"),
-        },
+        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus::new(
+            StatusCode::BAD_REQUEST,
+            anyhow!("programId, movementId, or percentageOfMax provided does not exist"),
+        ),
         _ => anyhow!(e).context(context()).into(),
     }
 }
@@ -71,17 +71,6 @@ impl Set {
         .fetch_all(executor)
         .await
     }
-
-    #[tracing::instrument(name = "Set::delete_where_id_in", skip_all)]
-    pub async fn delete_where_id_in(
-        ids: &[Uuid],
-        executor: impl Executor<'_, Database = DB>,
-    ) -> Result<PgQueryResult, sqlx::Error> {
-        sqlx::query("DELETE FROM program_sets WHERE id = any($1)")
-            .bind(ids)
-            .execute(executor)
-            .await
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
@@ -122,9 +111,9 @@ impl CreateSet {
             .bind(self.program_id)
             .bind(self.day)
             .fetch_one(&mut **tx)
-            .instrument(tracing::info_span!("insert set in program_sets"))
             .await
-            .map_err(|e| handle_error(e, || "failed to insert new set"))?
+            .map_err(|e| handle_error(e, || "failed to insert new set"))
+            .map_err(log_server_error!())?
             .0;
 
             set_ids.push(id);
@@ -148,16 +137,16 @@ impl CreateSet {
     }
 }
 
-#[tracing::instrument(name = "Set::delete", skip(tx))]
+#[tracing::instrument(name = "Set::delete_one", skip(tx))]
 pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<()>> {
     let res = sqlx::query_as::<_, (Uuid, Day)>(
         "DELETE FROM program_sets WHERE id = $1 RETURNING program_id, day",
     )
     .bind(id)
     .fetch_optional(&mut **tx)
-    .instrument(tracing::info_span!("delete set from program_sets"))
     .await
-    .with_context(|| format!("failed to delete set with id={id}"))?;
+    .with_context(|| format!("failed to delete set with id={id}"))
+    .map_err(into_log_server_error!())?;
 
     if let Some((program_id, day)) = res {
         let set_ids = get_set_ids(program_id, day, true, &mut **tx).await?;
@@ -219,7 +208,8 @@ impl UpdateSet {
             handle_error(e, || {
                 format!("failed to update set with id={id}", id = self.id)
             })
-        })?;
+        })
+        .map_err(log_server_error!())?;
 
         Ok(res.map(|(program_id, day)| Set {
             id: self.id,

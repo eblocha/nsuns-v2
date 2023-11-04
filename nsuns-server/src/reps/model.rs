@@ -14,6 +14,7 @@ use validator::Validate;
 use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
+    into_log_server_error, log_server_error,
 };
 
 fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
@@ -22,10 +23,10 @@ where
     C: Display + Send + Sync + 'static,
 {
     match e {
-        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus {
-            status: StatusCode::BAD_REQUEST,
-            error: anyhow!("movementId or profileId provided does not exist"),
-        },
+        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus::new(
+            StatusCode::BAD_REQUEST,
+            anyhow!("movementId or profileId provided does not exist"),
+        ),
         _ => anyhow!(e).context(context()).into(),
     }
 }
@@ -56,7 +57,7 @@ impl Reps {
             .fetch_all(executor)
             .await
             .with_context(|| format!("failed to select reps for profile_id={profile_id}"))
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 
     #[tracing::instrument(name = "Reps::select_latest", skip_all)]
@@ -71,7 +72,7 @@ impl Reps {
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to fetch latest reps for profile_id={profile_id} and movement_id={movement_id}"))
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 }
 
@@ -106,6 +107,7 @@ impl CreateReps {
             amount: self.amount,
             timestamp
         })
+        .map_err(log_server_error!())
     }
 }
 
@@ -136,6 +138,7 @@ impl UpdateReps {
                     format!("failed to update reps with id={id}", id = self.id)
                 })
             })
+            .map_err(log_server_error!())
     }
 }
 
@@ -155,5 +158,5 @@ pub async fn delete_latest_reps(
     .await
     .map(|res| res.map(|(id,)| id))
     .with_context(|| "failed to delete latest reps")
-    .map_err(Into::into)
+    .map_err(into_log_server_error!())
 }

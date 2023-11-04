@@ -9,7 +9,6 @@ use uuid::Uuid;
 
 use crate::{
     db::{commit_ok, transaction, Pool},
-    log_server_error,
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -32,39 +31,29 @@ pub async fn profile_programs(
     ProgramMeta::select_all_for_profile(&pool, &params.profile_id)
         .await
         .map(Json)
-        .map_err(log_server_error!())
 }
 
 pub async fn create_program(
     State(pool): State<Pool>,
     ValidatedJson(program): ValidatedJson<CreateProgram>,
 ) -> impl IntoResponse {
-    program
-        .insert_one(&pool)
-        .await
-        .map(Json)
-        .map(created)
-        .map_err(log_server_error!())
+    program.insert_one(&pool).await.map(Json).map(created)
 }
 
 pub async fn update_program(
     State(pool): State<Pool>,
     ValidatedJson(program): ValidatedJson<UpdateProgram>,
 ) -> impl IntoResponse {
-    program
-        .update_one(&pool)
-        .await
-        .map(or_404::<_, Json<_>>)
-        .map_err(log_server_error!())
+    program.update_one(&pool).await.map(or_404::<_, Json<_>>)
 }
 
 pub async fn reorder_sets(
     State(pool): State<Pool>,
     ValidatedJson(reorder): ValidatedJson<ReorderSets>,
 ) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.map_err(log_server_error!())?;
+    let mut tx = transaction(&pool).await?;
     let res = reorder.reorder(&mut tx).await.map(or_404::<_, Json<_>>);
-    commit_ok(res, tx).await.map_err(log_server_error!())
+    commit_ok(res, tx).await
 }
 
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
@@ -72,9 +61,9 @@ pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> i
 }
 
 pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.map_err(log_server_error!())?;
+    let mut tx = transaction(&pool).await?;
     let res = gather_program_summary(id, &mut tx)
         .await
         .map(or_404::<_, Json<_>>);
-    commit_ok(res, tx).await.map_err(log_server_error!())
+    commit_ok(res, tx).await
 }

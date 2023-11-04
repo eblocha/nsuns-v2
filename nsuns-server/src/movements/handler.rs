@@ -1,7 +1,7 @@
 use axum::{extract::State, response::IntoResponse, Json};
 
 use crate::{
-    db::Pool, log_server_error, response_transforms::or_404,
+    db::Pool, response_transforms::or_404,
     validation::ValidatedJson,
 };
 
@@ -11,7 +11,6 @@ pub async fn movements_index(State(pool): State<Pool>) -> impl IntoResponse {
     Movement::select_all(&pool)
         .await
         .map(Json)
-        .map_err(log_server_error!())
 }
 
 pub async fn create_movement(
@@ -22,7 +21,6 @@ pub async fn create_movement(
         .insert_one(&pool)
         .await
         .map(Json)
-        .map_err(log_server_error!())
 }
 
 pub async fn update_movement(
@@ -33,5 +31,4 @@ pub async fn update_movement(
         .update_one(&pool)
         .await
         .map(or_404::<_, Json<_>>)
-        .map_err(log_server_error!())
 }

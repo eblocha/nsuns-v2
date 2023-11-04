@@ -5,7 +5,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{db::DB, error::OperationResult};
+use crate::{db::DB, error::OperationResult, into_log_server_error};
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -26,7 +26,7 @@ impl Profile {
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to fetch profile with id={id}"))
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 
     #[tracing::instrument(name = "Profile::select_all", skip_all)]
@@ -37,7 +37,7 @@ impl Profile {
             .fetch_all(executor)
             .await
             .with_context(|| "failed to select all profiles")
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 
     #[tracing::instrument(name = "Profile::update_one", skip_all)]
@@ -55,7 +55,7 @@ impl Profile {
                     Some(self)
                 }
             })
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 
     #[tracing::instrument(name = "Profile::delete_one", skip_all)]
@@ -68,7 +68,7 @@ impl Profile {
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to delete profile with id={id}"))
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 }
 
@@ -87,6 +87,6 @@ impl CreateProfile {
             .fetch_one(&mut **tx)
             .await
             .with_context(|| "failed to create profile")
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 }

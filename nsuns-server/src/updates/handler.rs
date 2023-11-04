@@ -8,7 +8,6 @@ use uuid::Uuid;
 use crate::{
     db::{commit_ok, transaction, Pool, DB},
     error::OperationResult,
-    log_server_error,
     maxes::model::{delete_latest_maxes, CreateMax, Max},
     reps::model::{delete_latest_reps, CreateReps, Reps},
 };
@@ -81,9 +80,9 @@ async fn run_updates(
 }
 
 pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.map_err(log_server_error!())?;
+    let mut tx = transaction(&pool).await?;
     let res = run_updates(&mut tx, updates).await.map(Json);
-    commit_ok(res, tx).await.map_err(log_server_error!())
+    commit_ok(res, tx).await
 }
 
 #[serde_as]
@@ -122,9 +121,9 @@ async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Operati
 }
 
 pub async fn undo(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.map_err(log_server_error!())?;
+    let mut tx = transaction(&pool).await?;
     let res = undo_updates(&mut tx, updates).await.map(Json);
-    commit_ok(res, tx).await.map_err(log_server_error!())
+    commit_ok(res, tx).await
 }
 
 #[cfg(test)]

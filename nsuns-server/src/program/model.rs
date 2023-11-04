@@ -13,6 +13,7 @@ use validator::Validate;
 use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
+    into_log_server_error, log_server_error,
     sets::model::{Day, Set},
     vec::MoveWithin,
 };
@@ -23,10 +24,10 @@ where
     C: Display + Send + Sync + 'static,
 {
     match e {
-        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus {
-            status: StatusCode::BAD_REQUEST,
-            error: anyhow!("profileId provided does not exist"),
-        },
+        sqlx::Error::Database(e) if e.is_foreign_key_violation() => ErrorWithStatus::new(
+            StatusCode::BAD_REQUEST,
+            anyhow!("profileId provided does not exist"),
+        ),
         _ => anyhow!(e).context(context()).into(),
     }
 }
@@ -58,7 +59,7 @@ impl Program {
             .fetch_optional(executor)
             .await
             .with_context(|| format!("failed to fetch program with id={id}"))
-            .map_err(Into::into)
+            .map_err(into_log_server_error!())
     }
 }
 
@@ -93,7 +94,7 @@ impl ProgramMeta {
         .fetch_all(executor)
         .await
         .with_context(|| format!("failed to select program with owner id={owner}"))
-        .map_err(Into::into)
+        .map_err(into_log_server_error!())
     }
 
     #[tracing::instrument(name = "ProgramMeta::select_one", skip_all)]
@@ -114,7 +115,7 @@ impl ProgramMeta {
         .fetch_optional(executor)
         .await
         .with_context(|| format!("failed to fetch program with id={id}"))
-        .map_err(Into::into)
+        .map_err(into_log_server_error!())
     }
 }
 
@@ -155,6 +156,7 @@ impl CreateProgram {
         .fetch_one(executor)
         .await
         .map_err(|e| handle_error(e, || "failed to create program"))
+        .map_err(log_server_error!())
     }
 }
 
@@ -187,6 +189,7 @@ impl UpdateProgram {
                 format!("failed to update program with id={id}", id = self.id)
             })
         })
+        .map_err(log_server_error!())
     }
 }
 
@@ -200,7 +203,7 @@ pub async fn delete_one(
         .fetch_optional(executor)
         .await
         .with_context(|| format!("failed to delete program with id={id}"))
-        .map_err(Into::into)
+        .map_err(into_log_server_error!())
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -228,31 +231,38 @@ pub async fn gather_program_summary(
     if let Some(program) = program_opt {
         let sets_sunday = Set::select_where_id_in(&program.set_ids_sunday, &mut **tx)
             .await
-            .with_context(get_ctx)?;
+            .with_context(get_ctx)
+            .map_err(into_log_server_error!())?;
 
         let sets_monday = Set::select_where_id_in(&program.set_ids_monday, &mut **tx)
             .await
-            .with_context(get_ctx)?;
+            .with_context(get_ctx)
+            .map_err(into_log_server_error!())?;
 
         let sets_tuesday = Set::select_where_id_in(&program.set_ids_tuesday, &mut **tx)
             .await
-            .with_context(get_ctx)?;
+            .with_context(get_ctx)
+            .map_err(into_log_server_error!())?;
 
         let sets_wednesday = Set::select_where_id_in(&program.set_ids_wednesday, &mut **tx)
             .await
-            .with_context(get_ctx)?;
+            .with_context(get_ctx)
+            .map_err(into_log_server_error!())?;
 
         let sets_thursday = Set::select_where_id_in(&program.set_ids_thursday, &mut **tx)
             .await
-            .with_context(get_ctx)?;
+            .with_context(get_ctx)
+            .map_err(into_log_server_error!())?;
 
         let sets_friday = Set::select_where_id_in(&program.set_ids_friday, &mut **tx)
             .await
-            .with_context(get_ctx)?;
+            .with_context(get_ctx)
+            .map_err(into_log_server_error!())?;
 
         let sets_saturday = Set::select_where_id_in(&program.set_ids_saturday, &mut **tx)
             .await
-            .with_context(get_ctx)?;
+            .with_context(get_ctx)
+            .map_err(into_log_server_error!())?;
 
         Ok(Some(ProgramSummary {
             program: program.into(),
@@ -299,7 +309,8 @@ pub async fn get_set_ids(
     .await
     .with_context(|| {
         format!("failed to fetch existing set ids for day={day:?} and program_id={program_id}",)
-    })?
+    })
+    .map_err(into_log_server_error!())?
     .map(|id| id.0);
 
     Ok(set_ids)
@@ -321,7 +332,7 @@ pub async fn update_set_ids(
         .with_context(|| {
             format!("failed to update set ids for day={day:?} and program_id={program_id}",)
         })
-        .map_err(Into::into)
+        .map_err(into_log_server_error!())
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
@@ -345,12 +356,19 @@ impl ReorderSets {
         &self,
         tx: &mut Transaction<'a, DB>,
     ) -> OperationResult<Option<Vec<SetId>>> {
+        self.reorder_unlogged(tx).await.map_err(log_server_error!())
+    }
+
+    async fn reorder_unlogged<'a>(
+        &self,
+        tx: &mut Transaction<'a, DB>,
+    ) -> OperationResult<Option<Vec<SetId>>> {
         if let Some(mut set_ids) = get_set_ids(self.program_id, self.day, true, &mut **tx).await? {
             if self.from >= set_ids.len() || self.to >= set_ids.len() {
-                return Err(ErrorWithStatus {
-                    status: StatusCode::CONFLICT,
-                    error: anyhow!("index out of bounds"),
-                });
+                return Err(ErrorWithStatus::new(
+                    StatusCode::CONFLICT,
+                    anyhow!("index out of bounds"),
+                ));
             }
 
             if set_ids.move_within(self.from, self.to) {
