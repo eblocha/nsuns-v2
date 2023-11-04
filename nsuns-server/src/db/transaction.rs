@@ -8,12 +8,12 @@ use super::pool::DB;
 
 /// Acquire a new transaction
 #[inline]
-#[tracing::instrument(name = "begin transaction", skip_all)]
 pub async fn transaction<'a>(
     acquire: impl Acquire<'a, Database = DB>,
 ) -> OperationResult<Transaction<'a, DB>> {
     acquire
         .begin()
+        .instrument(db_span!("begin transaction"))
         .await
         .with_context(|| "failed to start a transaction")
         .map_err(into_log_server_error!())
