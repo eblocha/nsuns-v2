@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{collections::HashMap, fmt::Display};
 
 use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
@@ -239,40 +239,69 @@ pub async fn gather_program_summary(
     let get_ctx = || format!("failed to fetch sets for program with id={id}");
 
     if let Some(program) = program_opt {
-        let sets_sunday = Set::select_where_id_in(&program.set_ids_sunday, &mut **tx)
+        let all_ids: Vec<_> = [
+            program.set_ids_sunday.clone(),
+            program.set_ids_monday.clone(),
+            program.set_ids_tuesday.clone(),
+            program.set_ids_wednesday.clone(),
+            program.set_ids_thursday.clone(),
+            program.set_ids_friday.clone(),
+            program.set_ids_saturday.clone(),
+        ]
+        .concat();
+
+        let all_sets = Set::select_where_id_in(&all_ids, &mut **tx)
             .await
             .with_context(get_ctx)
             .map_err(into_log_server_error!())?;
 
-        let sets_monday = Set::select_where_id_in(&program.set_ids_monday, &mut **tx)
-            .await
-            .with_context(get_ctx)
-            .map_err(into_log_server_error!())?;
+        let mut set_map: HashMap<Uuid, Set> = HashMap::with_capacity(all_sets.len());
 
-        let sets_tuesday = Set::select_where_id_in(&program.set_ids_tuesday, &mut **tx)
-            .await
-            .with_context(get_ctx)
-            .map_err(into_log_server_error!())?;
+        for set in all_sets {
+            set_map.insert(set.id, set);
+        }
 
-        let sets_wednesday = Set::select_where_id_in(&program.set_ids_wednesday, &mut **tx)
-            .await
-            .with_context(get_ctx)
-            .map_err(into_log_server_error!())?;
+        let sets_sunday = program
+            .set_ids_sunday
+            .iter()
+            .filter_map(|set_id| set_map.remove(set_id))
+            .collect();
 
-        let sets_thursday = Set::select_where_id_in(&program.set_ids_thursday, &mut **tx)
-            .await
-            .with_context(get_ctx)
-            .map_err(into_log_server_error!())?;
+        let sets_monday = program
+            .set_ids_monday
+            .iter()
+            .filter_map(|set_id| set_map.remove(set_id))
+            .collect();
 
-        let sets_friday = Set::select_where_id_in(&program.set_ids_friday, &mut **tx)
-            .await
-            .with_context(get_ctx)
-            .map_err(into_log_server_error!())?;
+        let sets_tuesday = program
+            .set_ids_tuesday
+            .iter()
+            .filter_map(|set_id| set_map.remove(set_id))
+            .collect();
 
-        let sets_saturday = Set::select_where_id_in(&program.set_ids_saturday, &mut **tx)
-            .await
-            .with_context(get_ctx)
-            .map_err(into_log_server_error!())?;
+        let sets_wednesday = program
+            .set_ids_wednesday
+            .iter()
+            .filter_map(|set_id| set_map.remove(set_id))
+            .collect();
+
+        let sets_thursday = program
+            .set_ids_thursday
+            .iter()
+            .filter_map(|set_id| set_map.remove(set_id))
+            .collect();
+
+        let sets_friday = program
+            .set_ids_friday
+            .iter()
+            .filter_map(|set_id| set_map.remove(set_id))
+            .collect();
+
+        let sets_saturday = program
+            .set_ids_saturday
+            .iter()
+            .filter_map(|set_id| set_map.remove(set_id))
+            .collect();
 
         Ok(Some(ProgramSummary {
             program: program.into(),

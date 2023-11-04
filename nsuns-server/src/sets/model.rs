@@ -73,13 +73,10 @@ impl Set {
         ids: &[Uuid],
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Set>, sqlx::Error> {
-        sqlx::query_as::<_, Set>(formatcp!(
-            "{SELECT} * FROM {TABLE} WHERE id = any($1) ORDER BY array_position($2, id)",
-        ))
-        .bind(ids)
-        .bind(ids)
-        .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
-        .await
+        sqlx::query_as::<_, Set>(formatcp!("{SELECT} * FROM {TABLE} WHERE id = any($1)",))
+            .bind(ids)
+            .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
+            .await
     }
 }
 
