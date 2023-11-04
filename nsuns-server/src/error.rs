@@ -81,7 +81,7 @@ pub type OperationResult<T, E = anyhow::Error> = core::result::Result<T, ErrorWi
 #[macro_export]
 macro_rules! log_server_error {
     () => {
-        |error: crate::error::ErrorWithStatus<_>| {
+        |error: $crate::error::ErrorWithStatus<_>| {
             if error.status.is_server_error() {
                 tracing::error!("{error:?}");
             }
@@ -97,7 +97,7 @@ macro_rules! log_server_error {
 macro_rules! into_log_server_error {
     () => {
         |error| {
-            let mut error: crate::error::ErrorWithStatus<_> = error.into();
+            let mut error: $crate::error::ErrorWithStatus<_> = error.into();
             if error.status.is_server_error() && !error.logged {
                 error.logged = true;
                 tracing::error!("{error:?}");
