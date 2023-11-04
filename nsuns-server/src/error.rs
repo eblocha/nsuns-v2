@@ -37,9 +37,12 @@ impl<E> From<E> for ErrorWithStatus<E> {
 
 impl<E> IntoResponse for ErrorWithStatus<E>
 where
-    E: Display,
+    E: Display + Debug,
 {
-    fn into_response(self) -> Response {
+    fn into_response(mut self) -> Response {
+        // log if it hasn't been logged
+        crate::log_server_error_impl!(self);
+
         let message = if self.status.is_server_error() {
             self.status
                 .canonical_reason()
@@ -75,17 +78,13 @@ where
 /// Contains a successful response, or an error with a status code.
 pub type OperationResult<T, E = anyhow::Error> = core::result::Result<T, ErrorWithStatus<E>>;
 
-/// Create a closure that logs an ErrorWithStatus if it's a server error, then returns the error.
-///
-/// Useful for logging errors with `result.map_err(log_server_error!())`
+#[doc(hidden)]
 #[macro_export]
-macro_rules! log_server_error {
-    () => {
-        |error: $crate::error::ErrorWithStatus<_>| {
-            if error.status.is_server_error() {
-                tracing::error!("{:?}", error.error);
-            }
-            error
+macro_rules! log_server_error_impl {
+    ($error:ident) => {
+        if $error.status.is_server_error() && !$error.logged {
+            tracing::error!("{:?}", $error.error);
+            $error.logged = true;
         }
     };
 }
@@ -94,14 +93,27 @@ macro_rules! log_server_error {
 ///
 /// Useful for logging errors with `result.map_err(log_server_error!())`
 #[macro_export]
+macro_rules! log_server_error {
+    () => {
+        // this is a macro so the file/line numbers work correctly in error tracing
+        |mut error: $crate::error::ErrorWithStatus<_>| {
+            $crate::log_server_error_impl!(error);
+            error
+        }
+    };
+}
+
+/// Create a closure that converts an error into an ErrorWithStatus, logs it if appropriate,
+/// then returns the ErrorWithStatus.
+///
+/// Useful for logging errors with `result.map_err(into_log_server_error!())`
+#[macro_export]
 macro_rules! into_log_server_error {
     () => {
+        // this is a macro so the file/line numbers work correctly in error tracing
         |error| {
             let mut error: $crate::error::ErrorWithStatus<_> = error.into();
-            if error.status.is_server_error() && !error.logged {
-                error.logged = true;
-                tracing::error!("{:?}", error.error);
-            }
+            $crate::log_server_error_impl!(error);
             error
         }
     };
@@ -113,6 +125,7 @@ macro_rules! into_log_server_error {
 #[macro_export]
 macro_rules! log_error {
     () => {
+        // this is a macro so the file/line numbers work correctly in error tracing
         |error| {
             tracing::error!("{error:?}");
             error
