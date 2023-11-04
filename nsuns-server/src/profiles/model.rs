@@ -1,11 +1,12 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{db::DB, error::OperationResult, into_log_server_error};
+use crate::{db::DB, error::OperationResult, into_log_server_error, db_span};
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +25,7 @@ impl Profile {
         sqlx::query_as::<_, Self>("SELECT * from profiles WHERE id = $1")
             .bind(id)
             .fetch_optional(executor)
+            .instrument(db_span!())
             .await
             .with_context(|| format!("failed to fetch profile with id={id}"))
             .map_err(into_log_server_error!())
@@ -35,6 +37,7 @@ impl Profile {
     ) -> OperationResult<Vec<Profile>> {
         sqlx::query_as::<_, Self>("SELECT * FROM profiles")
             .fetch_all(executor)
+            .instrument(db_span!())
             .await
             .with_context(|| "failed to select all profiles")
             .map_err(into_log_server_error!())
@@ -46,6 +49,7 @@ impl Profile {
             .bind(&self.name)
             .bind(self.id)
             .execute(&mut **tx)
+            .instrument(db_span!())
             .await
             .with_context(|| format!("failed to update profile with id={id}", id = self.id))
             .map(|result| {
@@ -66,6 +70,7 @@ impl Profile {
         sqlx::query_as::<_, Profile>("DELETE FROM profiles WHERE id = $1 RETURNING *")
             .bind(id)
             .fetch_optional(executor)
+            .instrument(db_span!())
             .await
             .with_context(|| format!("failed to delete profile with id={id}"))
             .map_err(into_log_server_error!())
@@ -85,6 +90,7 @@ impl CreateProfile {
         sqlx::query_as::<_, Profile>("INSERT INTO profiles (name) VALUES ($1) RETURNING *")
             .bind(self.name)
             .fetch_one(&mut **tx)
+            .instrument(db_span!())
             .await
             .with_context(|| "failed to create profile")
             .map_err(into_log_server_error!())

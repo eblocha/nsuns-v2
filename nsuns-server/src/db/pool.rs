@@ -2,14 +2,18 @@ use anyhow::Context;
 use sqlx::{
     migrate::MigrationSource,
     postgres::{PgConnectOptions, PgPoolOptions},
-    Acquire, Postgres,
+    Acquire, Postgres
 };
 use tracing::Instrument;
+
+use crate::db_span;
 
 use super::settings::DatabaseSettings;
 
 pub type DB = Postgres;
 pub type Pool = sqlx::Pool<DB>;
+
+pub const DB_NAME: &str = "postgresql";
 
 pub fn create_connection_pool(settings: &DatabaseSettings) -> Pool {
     let options: PgConnectOptions = settings.into();
@@ -30,7 +34,7 @@ pub async fn run_migrations(
 
     migrator
         .run(acquire)
-        .instrument(tracing::info_span!("apply migrations"))
+        .instrument(db_span!("apply migrations"))
         .await
         .with_context(|| "failed to perform database migrations")
 }

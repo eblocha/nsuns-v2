@@ -6,6 +6,7 @@ use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgQueryResult, Executor, Transaction};
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -15,7 +16,7 @@ use crate::{
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
     sets::model::{Day, Set},
-    vec::MoveWithin,
+    vec::MoveWithin, db_span,
 };
 
 fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
@@ -57,6 +58,7 @@ impl Program {
         sqlx::query_as::<_, Self>("SELECT * from programs WHERE id = $1")
             .bind(id)
             .fetch_optional(executor)
+            .instrument(db_span!())
             .await
             .with_context(|| format!("failed to fetch program with id={id}"))
             .map_err(into_log_server_error!())
@@ -92,6 +94,7 @@ impl ProgramMeta {
         )
         .bind(owner)
         .fetch_all(executor)
+        .instrument(db_span!())
         .await
         .with_context(|| format!("failed to select program with owner id={owner}"))
         .map_err(into_log_server_error!())
@@ -113,6 +116,7 @@ impl ProgramMeta {
         )
         .bind(id)
         .fetch_optional(executor)
+        .instrument(db_span!())
         .await
         .with_context(|| format!("failed to fetch program with id={id}"))
         .map_err(into_log_server_error!())
@@ -154,6 +158,7 @@ impl CreateProgram {
         .bind(self.description)
         .bind(self.owner)
         .fetch_one(executor)
+        .instrument(db_span!())
         .await
         .map_err(|e| handle_error(e, || "failed to create program"))
         .map_err(log_server_error!())
@@ -183,6 +188,7 @@ impl UpdateProgram {
         .bind(self.description)
         .bind(self.id)
         .fetch_optional(executor)
+        .instrument(db_span!())
         .await
         .map_err(|e| {
             handle_error(e, || {
@@ -201,6 +207,7 @@ pub async fn delete_one(
     sqlx::query_as::<_, ProgramMeta>("DELETE FROM programs WHERE id = $1 RETURNING *")
         .bind(id)
         .fetch_optional(executor)
+        .instrument(db_span!())
         .await
         .with_context(|| format!("failed to delete program with id={id}"))
         .map_err(into_log_server_error!())
@@ -306,6 +313,7 @@ pub async fn get_set_ids(
     ))
     .bind(program_id)
     .fetch_optional(executor)
+    .instrument(db_span!())
     .await
     .with_context(|| {
         format!("failed to fetch existing set ids for day={day:?} and program_id={program_id}",)
@@ -328,6 +336,7 @@ pub async fn update_set_ids(
         .bind(set_ids)
         .bind(program_id)
         .execute(executor)
+        .instrument(db_span!())
         .await
         .with_context(|| {
             format!("failed to update set ids for day={day:?} and program_id={program_id}",)

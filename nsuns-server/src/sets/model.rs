@@ -5,6 +5,7 @@ use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use sqlx::{Executor, Transaction};
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -13,7 +14,7 @@ use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
-    program::model::{get_set_ids, update_set_ids},
+    program::model::{get_set_ids, update_set_ids}, db_span,
 };
 
 fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
@@ -69,6 +70,7 @@ impl Set {
         .bind(ids)
         .bind(ids)
         .fetch_all(executor)
+        .instrument(db_span!())
         .await
     }
 }
@@ -111,6 +113,7 @@ impl CreateSet {
             .bind(self.program_id)
             .bind(self.day)
             .fetch_one(&mut **tx)
+            .instrument(db_span!())
             .await
             .map_err(|e| handle_error(e, || "failed to insert new set"))
             .map_err(log_server_error!())?
@@ -144,6 +147,7 @@ pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResu
     )
     .bind(id)
     .fetch_optional(&mut **tx)
+    .instrument(db_span!())
     .await
     .with_context(|| format!("failed to delete set with id={id}"))
     .map_err(into_log_server_error!())?;
@@ -203,6 +207,7 @@ impl UpdateSet {
         .bind(self.percentage_of_max)
         .bind(self.id)
         .fetch_optional(executor)
+        .instrument(db_span!())
         .await
         .map_err(|e| {
             handle_error(e, || {

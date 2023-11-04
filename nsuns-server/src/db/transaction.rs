@@ -6,6 +6,21 @@ use crate::{error::OperationResult, into_log_server_error};
 
 use super::pool::DB;
 
+/// Creates a tracing span for calling out to the database
+#[macro_export]
+macro_rules! db_span {
+    () => {
+        db_span!("database query")
+    };
+    ($name:expr) => {
+        tracing::info_span!(
+            $name,
+            otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
+            db.system = $crate::db::pool::DB_NAME
+        )
+    };
+}
+
 /// Acquire a new transaction
 #[inline]
 #[tracing::instrument(name = "begin transaction", skip_all)]
@@ -29,12 +44,12 @@ pub async fn commit_ok<T>(
     let tx_result = match result {
         Ok(_) => tx
             .commit()
-            .instrument(tracing::info_span!("commit transaction"))
+            .instrument(db_span!("commit transaction"))
             .await
             .with_context(|| "failed to commit transaction"),
         Err(ref e) => tx
             .rollback()
-            .instrument(tracing::info_span!("rollback transaction"))
+            .instrument(db_span!("rollback transaction"))
             .await
             .with_context(|| {
                 format!("failed to rollback transaction initiated by previous error: {e:?}")

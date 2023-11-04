@@ -4,6 +4,7 @@ use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -11,7 +12,7 @@ use validator::Validate;
 use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
-    into_log_server_error, log_server_error,
+    into_log_server_error, log_server_error, db_span,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, sqlx::FromRow, Validate, ToSchema)]
@@ -44,6 +45,7 @@ impl Movement {
     ) -> OperationResult<Vec<Self>> {
         sqlx::query_as::<_, Self>("SELECT * FROM movements")
             .fetch_all(executor)
+            .instrument(db_span!())
             .await
             .with_context(|| "failed to select movements")
             .map_err(into_log_server_error!())
@@ -59,6 +61,7 @@ impl Movement {
             .bind(self.description.as_ref())
             .bind(self.id)
             .execute(executor)
+            .instrument(db_span!())
             .await
             .map_err(|e| {
                 handle_error(e, || {
@@ -97,6 +100,7 @@ impl CreateMovement {
         .bind(&self.name)
         .bind(self.description.as_ref())
         .fetch_one(executor)
+        .instrument(db_span!())
         .await
         .map_err(|e| handle_error(e, || "failed to insert new movement"))
         .map_err(log_server_error!())

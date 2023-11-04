@@ -7,6 +7,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 use sqlx::Executor;
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -14,7 +15,7 @@ use validator::Validate;
 use crate::{
     db::DB,
     error::{ErrorWithStatus, OperationResult},
-    into_log_server_error, log_server_error,
+    into_log_server_error, log_server_error, db_span,
 };
 
 #[serde_as]
@@ -55,6 +56,7 @@ impl Max {
         sqlx::query_as::<_, Self>("SELECT * FROM maxes WHERE profile_id = $1 ORDER BY timestamp")
             .bind(profile_id)
             .fetch_all(executor)
+            .instrument(db_span!())
             .await
             .with_context(|| format!("failed to select maxes for profile_id={profile_id}"))
             .map_err(into_log_server_error!())
@@ -70,6 +72,7 @@ impl Max {
             .bind(movement_id)
             .bind(profile_id)
             .fetch_optional(executor)
+            .instrument(db_span!())
             .await
             .with_context(|| format!("failed to fetch latest max for profile_id={profile_id} and movement_id={movement_id}"))
             .map_err(into_log_server_error!())
@@ -98,6 +101,7 @@ impl CreateMax {
         .bind(self.movement_id)
         .bind(self.amount)
         .fetch_one(executor)
+        .instrument(db_span!())
         .await
         .map_err(|e| {
             handle_error(e, || "failed to insert a new max")
@@ -134,6 +138,7 @@ impl UpdateMax {
             .bind(self.amount)
             .bind(self.id)
             .fetch_optional(executor)
+            .instrument(db_span!())
             .await
             .map_err(|e| {
                 handle_error(e, || {
@@ -157,6 +162,7 @@ pub async fn delete_latest_maxes(
     .bind(movement_id)
     .bind(profile_id)
     .fetch_optional(executor)
+    .instrument(db_span!())
     .await
     .map(|res| res.map(|(id,)| id))
     .with_context(|| "failed to delete latest maxes")
