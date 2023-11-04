@@ -60,7 +60,7 @@ pub struct Set {
 impl Set {
     #[tracing::instrument(name = "Set::select_where_id_in", skip_all)]
     pub async fn select_where_id_in(
-        ids: &Vec<Uuid>,
+        ids: &[Uuid],
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Set>, sqlx::Error> {
         sqlx::query_as::<_, Set>(
@@ -74,7 +74,7 @@ impl Set {
 
     #[tracing::instrument(name = "Set::delete_where_id_in", skip_all)]
     pub async fn delete_where_id_in(
-        ids: &Vec<Uuid>,
+        ids: &[Uuid],
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<PgQueryResult, sqlx::Error> {
         sqlx::query("DELETE FROM program_sets WHERE id = any($1)")
