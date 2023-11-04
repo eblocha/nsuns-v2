@@ -1,5 +1,5 @@
-.vscode
+.vscode/*
+!.vscode/launch.json
 /target
-/dist/*
-!/dist/.gitkeep
+/dist
 /scripts/deploy.sh
