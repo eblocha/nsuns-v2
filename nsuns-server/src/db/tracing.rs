@@ -35,6 +35,12 @@ pub struct InstrumentedExecutor<Executor> {
     span: tracing::Span,
 }
 
+impl<Ex> InstrumentedExecutor<Ex> {
+    fn record_sql(&self, sql: &str) {
+        self.span.record(semcov::trace::DB_STATEMENT.as_str(), sql);
+    }
+}
+
 pub trait InstrumentExecutor
 where
     Self: Sized,
@@ -70,8 +76,7 @@ where
         'c: 'e,
         E: sqlx::Execute<'q, Self::Database>,
     {
-        self.span
-            .record(semcov::trace::DB_STATEMENT.as_str(), query.sql());
+        self.record_sql(query.sql());
         self.inner.fetch_many(query).instrument(self.span).boxed()
     }
 
@@ -83,8 +88,7 @@ where
         'c: 'e,
         E: sqlx::Execute<'q, Self::Database>,
     {
-        self.span
-            .record(semcov::trace::DB_STATEMENT.as_str(), query.sql());
+        self.record_sql(query.sql());
         self.inner
             .fetch_optional(query)
             .instrument(self.span)
@@ -102,7 +106,7 @@ where
     where
         'c: 'e,
     {
-        self.span.record(semcov::trace::DB_STATEMENT.as_str(), sql);
+        self.record_sql(sql);
         self.inner
             .prepare_with(sql, parameters)
             .instrument(self.span)
@@ -117,6 +121,82 @@ where
         'c: 'e,
     {
         self.inner.describe(sql)
+    }
+
+    // DEFAULT MEMBERS (in case the inner Executor overrides these)
+
+    fn execute<'e, 'q: 'e, E: 'q>(
+        self,
+        query: E,
+    ) -> BoxFuture<'e, Result<<Self::Database as sqlx::Database>::QueryResult, sqlx::Error>>
+    where
+        'c: 'e,
+        E: sqlx::Execute<'q, Self::Database>,
+    {
+        self.record_sql(query.sql());
+        self.inner.execute(query).instrument(self.span).boxed()
+    }
+
+    fn execute_many<'e, 'q: 'e, E: 'q>(
+        self,
+        query: E,
+    ) -> BoxStream<'e, Result<<Self::Database as sqlx::Database>::QueryResult, sqlx::Error>>
+    where
+        'c: 'e,
+        E: sqlx::Execute<'q, Self::Database>,
+    {
+        self.record_sql(query.sql());
+        self.inner.execute_many(query).instrument(self.span).boxed()
+    }
+
+    fn fetch<'e, 'q: 'e, E: 'q>(
+        self,
+        query: E,
+    ) -> BoxStream<'e, Result<<Self::Database as sqlx::Database>::Row, sqlx::Error>>
+    where
+        'c: 'e,
+        E: sqlx::Execute<'q, Self::Database>,
+    {
+        self.record_sql(query.sql());
+        self.inner.fetch(query).instrument(self.span).boxed()
+    }
+
+    fn fetch_all<'e, 'q: 'e, E: 'q>(
+        self,
+        query: E,
+    ) -> BoxFuture<'e, Result<Vec<<Self::Database as sqlx::Database>::Row>, sqlx::Error>>
+    where
+        'c: 'e,
+        E: sqlx::Execute<'q, Self::Database>,
+    {
+        self.record_sql(query.sql());
+        self.inner.fetch_all(query).instrument(self.span).boxed()
+    }
+
+    fn fetch_one<'e, 'q: 'e, E: 'q>(
+        self,
+        query: E,
+    ) -> BoxFuture<'e, Result<<Self::Database as sqlx::Database>::Row, sqlx::Error>>
+    where
+        'c: 'e,
+        E: sqlx::Execute<'q, Self::Database>,
+    {
+        self.record_sql(query.sql());
+        self.inner.fetch_one(query).instrument(self.span).boxed()
+    }
+
+    fn prepare<'e, 'q: 'e>(
+        self,
+        query: &'q str,
+    ) -> BoxFuture<
+        'e,
+        Result<<Self::Database as sqlx::database::HasStatement<'q>>::Statement, sqlx::Error>,
+    >
+    where
+        'c: 'e,
+    {
+        self.record_sql(query);
+        self.inner.prepare(query).instrument(self.span).boxed()
     }
 }
 
