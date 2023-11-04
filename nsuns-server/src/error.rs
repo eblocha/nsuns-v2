@@ -63,30 +63,30 @@ where
 /// Contains a successful response, or an error with a status code.
 pub type OperationResult<T, E = anyhow::Error> = core::result::Result<T, ErrorWithStatus<E>>;
 
-pub trait LogError {
-    /// Log the error if appropriate
-    fn log_error(self) -> Self;
-}
-
-impl<T, E> LogError for OperationResult<T, E>
-where
-    E: Debug,
-{
-    fn log_error(self) -> Self {
-        if let Err(error) = &self {
+/// Create a closure that logs an ErrorWithStatus if it's a server error, then returns the error.
+/// 
+/// Useful for logging errors with `result.map_err(log_server_error!())`
+#[macro_export]
+macro_rules! log_server_error {
+    () => {
+        |error| {
             if error.status.is_server_error() {
                 tracing::error!("{error:?}");
             }
+            error
         }
-        self
-    }
+    };
 }
 
-impl<T> LogError for anyhow::Result<T> {
-    fn log_error(self) -> Self {
-        if let Err(error) = &self {
+/// Create a closure that logs an error, then returns the error.
+/// 
+/// Useful for logging errors with `result.map_err(log_error!())`
+#[macro_export]
+macro_rules! log_error {
+    () => {
+        |error| {
             tracing::error!("{error:?}");
+            error
         }
-        self
-    }
+    };
 }

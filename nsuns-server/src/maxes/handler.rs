@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::{
     db::Pool,
-    error::LogError,
+    log_server_error,
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -30,7 +30,7 @@ pub async fn maxes_index(
     Max::select_for_profile(query.profile_id, &pool)
         .await
         .map(Json)
-        .log_error()
+        .map_err(log_server_error!())
 }
 
 pub async fn create_max(
@@ -41,7 +41,7 @@ pub async fn create_max(
         .await
         .map(Json)
         .map(created)
-        .log_error()
+        .map_err(log_server_error!())
 }
 
 pub async fn update_max(
@@ -51,5 +51,5 @@ pub async fn update_max(
     max.update_one(&pool)
         .await
         .map(or_404::<_, Json<_>>)
-        .log_error()
+        .map_err(log_server_error!())
 }

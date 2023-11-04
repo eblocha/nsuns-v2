@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::{
     db::{commit_ok, transaction, Pool},
-    error::LogError,
+    log_server_error,
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -32,7 +32,7 @@ pub async fn profile_programs(
     ProgramMeta::select_all_for_profile(&pool, &params.profile_id)
         .await
         .map(Json)
-        .log_error()
+        .map_err(log_server_error!())
 }
 
 pub async fn create_program(
@@ -44,7 +44,7 @@ pub async fn create_program(
         .await
         .map(Json)
         .map(created)
-        .log_error()
+        .map_err(log_server_error!())
 }
 
 pub async fn update_program(
@@ -55,16 +55,16 @@ pub async fn update_program(
         .update_one(&pool)
         .await
         .map(or_404::<_, Json<_>>)
-        .log_error()
+        .map_err(log_server_error!())
 }
 
 pub async fn reorder_sets(
     State(pool): State<Pool>,
     ValidatedJson(reorder): ValidatedJson<ReorderSets>,
 ) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.log_error()?;
+    let mut tx = transaction(&pool).await.map_err(log_server_error!())?;
     let res = reorder.reorder(&mut tx).await.map(or_404::<_, Json<_>>);
-    commit_ok(res, tx).await.log_error()
+    commit_ok(res, tx).await.map_err(log_server_error!())
 }
 
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
@@ -72,9 +72,9 @@ pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> i
 }
 
 pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await.log_error()?;
+    let mut tx = transaction(&pool).await.map_err(log_server_error!())?;
     let res = gather_program_summary(id, &mut tx)
         .await
         .map(or_404::<_, Json<_>>);
-    commit_ok(res, tx).await.log_error()
+    commit_ok(res, tx).await.map_err(log_server_error!())
 }

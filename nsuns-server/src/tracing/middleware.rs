@@ -81,7 +81,8 @@ where
         self.layer(from_fn(trace)).layer(
             TraceLayer::new_for_http()
                 .make_span_with(OpenTelemetryRequestSpan)
-                .on_response(UpdateSpanOnResponse),
+                .on_response(UpdateSpanOnResponse)
+                .on_failure(()),
         )
     }
 }
