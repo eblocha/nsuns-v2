@@ -4,19 +4,28 @@ use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
 use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
+use const_format::formatcp;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 use sqlx::Executor;
-use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    db::DB,
+    db::{
+        tracing::{
+            statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
+            InstrumentExecutor,
+        },
+        DB,
+    },
+    db_span,
     error::{ErrorWithStatus, OperationResult},
-    into_log_server_error, log_server_error, db_span,
+    into_log_server_error, log_server_error,
 };
+
+const TABLE: &str = "reps";
 
 fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
 where
@@ -53,13 +62,14 @@ impl Reps {
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Self>> {
-        sqlx::query_as::<_, Self>("SELECT * FROM reps WHERE profile_id = $1 ORDER BY timestamp")
-            .bind(profile_id)
-            .fetch_all(executor)
-            .instrument(db_span!())
-            .await
-            .with_context(|| format!("failed to select reps for profile_id={profile_id}"))
-            .map_err(into_log_server_error!())
+        sqlx::query_as::<_, Self>(formatcp!(
+            "{SELECT} * FROM {TABLE} WHERE profile_id = $1 ORDER BY timestamp"
+        ))
+        .bind(profile_id)
+        .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
+        .await
+        .with_context(|| format!("failed to select reps for profile_id={profile_id}"))
+        .map_err(into_log_server_error!())
     }
 
     #[tracing::instrument(name = "Reps::select_latest", skip_all)]
@@ -68,11 +78,12 @@ impl Reps {
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>("SELECT * FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1")
+        sqlx::query_as::<_, Self>(formatcp!(
+                "{SELECT} * FROM {TABLE} WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1"
+            ))
             .bind(movement_id)
             .bind(profile_id)
-            .fetch_optional(executor)
-            .instrument(db_span!())
+            .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
             .with_context(|| format!("failed to fetch latest reps for profile_id={profile_id} and movement_id={movement_id}"))
             .map_err(into_log_server_error!())
@@ -94,14 +105,13 @@ impl CreateReps {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Reps> {
-        sqlx::query_as::<_, (i64, NaiveDateTime)>(
-            "INSERT INTO reps (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id, timestamp",
-        )
+        sqlx::query_as::<_, (i64, NaiveDateTime)>(formatcp!(
+            "{INSERT_INTO} {TABLE} (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id, timestamp",
+        ))
         .bind(self.profile_id)
         .bind(self.movement_id)
         .bind(self.amount)
-        .fetch_one(executor)
-        .instrument(db_span!())
+        .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| handle_error(e, || "failed to insert a new rep record"))
         .map(|(id, timestamp)| Reps {
@@ -132,18 +142,19 @@ impl UpdateReps {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Reps>> {
-        sqlx::query_as::<_, Reps>("UPDATE reps SET amount = $1 WHERE id = $2 RETURNING *")
-            .bind(self.amount)
-            .bind(self.id)
-            .fetch_optional(executor)
-            .instrument(db_span!())
-            .await
-            .map_err(|e| {
-                handle_error(e, || {
-                    format!("failed to update reps with id={id}", id = self.id)
-                })
+        sqlx::query_as::<_, Reps>(formatcp!(
+            "{UPDATE} {TABLE} SET amount = $1 WHERE id = $2 RETURNING *"
+        ))
+        .bind(self.amount)
+        .bind(self.id)
+        .fetch_optional(executor.instrument_executor(db_span!(UPDATE, TABLE)))
+        .await
+        .map_err(|e| {
+            handle_error(e, || {
+                format!("failed to update reps with id={id}", id = self.id)
             })
-            .map_err(log_server_error!())
+        })
+        .map_err(log_server_error!())
     }
 }
 
@@ -153,14 +164,14 @@ pub async fn delete_latest_reps(
     movement_id: Uuid,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<Option<i64>> {
-    sqlx::query_as::<_, (i64,)>(
-        "DELETE FROM reps WHERE id = any(
-        array(SELECT id FROM reps WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1)
-    ) RETURNING id",)
+    sqlx::query_as::<_, (i64,)>(formatcp!(
+        "{DELETE_FROM} {TABLE} WHERE id = any(
+            array(SELECT id FROM {TABLE} WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1)
+        ) RETURNING id"
+    ))
     .bind(movement_id)
     .bind(profile_id)
-    .fetch_optional(executor)
-    .instrument(db_span!())
+    .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
     .await
     .map(|res| res.map(|(id,)| id))
     .with_context(|| "failed to delete latest reps")

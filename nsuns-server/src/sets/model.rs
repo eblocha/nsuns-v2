@@ -2,20 +2,29 @@ use std::fmt::Display;
 
 use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
+use const_format::formatcp;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use sqlx::{Executor, Transaction};
-use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    db::DB,
+    db::{
+        tracing::{
+            statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
+            InstrumentExecutor,
+        },
+        DB,
+    },
+    db_span,
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
-    program::model::{get_set_ids, update_set_ids}, db_span,
+    program::model::{get_set_ids, update_set_ids},
 };
+
+const TABLE: &str = "program_sets";
 
 fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
 where
@@ -64,13 +73,12 @@ impl Set {
         ids: &[Uuid],
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Set>, sqlx::Error> {
-        sqlx::query_as::<_, Set>(
-            "SELECT * FROM program_sets WHERE id = any($1) ORDER BY array_position($2, id)",
-        )
+        sqlx::query_as::<_, Set>(formatcp!(
+            "{SELECT} * FROM {TABLE} WHERE id = any($1) ORDER BY array_position($2, id)",
+        ))
         .bind(ids)
         .bind(ids)
-        .fetch_all(executor)
-        .instrument(db_span!())
+        .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
         .await
     }
 }
@@ -99,11 +107,11 @@ impl CreateSet {
         let set_ids = get_set_ids(self.program_id, self.day, true, &mut **tx).await?;
 
         if let Some(mut set_ids) = set_ids {
-            let id = sqlx::query_as::<_, (Uuid,)>(
-                "INSERT INTO program_sets (
+            let id = sqlx::query_as::<_, (Uuid,)>(formatcp!(
+                "{INSERT_INTO} {TABLE} (
                     movement_id, reps, reps_is_minimum, description, amount, percentage_of_max, program_id, day
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
-            )
+            ))
             .bind(self.movement_id)
             .bind(self.reps)
             .bind(self.reps_is_minimum)
@@ -112,8 +120,7 @@ impl CreateSet {
             .bind(self.percentage_of_max)
             .bind(self.program_id)
             .bind(self.day)
-            .fetch_one(&mut **tx)
-            .instrument(db_span!())
+            .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
             .await
             .map_err(|e| handle_error(e, || "failed to insert new set"))
             .map_err(log_server_error!())?
@@ -142,12 +149,11 @@ impl CreateSet {
 
 #[tracing::instrument(name = "Set::delete_one", skip(tx))]
 pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<()>> {
-    let res = sqlx::query_as::<_, (Uuid, Day)>(
-        "DELETE FROM program_sets WHERE id = $1 RETURNING program_id, day",
-    )
+    let res = sqlx::query_as::<_, (Uuid, Day)>(formatcp!(
+        "{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING program_id, day",
+    ))
     .bind(id)
-    .fetch_optional(&mut **tx)
-    .instrument(db_span!())
+    .fetch_optional((&mut **tx).instrument_executor(db_span!(DELETE_FROM, TABLE)))
     .await
     .with_context(|| format!("failed to delete set with id={id}"))
     .map_err(into_log_server_error!())?;
@@ -187,8 +193,8 @@ impl UpdateSet {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Set>> {
-        let res = sqlx::query_as::<_, (Uuid, Day)>(
-            "UPDATE program_sets SET
+        let res = sqlx::query_as::<_, (Uuid, Day)>(formatcp!(
+            "{UPDATE} {TABLE} SET
             movement_id = $1,
             reps = $2,
             reps_is_minimum = $3,
@@ -198,7 +204,7 @@ impl UpdateSet {
             WHERE id = $7
             RETURNING program_id, day
         ",
-        )
+        ))
         .bind(self.movement_id)
         .bind(self.reps)
         .bind(self.reps_is_minimum)
@@ -206,8 +212,7 @@ impl UpdateSet {
         .bind(self.amount)
         .bind(self.percentage_of_max)
         .bind(self.id)
-        .fetch_optional(executor)
-        .instrument(db_span!())
+        .fetch_optional(executor.instrument_executor(db_span!(UPDATE, TABLE)))
         .await
         .map_err(|e| {
             handle_error(e, || {

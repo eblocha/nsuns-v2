@@ -2,7 +2,7 @@ use anyhow::Context;
 use sqlx::{
     migrate::MigrationSource,
     postgres::{PgConnectOptions, PgPoolOptions},
-    Acquire, Postgres
+    Acquire, Postgres,
 };
 use tracing::Instrument;
 

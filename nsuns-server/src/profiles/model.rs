@@ -1,12 +1,25 @@
 use anyhow::Context;
+use const_format::formatcp;
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, Transaction};
-use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{db::DB, error::OperationResult, into_log_server_error, db_span};
+use crate::{
+    db::{
+        tracing::{
+            statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
+            InstrumentExecutor,
+        },
+        DB,
+    },
+    db_span,
+    error::OperationResult,
+    into_log_server_error,
+};
+
+const TABLE: &str = "profiles";
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow, Validate, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -22,10 +35,9 @@ impl Profile {
         executor: impl Executor<'_, Database = DB>,
         id: &Uuid,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>("SELECT * from profiles WHERE id = $1")
+        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * from {TABLE} WHERE id = $1"))
             .bind(id)
-            .fetch_optional(executor)
-            .instrument(db_span!())
+            .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
             .with_context(|| format!("failed to fetch profile with id={id}"))
             .map_err(into_log_server_error!())
@@ -35,9 +47,8 @@ impl Profile {
     pub async fn select_all(
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Profile>> {
-        sqlx::query_as::<_, Self>("SELECT * FROM profiles")
-            .fetch_all(executor)
-            .instrument(db_span!())
+        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * FROM {TABLE}"))
+            .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
             .with_context(|| "failed to select all profiles")
             .map_err(into_log_server_error!())
@@ -45,11 +56,10 @@ impl Profile {
 
     #[tracing::instrument(name = "Profile::update_one", skip_all)]
     pub async fn update_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Self>> {
-        sqlx::query("UPDATE profiles SET name = $1 WHERE id = $2")
+        sqlx::query(formatcp!("{UPDATE} {TABLE} SET name = $1 WHERE id = $2"))
             .bind(&self.name)
             .bind(self.id)
-            .execute(&mut **tx)
-            .instrument(db_span!())
+            .execute((&mut **tx).instrument_executor(db_span!(UPDATE, TABLE)))
             .await
             .with_context(|| format!("failed to update profile with id={id}", id = self.id))
             .map(|result| {
@@ -67,10 +77,9 @@ impl Profile {
         executor: impl Executor<'_, Database = DB>,
         id: &Uuid,
     ) -> OperationResult<Option<Profile>> {
-        sqlx::query_as::<_, Profile>("DELETE FROM profiles WHERE id = $1 RETURNING *")
+        sqlx::query_as::<_, Profile>(formatcp!("{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING *"))
             .bind(id)
-            .fetch_optional(executor)
-            .instrument(db_span!())
+            .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
             .await
             .with_context(|| format!("failed to delete profile with id={id}"))
             .map_err(into_log_server_error!())
@@ -87,12 +96,13 @@ pub struct CreateProfile {
 impl CreateProfile {
     #[tracing::instrument(name = "CreateProfile::create_one", skip_all)]
     pub async fn create_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Profile> {
-        sqlx::query_as::<_, Profile>("INSERT INTO profiles (name) VALUES ($1) RETURNING *")
-            .bind(self.name)
-            .fetch_one(&mut **tx)
-            .instrument(db_span!())
-            .await
-            .with_context(|| "failed to create profile")
-            .map_err(into_log_server_error!())
+        sqlx::query_as::<_, Profile>(formatcp!(
+            "{INSERT_INTO} {TABLE} (name) VALUES ($1) RETURNING *"
+        ))
+        .bind(self.name)
+        .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .await
+        .with_context(|| "failed to create profile")
+        .map_err(into_log_server_error!())
     }
 }

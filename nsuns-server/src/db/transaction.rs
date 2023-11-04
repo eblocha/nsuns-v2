@@ -2,7 +2,7 @@ use anyhow::Context;
 use sqlx::{Acquire, Transaction};
 use tracing::Instrument;
 
-use crate::{error::OperationResult, into_log_server_error, db_span};
+use crate::{db_span, error::OperationResult, into_log_server_error};
 
 use super::pool::DB;
 

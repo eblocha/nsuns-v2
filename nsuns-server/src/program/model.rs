@@ -4,20 +4,29 @@ use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
 use chrono::naive::serde::ts_milliseconds;
 use chrono::NaiveDateTime;
+use const_format::formatcp;
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgQueryResult, Executor, Transaction};
-use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    db::DB,
+    db::{
+        tracing::{
+            statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
+            InstrumentExecutor,
+        },
+        DB,
+    },
+    db_span,
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
     sets::model::{Day, Set},
-    vec::MoveWithin, db_span,
+    vec::MoveWithin,
 };
+
+const TABLE: &str = "programs";
 
 fn handle_error<F, C>(e: sqlx::Error, context: F) -> ErrorWithStatus<anyhow::Error>
 where
@@ -55,10 +64,9 @@ impl Program {
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>("SELECT * from programs WHERE id = $1")
+        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * from {TABLE} WHERE id = $1"))
             .bind(id)
-            .fetch_optional(executor)
-            .instrument(db_span!())
+            .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
             .with_context(|| format!("failed to fetch program with id={id}"))
             .map_err(into_log_server_error!())
@@ -83,18 +91,17 @@ impl ProgramMeta {
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
     ) -> OperationResult<Vec<Self>> {
-        sqlx::query_as::<_, Self>(
-            "SELECT
+        sqlx::query_as::<_, Self>(formatcp!(
+            "{SELECT}
             id,
             name,
             description,
             owner,
             created_on
-            FROM programs WHERE owner = $1 ORDER BY created_on",
-        )
+            FROM {TABLE} WHERE owner = $1 ORDER BY created_on",
+        ))
         .bind(owner)
-        .fetch_all(executor)
-        .instrument(db_span!())
+        .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
         .await
         .with_context(|| format!("failed to select program with owner id={owner}"))
         .map_err(into_log_server_error!())
@@ -105,18 +112,17 @@ impl ProgramMeta {
         id: Uuid,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>(
-            "SELECT
+        sqlx::query_as::<_, Self>(formatcp!(
+            "{SELECT}
             id,
             name,
             description,
             owner,
             created_on
-            FROM programs WHERE id = $1",
-        )
+            FROM {TABLE} WHERE id = $1",
+        ))
         .bind(id)
-        .fetch_optional(executor)
-        .instrument(db_span!())
+        .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
         .await
         .with_context(|| format!("failed to fetch program with id={id}"))
         .map_err(into_log_server_error!())
@@ -151,14 +157,13 @@ impl CreateProgram {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<ProgramMeta> {
-        sqlx::query_as::<_, ProgramMeta>(
-            "INSERT INTO programs (name, description, owner) VALUES ($1, $2, $3) RETURNING *",
-        )
+        sqlx::query_as::<_, ProgramMeta>(formatcp!(
+            "{INSERT_INTO} {TABLE} (name, description, owner) VALUES ($1, $2, $3) RETURNING *",
+        ))
         .bind(self.name)
         .bind(self.description)
         .bind(self.owner)
-        .fetch_one(executor)
-        .instrument(db_span!())
+        .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| handle_error(e, || "failed to create program"))
         .map_err(log_server_error!())
@@ -181,14 +186,13 @@ impl UpdateProgram {
         self,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<ProgramMeta>> {
-        sqlx::query_as::<_, ProgramMeta>(
-            "UPDATE programs SET name = $1, description = $2 WHERE id = $3 RETURNING *",
-        )
+        sqlx::query_as::<_, ProgramMeta>(formatcp!(
+            "{UPDATE} {TABLE} SET name = $1, description = $2 WHERE id = $3 RETURNING *",
+        ))
         .bind(self.name)
         .bind(self.description)
         .bind(self.id)
-        .fetch_optional(executor)
-        .instrument(db_span!())
+        .fetch_optional(executor.instrument_executor(db_span!(UPDATE, TABLE)))
         .await
         .map_err(|e| {
             handle_error(e, || {
@@ -204,10 +208,9 @@ pub async fn delete_one(
     id: Uuid,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<Option<ProgramMeta>> {
-    sqlx::query_as::<_, ProgramMeta>("DELETE FROM programs WHERE id = $1 RETURNING *")
+    sqlx::query_as::<_, ProgramMeta>(formatcp!("{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING *"))
         .bind(id)
-        .fetch_optional(executor)
-        .instrument(db_span!())
+        .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
         .await
         .with_context(|| format!("failed to delete program with id={id}"))
         .map_err(into_log_server_error!())
@@ -309,11 +312,10 @@ pub async fn get_set_ids(
     let lock_clause = if for_update { "FOR UPDATE" } else { "" };
 
     let set_ids = sqlx::query_as::<_, (Vec<Uuid>,)>(&format!(
-        "SELECT {day_col} FROM programs WHERE id = $1 {lock_clause}",
+        "{SELECT} {day_col} FROM {TABLE} WHERE id = $1 {lock_clause}",
     ))
     .bind(program_id)
-    .fetch_optional(executor)
-    .instrument(db_span!())
+    .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
     .await
     .with_context(|| {
         format!("failed to fetch existing set ids for day={day:?} and program_id={program_id}",)
@@ -332,16 +334,17 @@ pub async fn update_set_ids(
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<PgQueryResult> {
     let day_col = get_day_column(day);
-    sqlx::query(&format!("UPDATE programs SET {day_col} = $1 WHERE id = $2"))
-        .bind(set_ids)
-        .bind(program_id)
-        .execute(executor)
-        .instrument(db_span!())
-        .await
-        .with_context(|| {
-            format!("failed to update set ids for day={day:?} and program_id={program_id}",)
-        })
-        .map_err(into_log_server_error!())
+    sqlx::query(&format!(
+        "{UPDATE} {TABLE} SET {day_col} = $1 WHERE id = $2"
+    ))
+    .bind(set_ids)
+    .bind(program_id)
+    .execute(executor.instrument_executor(db_span!(UPDATE, TABLE)))
+    .await
+    .with_context(|| {
+        format!("failed to update set ids for day={day:?} and program_id={program_id}",)
+    })
+    .map_err(into_log_server_error!())
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
