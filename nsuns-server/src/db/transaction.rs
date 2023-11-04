@@ -2,24 +2,9 @@ use anyhow::Context;
 use sqlx::{Acquire, Transaction};
 use tracing::Instrument;
 
-use crate::{error::OperationResult, into_log_server_error};
+use crate::{error::OperationResult, into_log_server_error, db_span};
 
 use super::pool::DB;
-
-/// Creates a tracing span for calling out to the database
-#[macro_export]
-macro_rules! db_span {
-    () => {
-        db_span!("database query")
-    };
-    ($name:expr) => {
-        tracing::info_span!(
-            $name,
-            otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
-            db.system = $crate::db::pool::DB_NAME
-        )
-    };
-}
 
 /// Acquire a new transaction
 #[inline]

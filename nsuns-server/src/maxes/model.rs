@@ -14,8 +14,9 @@ use validator::Validate;
 
 use crate::{
     db::DB,
+    db_span,
     error::{ErrorWithStatus, OperationResult},
-    into_log_server_error, log_server_error, db_span,
+    into_log_server_error, log_server_error,
 };
 
 #[serde_as]
