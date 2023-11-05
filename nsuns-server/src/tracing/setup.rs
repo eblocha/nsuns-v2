@@ -1,3 +1,4 @@
+use opentelemetry_api::global;
 use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*};
 
 use crate::{db, settings::Settings, tracing::global_fields::WithGlobalFields};
@@ -12,7 +13,22 @@ fn db_span_filter(attrs: &tracing::span::Attributes<'_>) -> bool {
         .ends_with(db::tracing::TRACING_TARGET_SUFFIX)
 }
 
-pub fn setup_tracing(settings: &Settings) -> anyhow::Result<()> {
+pub struct TraceGuard {
+    opentelemetry: bool,
+}
+
+impl Drop for TraceGuard {
+    fn drop(&mut self) {
+        if self.opentelemetry {
+            global::shutdown_tracer_provider();
+        }
+    }
+}
+
+/// Set up tracing for the application.
+///
+/// NOTE: this will configure tracing for the process _globally_, so do not call it outside the entry thread.
+pub fn setup_tracing(settings: &Settings) -> anyhow::Result<TraceGuard> {
     let fmt_layer = match settings.logging.json {
         true => fmt::layer()
             .json()
@@ -59,5 +75,7 @@ pub fn setup_tracing(settings: &Settings) -> anyhow::Result<()> {
         )
         .try_init()?;
 
-    Ok(())
+    Ok(TraceGuard {
+        opentelemetry: settings.logging.opentelemetry.is_enabled(),
+    })
 }

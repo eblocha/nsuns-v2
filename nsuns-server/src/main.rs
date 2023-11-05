@@ -3,7 +3,6 @@ use nsuns_server::{
     log_error, metrics::server as metrics_server, server, settings::Settings,
     tracing::setup::setup_tracing,
 };
-use opentelemetry::global;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -11,7 +10,7 @@ async fn main() -> Result<()> {
         .with_context(|| "failed to load settings")
         .map_err(log_error!())?;
 
-    setup_tracing(&settings)?;
+    let _guard = setup_tracing(&settings)?;
 
     tracing::debug!("loaded configuration:\n{:#?}", settings);
 
@@ -20,8 +19,6 @@ async fn main() -> Result<()> {
         metrics_server::run(&settings.metrics)
     )
     .map_err(log_error!())?;
-
-    global::shutdown_tracer_provider();
 
     Ok(())
 }
