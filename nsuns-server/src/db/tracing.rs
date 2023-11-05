@@ -252,6 +252,7 @@ pub mod layer {
                 })
                 .for_each(|(f, v)| {
                     let pair = [(&f, v)];
+                    // FIXME this is a hidden API
                     let values = span.fields().value_set(&pair);
                     let values = span::Record::new(&values);
 
