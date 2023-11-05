@@ -12,7 +12,7 @@ use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*, registry::LookupS
 
 use crate::{db, settings::Settings, tracing::global_fields::WithGlobalFields};
 
-use super::settings::{LogSettings, OpenTelemetryFeature, OpenTelemetrySettings};
+use super::settings::{OpenTelemetryFeature, OpenTelemetrySettings};
 
 fn otel_layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
     settings: &OpenTelemetrySettings,
@@ -52,8 +52,8 @@ fn db_span_filter(attrs: &tracing::span::Attributes<'_>) -> bool {
         .ends_with(db::tracing::TRACING_TARGET_SUFFIX)
 }
 
-pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow::Result<()> {
-    let fmt_layer = match log_settings.json {
+pub fn setup_tracing(settings: &Settings) -> anyhow::Result<()> {
+    let fmt_layer = match settings.logging.json {
         true => fmt::layer()
             .json()
             .with_span_list(false)
@@ -64,7 +64,7 @@ pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow:
     };
 
     let telemetry_layer =
-        if let OpenTelemetryFeature::Enabled(settings) = &log_settings.opentelemetry {
+        if let OpenTelemetryFeature::Enabled(settings) = &settings.logging.opentelemetry {
             Some(otel_layer(settings)?)
         } else {
             None
@@ -95,7 +95,7 @@ pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow:
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(LevelFilter::INFO.into())
-                .parse_lossy(&log_settings.directive),
+                .parse_lossy(&settings.logging.directive),
         )
         .try_init()?;
 
