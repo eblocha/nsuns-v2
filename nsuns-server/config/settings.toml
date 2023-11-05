@@ -2,10 +2,11 @@
 username = "postgres"
 password = "postgres"
 host = "localhost"
-port = 5432
+port = 6432
 database = "postgres"
 migrations = "db/migrations"
 timeout = "1s"
+max_connections = 0
 
 [server]
 static_dir = "assets"

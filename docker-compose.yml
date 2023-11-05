@@ -15,6 +15,18 @@ services:
       - '4317:4317'
       # Jaeger UI
       - '16686:16686'
+  pgbouncer:
+    image: bitnami/pgbouncer
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=postgres
+      - POSTGRESQL_HOST=postgres
+      - PGBOUNCER_IGNORE_STARTUP_PARAMETERS=extra_float_digits
+    ports:
+      - '6432:6432'
 
 volumes:
   pgdata:
