@@ -13,6 +13,7 @@ use crate::{
 
 use super::model::{delete_one, CreateSet, UpdateSet};
 
+#[tracing::instrument(skip_all)]
 pub async fn create_set(
     State(pool): State<Pool>,
     ValidatedJson(set): ValidatedJson<CreateSet>,
@@ -23,6 +24,7 @@ pub async fn create_set(
     commit_ok(res, tx).await
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn update_set(
     State(pool): State<Pool>,
     ValidatedJson(set): ValidatedJson<UpdateSet>,
@@ -30,6 +32,7 @@ pub async fn update_set(
     set.update_one(&pool).await.map(or_404::<_, Json<_>>)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn delete_set(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await?;
     let res = delete_one(id, &mut tx).await.map(no_content_or_404);

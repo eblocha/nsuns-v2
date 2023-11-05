@@ -24,6 +24,7 @@ pub struct ProgramQuery {
     pub profile_id: Uuid,
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn profile_programs(
     Query(params): Query<ProgramQuery>,
     State(pool): State<Pool>,
@@ -33,6 +34,7 @@ pub async fn profile_programs(
         .map(Json)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn create_program(
     State(pool): State<Pool>,
     ValidatedJson(program): ValidatedJson<CreateProgram>,
@@ -40,6 +42,7 @@ pub async fn create_program(
     program.insert_one(&pool).await.map(Json).map(created)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn update_program(
     State(pool): State<Pool>,
     ValidatedJson(program): ValidatedJson<UpdateProgram>,
@@ -47,6 +50,7 @@ pub async fn update_program(
     program.update_one(&pool).await.map(or_404::<_, Json<_>>)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn reorder_sets(
     State(pool): State<Pool>,
     ValidatedJson(reorder): ValidatedJson<ReorderSets>,
@@ -56,10 +60,12 @@ pub async fn reorder_sets(
     commit_ok(res, tx).await
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     delete_one(id, &pool).await.map(or_404::<_, Json<_>>)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await?;
     let res = gather_program_summary(id, &mut tx)

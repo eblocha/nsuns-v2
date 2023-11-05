@@ -13,16 +13,19 @@ use crate::{
 
 use super::model::{CreateProfile, Profile};
 
+#[tracing::instrument(skip_all)]
 pub async fn profiles_index(State(pool): State<Pool>) -> impl IntoResponse {
     Profile::select_all(&pool).await.map(Json)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn get_profile(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     Profile::select_one(&pool, &id)
         .await
         .map(or_404::<_, Json<_>>)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn create_profile(
     State(pool): State<Pool>,
     ValidatedJson(profile): ValidatedJson<CreateProfile>,
@@ -32,6 +35,7 @@ pub async fn create_profile(
     commit_ok(res, tx).await
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn update_profile(
     State(pool): State<Pool>,
     ValidatedJson(profile): ValidatedJson<Profile>,
@@ -41,6 +45,7 @@ pub async fn update_profile(
     commit_ok(res, tx).await
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn delete_profile(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     Profile::delete_one(&pool, &id)
         .await

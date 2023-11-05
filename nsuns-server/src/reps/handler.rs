@@ -22,6 +22,7 @@ pub struct RepsQuery {
     pub profile_id: Uuid,
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn reps_index(
     State(pool): State<Pool>,
     Query(query): Query<RepsQuery>,
@@ -31,6 +32,7 @@ pub async fn reps_index(
         .map(Json)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn create_reps(
     State(pool): State<Pool>,
     ValidatedJson(reps): ValidatedJson<CreateReps>,
@@ -38,6 +40,7 @@ pub async fn create_reps(
     reps.insert_one(&pool).await.map(Json).map(created)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn update_reps(
     State(pool): State<Pool>,
     ValidatedJson(reps): ValidatedJson<UpdateReps>,

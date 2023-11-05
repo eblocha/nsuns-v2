@@ -22,6 +22,7 @@ pub struct MaxesQuery {
     pub profile_id: Uuid,
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn maxes_index(
     State(pool): State<Pool>,
     Query(query): Query<MaxesQuery>,
@@ -31,6 +32,7 @@ pub async fn maxes_index(
         .map(Json)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn create_max(
     State(pool): State<Pool>,
     ValidatedJson(max): ValidatedJson<CreateMax>,
@@ -38,6 +40,7 @@ pub async fn create_max(
     max.insert_one(&pool).await.map(Json).map(created)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn update_max(
     State(pool): State<Pool>,
     ValidatedJson(max): ValidatedJson<UpdateMax>,

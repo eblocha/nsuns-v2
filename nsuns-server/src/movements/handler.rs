@@ -4,10 +4,12 @@ use crate::{db::Pool, response_transforms::or_404, validation::ValidatedJson};
 
 use super::model::{CreateMovement, Movement};
 
+#[tracing::instrument(skip_all)]
 pub async fn movements_index(State(pool): State<Pool>) -> impl IntoResponse {
     Movement::select_all(&pool).await.map(Json)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn create_movement(
     State(pool): State<Pool>,
     ValidatedJson(movement): ValidatedJson<CreateMovement>,
@@ -15,6 +17,7 @@ pub async fn create_movement(
     movement.insert_one(&pool).await.map(Json)
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn update_movement(
     State(pool): State<Pool>,
     ValidatedJson(movement): ValidatedJson<Movement>,

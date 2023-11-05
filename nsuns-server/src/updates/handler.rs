@@ -78,6 +78,7 @@ async fn run_updates(
     })
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await?;
     let res = run_updates(&mut tx, updates).await.map(Json);
@@ -118,6 +119,7 @@ async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Operati
     Ok(Removed { maxes, reps })
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn undo(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
     let mut tx = transaction(&pool).await?;
     let res = undo_updates(&mut tx, updates).await.map(Json);
