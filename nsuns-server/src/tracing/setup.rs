@@ -46,6 +46,10 @@ pub fn setup_tracing(settings: &Settings) -> anyhow::Result<TraceGuard> {
             None
         };
 
+    let trace_guard = TraceGuard {
+        opentelemetry: settings.logging.opentelemetry.is_enabled(),
+    };
+
     let connection_string = format!(
         "Server={server};Database={db};Uid={user};MaximumPoolSize={pool_sz};",
         server = settings.database.host,
@@ -75,7 +79,5 @@ pub fn setup_tracing(settings: &Settings) -> anyhow::Result<TraceGuard> {
         )
         .try_init()?;
 
-    Ok(TraceGuard {
-        opentelemetry: settings.logging.opentelemetry.is_enabled(),
-    })
+    Ok(trace_guard)
 }
