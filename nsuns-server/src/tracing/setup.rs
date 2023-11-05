@@ -10,7 +10,7 @@ use opentelemetry_semantic_conventions as semcov;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*, registry::LookupSpan};
 
-use crate::{db::tracing::layer::WithGlobalFields, settings::Settings};
+use crate::{settings::Settings, tracing::global_fields::WithGlobalFields};
 
 use super::settings::{LogSettings, OpenTelemetryFeature, OpenTelemetrySettings};
 
