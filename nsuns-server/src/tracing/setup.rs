@@ -65,10 +65,10 @@ pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow:
 
     let connection_string = format!(
         "Server={server};Database={db};Uid={user};MaximumPoolSize={pool_sz};",
-        server=settings.database.host,
-        db=settings.database.database,
-        user=settings.database.username,
-        pool_sz=settings.database.max_connections
+        server = settings.database.host,
+        db = settings.database.database,
+        user = settings.database.username,
+        pool_sz = settings.database.max_connections
     );
 
     let global_fields = [

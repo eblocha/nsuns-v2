@@ -219,15 +219,16 @@ pub mod statements {
 
 pub mod layer {
     use tracing::{field::AsField, span, Subscriber, Value};
+    use tracing_subscriber::registry::LookupSpan;
 
     pub struct GlobalFields<S, F: ?Sized + 'static, V, const N: usize> {
-        subscriber: S,
+        inner: S,
         pairs: [(&'static F, V); N],
     }
 
     impl<S, F: ?Sized, V, const N: usize> GlobalFields<S, F, V, N> {
         pub fn new(subscriber: S, pairs: [(&'static F, V); N]) -> Self {
-            GlobalFields { subscriber, pairs }
+            GlobalFields { inner: subscriber, pairs }
         }
     }
 
@@ -235,11 +236,11 @@ pub mod layer {
         Subscriber for GlobalFields<S, F, V, N>
     {
         fn enabled(&self, metadata: &tracing::Metadata<'_>) -> bool {
-            self.subscriber.enabled(metadata)
+            self.inner.enabled(metadata)
         }
 
         fn new_span(&self, span: &span::Attributes<'_>) -> span::Id {
-            let id = self.subscriber.new_span(span);
+            let id = self.inner.new_span(span);
 
             let metadata = span.metadata();
 
@@ -262,63 +263,78 @@ pub mod layer {
         }
 
         fn record(&self, span: &span::Id, values: &span::Record<'_>) {
-            self.subscriber.record(span, values)
+            self.inner.record(span, values)
         }
 
         fn record_follows_from(&self, span: &span::Id, follows: &span::Id) {
-            self.subscriber.record_follows_from(span, follows)
+            self.inner.record_follows_from(span, follows)
         }
 
         fn event(&self, event: &tracing::Event<'_>) {
-            self.subscriber.event(event)
+            self.inner.event(event)
         }
 
         fn enter(&self, span: &span::Id) {
-            self.subscriber.enter(span)
+            self.inner.enter(span)
         }
 
         fn exit(&self, span: &span::Id) {
-            self.subscriber.exit(span)
+            self.inner.exit(span)
         }
 
         fn on_register_dispatch(&self, subscriber: &tracing::Dispatch) {
-            self.subscriber.on_register_dispatch(subscriber)
+            self.inner.on_register_dispatch(subscriber)
         }
 
         fn register_callsite(
             &self,
             metadata: &'static tracing::Metadata<'static>,
         ) -> tracing::subscriber::Interest {
-            self.subscriber.register_callsite(metadata)
+            self.inner.register_callsite(metadata)
         }
 
         fn max_level_hint(&self) -> Option<tracing_subscriber::filter::LevelFilter> {
-            self.subscriber.max_level_hint()
+            self.inner.max_level_hint()
         }
 
         fn event_enabled(&self, event: &tracing::Event<'_>) -> bool {
-            self.subscriber.event_enabled(event)
+            self.inner.event_enabled(event)
         }
 
         fn clone_span(&self, id: &span::Id) -> span::Id {
-            self.subscriber.clone_span(id)
+            self.inner.clone_span(id)
         }
 
         fn drop_span(&self, id: span::Id) {
             #[allow(deprecated)]
-            self.subscriber.drop_span(id)
+            self.inner.drop_span(id)
         }
 
         fn try_close(&self, id: span::Id) -> bool {
-            self.subscriber.try_close(id)
+            self.inner.try_close(id)
         }
 
         fn current_span(&self) -> tracing_core::span::Current {
-            self.subscriber.current_span()
+            self.inner.current_span()
         }
 
         unsafe fn downcast_raw(&self, id: std::any::TypeId) -> Option<*const ()> {
-            self.subscriber.downcast_raw(id)
+            self.inner.downcast_raw(id)
+        }
+    }
+
+    impl<
+            'span,
+            S: LookupSpan<'span>,
+            F: ?Sized + AsField + 'static,
+            V: Value + 'static,
+            const N: usize,
+        > LookupSpan<'span> for GlobalFields<S, F, V, N>
+    {
+        type Data = S::Data;
+
+        fn span_data(&'span self, id: &span::Id) -> Option<Self::Data> {
+            self.inner.span_data(id)
         }
     }
 
