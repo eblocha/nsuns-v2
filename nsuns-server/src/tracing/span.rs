@@ -23,6 +23,7 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
         let tracing_span = tracing::info_span!(
             "HTTP request",
             otel.kind = ?SpanKind::Server,
+            otel.name = request.method().as_str(),
             trace_id = Empty,
             http.request.method = request.method().as_str(),
             user_agent.original = user_agent(request),
@@ -31,7 +32,7 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             server.address = http_host(request),
             url.path = request.uri().path(),
             url.query = request.uri().query(),
-            url.scheme = request.uri().scheme_str().unwrap_or_default(),
+            url.scheme = request.uri().scheme_str(),
             // set in response
             http.response.status_code = Empty,
             otel.status_code = Empty,
