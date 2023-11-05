@@ -3,6 +3,14 @@ use opentelemetry_semantic_conventions as semcov;
 use sqlx::Executor;
 use tracing_futures::Instrument;
 
+// Creates a span/event target with a suffix to indicate is a database query span
+#[macro_export]
+macro_rules! db_target {
+    () => {
+        const_format::concatcp!(module_path!(), $crate::db::tracing::TRACING_TARGET_SUFFIX)
+    };
+}
+
 /// Creates a tracing span for calling out to the database
 #[macro_export]
 macro_rules! db_span {
@@ -11,7 +19,7 @@ macro_rules! db_span {
     };
     ($name:expr) => {
         tracing::info_span!(
-            target: const_format::concatcp!(module_path!(), $crate::db::tracing::TRACING_TARGET_SUFFIX),
+            target: $crate::db_target!(),
             $name,
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
@@ -26,7 +34,7 @@ macro_rules! db_span {
     };
     ($operation:expr, $table:expr) => {
         tracing::info_span!(
-            target: const_format::concatcp!(module_path!(), $crate::db::tracing::TRACING_TARGET_SUFFIX),
+            target: $crate::db_target!(),
             const_format::concatcp!($operation, " ", $table),
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
