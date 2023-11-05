@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
         .with_context(|| "failed to load settings")
         .map_err(log_error!())?;
 
-    setup_tracing(&settings.logging)?;
+    setup_tracing(&settings.logging, &settings)?;
 
     tracing::debug!("loaded configuration:\n{:#?}", settings);
 

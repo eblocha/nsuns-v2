@@ -10,6 +10,8 @@ use opentelemetry_semantic_conventions as semcov;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*, registry::LookupSpan};
 
+use crate::{db::tracing::layer::WithGlobalFields, settings::Settings};
+
 use super::settings::{LogSettings, OpenTelemetryFeature, OpenTelemetrySettings};
 
 fn otel_layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
@@ -42,8 +44,8 @@ fn otel_layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
     Ok(opentelemetry)
 }
 
-pub fn setup_tracing(settings: &LogSettings) -> anyhow::Result<()> {
-    let fmt_layer = match settings.json {
+pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow::Result<()> {
+    let fmt_layer = match log_settings.json {
         true => fmt::layer()
             .json()
             .with_span_list(false)
@@ -57,14 +59,31 @@ pub fn setup_tracing(settings: &LogSettings) -> anyhow::Result<()> {
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(LevelFilter::INFO.into())
-                .parse_lossy(&settings.directive),
+                .parse_lossy(&log_settings.directive),
         )
         .with(fmt_layer);
 
-    if let OpenTelemetryFeature::Enabled(settings) = &settings.opentelemetry {
-        registry.with(otel_layer(settings)?).try_init()
+    let connection_string = format!(
+        "Server={server};Database={db};Uid={user};MaximumPoolSize={pool_sz};",
+        server=settings.database.host,
+        db=settings.database.database,
+        user=settings.database.username,
+        pool_sz=settings.database.max_connections
+    );
+
+    let global_fields = [
+        ("db.name", settings.database.database.clone()),
+        ("db.user", settings.database.username.clone()),
+        ("db.connection_string", connection_string),
+    ];
+
+    if let OpenTelemetryFeature::Enabled(settings) = &log_settings.opentelemetry {
+        registry
+            .with(otel_layer(settings)?)
+            .with_global_fields(global_fields)
+            .try_init()
     } else {
-        registry.try_init()
+        registry.with_global_fields(global_fields).try_init()
     }
     .with_context(|| "failed to init tracing subscriber")?;
 

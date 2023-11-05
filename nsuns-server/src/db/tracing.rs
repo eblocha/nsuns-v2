@@ -14,7 +14,12 @@ macro_rules! db_span {
             $name,
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
-            db.statement = tracing::field::Empty
+            // set by executor
+            db.statement = tracing::field::Empty,
+            // set globally
+            db.user = tracing::field::Empty,
+            db.connection_string = tracing::field::Empty,
+            db.name = tracing::field::Empty,
         )
     };
     ($operation:expr, $table:expr) => {
@@ -22,9 +27,14 @@ macro_rules! db_span {
             const_format::concatcp!($operation, " ", $table),
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
-            db.statement = tracing::field::Empty,
             db.operation = $operation,
             db.sql.table = $table,
+            // set by executor
+            db.statement = tracing::field::Empty,
+            // set globally
+            db.user = tracing::field::Empty,
+            db.connection_string = tracing::field::Empty,
+            db.name = tracing::field::Empty,
         )
     }
 }
@@ -205,4 +215,122 @@ pub mod statements {
     pub const UPDATE: &str = "UPDATE";
     pub const INSERT_INTO: &str = "INSERT INTO";
     pub const DELETE_FROM: &str = "DELETE FROM";
+}
+
+pub mod layer {
+    use tracing::{field::AsField, span, Subscriber, Value};
+
+    pub struct GlobalFields<S, F: ?Sized + 'static, V, const N: usize> {
+        subscriber: S,
+        pairs: [(&'static F, V); N],
+    }
+
+    impl<S, F: ?Sized, V, const N: usize> GlobalFields<S, F, V, N> {
+        pub fn new(subscriber: S, pairs: [(&'static F, V); N]) -> Self {
+            GlobalFields { subscriber, pairs }
+        }
+    }
+
+    impl<S: Subscriber, F: ?Sized + AsField + 'static, V: Value + 'static, const N: usize>
+        Subscriber for GlobalFields<S, F, V, N>
+    {
+        fn enabled(&self, metadata: &tracing::Metadata<'_>) -> bool {
+            self.subscriber.enabled(metadata)
+        }
+
+        fn new_span(&self, span: &span::Attributes<'_>) -> span::Id {
+            let id = self.subscriber.new_span(span);
+
+            let metadata = span.metadata();
+
+            self.pairs
+                .iter()
+                .filter_map(|(field, value)| {
+                    field
+                        .as_field(metadata)
+                        .map(|f| (f, Some(value as &dyn Value)))
+                })
+                .for_each(|(f, v)| {
+                    let pair = [(&f, v)];
+                    let values = span.fields().value_set(&pair);
+                    let values = span::Record::new(&values);
+
+                    self.record(&id, &values);
+                });
+            id
+        }
+
+        fn record(&self, span: &span::Id, values: &span::Record<'_>) {
+            self.subscriber.record(span, values)
+        }
+
+        fn record_follows_from(&self, span: &span::Id, follows: &span::Id) {
+            self.subscriber.record_follows_from(span, follows)
+        }
+
+        fn event(&self, event: &tracing::Event<'_>) {
+            self.subscriber.event(event)
+        }
+
+        fn enter(&self, span: &span::Id) {
+            self.subscriber.enter(span)
+        }
+
+        fn exit(&self, span: &span::Id) {
+            self.subscriber.exit(span)
+        }
+
+        fn on_register_dispatch(&self, subscriber: &tracing::Dispatch) {
+            self.subscriber.on_register_dispatch(subscriber)
+        }
+
+        fn register_callsite(
+            &self,
+            metadata: &'static tracing::Metadata<'static>,
+        ) -> tracing::subscriber::Interest {
+            self.subscriber.register_callsite(metadata)
+        }
+
+        fn max_level_hint(&self) -> Option<tracing_subscriber::filter::LevelFilter> {
+            self.subscriber.max_level_hint()
+        }
+
+        fn event_enabled(&self, event: &tracing::Event<'_>) -> bool {
+            self.subscriber.event_enabled(event)
+        }
+
+        fn clone_span(&self, id: &span::Id) -> span::Id {
+            self.subscriber.clone_span(id)
+        }
+
+        fn drop_span(&self, id: span::Id) {
+            #[allow(deprecated)]
+            self.subscriber.drop_span(id)
+        }
+
+        fn try_close(&self, id: span::Id) -> bool {
+            self.subscriber.try_close(id)
+        }
+
+        fn current_span(&self) -> tracing_core::span::Current {
+            self.subscriber.current_span()
+        }
+
+        unsafe fn downcast_raw(&self, id: std::any::TypeId) -> Option<*const ()> {
+            self.subscriber.downcast_raw(id)
+        }
+    }
+
+    pub trait WithGlobalFields<F: ?Sized, V, const N: usize>
+    where
+        Self: Sized,
+    {
+        fn with_global_fields(self, pairs: [(&'static F, V); N]) -> GlobalFields<Self, F, V, N>;
+    }
+
+    impl<S, F: ?Sized, V, const N: usize> WithGlobalFields<F, V, N> for S {
+        fn with_global_fields(self, pairs: [(&'static F, V); N]) -> GlobalFields<Self, F, V, N> {
+            GlobalFields::new(self, pairs)
+        }
+    }
 }
