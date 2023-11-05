@@ -44,6 +44,14 @@ fn otel_layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
     Ok(opentelemetry)
 }
 
+/// Determine if the span is a database client call
+fn db_span_filter(attrs: &tracing::span::Attributes<'_>) -> bool {
+    attrs
+        .metadata()
+        .target()
+        .ends_with(db::tracing::TRACING_TARGET_SUFFIX)
+}
+
 pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow::Result<()> {
     let fmt_layer = match log_settings.json {
         true => fmt::layer()
@@ -79,15 +87,11 @@ pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow:
                 ("db.user", settings.database.username.clone()),
                 ("db.connection_string", connection_string),
                 ("server.address", settings.database.host.clone()),
-                ("server.port", settings.database.port.to_string()),
             ],
-            |attrs: &tracing::span::Attributes<'_>| {
-                attrs
-                    .metadata()
-                    .target()
-                    .ends_with(db::tracing::TRACING_TARGET_SUFFIX)
-            },
+            db_span_filter,
         )
+        // separate layer for different type
+        .with_global_fields_filtered([("server.port", settings.database.port)], db_span_filter)
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(LevelFilter::INFO.into())

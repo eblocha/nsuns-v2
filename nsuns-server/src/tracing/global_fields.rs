@@ -178,7 +178,7 @@ impl<
     }
 }
 
-pub trait WithGlobalFields<F: ?Sized, V, const N: usize>
+pub trait WithGlobalFields<F: ?Sized + 'static, V: Value + 'static, const N: usize>
 where
     Self: Sized,
 {
@@ -192,16 +192,16 @@ where
 
     /// Add global fields to a subscriber registry.
     /// This will record fields for every newly created span with the subscriber below it.
-    fn with_global_fields_filtered<Filt>(
+    fn with_global_fields_filtered<Filt: FilterFn + 'static>(
         self,
         pairs: [(&'static F, V); N],
         filter: Filt,
     ) -> GlobalFields<Self, F, V, Filt, N>;
 }
 
-impl<S, F: ?Sized, V, const N: usize> WithGlobalFields<F, V, N> for S {
+impl<S, F: ?Sized + 'static, V: Value + 'static, const N: usize> WithGlobalFields<F, V, N> for S {
     #[inline]
-    fn with_global_fields_filtered<Filt>(
+    fn with_global_fields_filtered<Filt: FilterFn + 'static>(
         self,
         pairs: [(&'static F, V); N],
         filter: Filt,
