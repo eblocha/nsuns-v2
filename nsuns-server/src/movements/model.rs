@@ -48,7 +48,6 @@ where
 }
 
 impl Movement {
-    #[tracing::instrument(name = "Movement::select_all", skip_all)]
     pub async fn select_all(
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Self>> {
@@ -59,7 +58,6 @@ impl Movement {
             .map_err(into_log_server_error!())
     }
 
-    #[tracing::instrument(name = "Movement::update_one", skip_all)]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -98,7 +96,6 @@ pub struct CreateMovement {
 }
 
 impl CreateMovement {
-    #[tracing::instrument(name = "CreateMovement::insert_one", skip_all)]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,

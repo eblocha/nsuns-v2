@@ -68,7 +68,6 @@ pub struct Set {
 }
 
 impl Set {
-    #[tracing::instrument(name = "Set::select_where_id_in", skip_all)]
     pub async fn select_where_id_in(
         ids: &[Uuid],
         executor: impl Executor<'_, Database = DB>,
@@ -99,7 +98,6 @@ pub struct CreateSet {
 }
 
 impl CreateSet {
-    #[tracing::instrument(name = "CreateSet::insert_one", skip_all)]
     pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
         let set_ids = get_set_ids(self.program_id, self.day, true, &mut **tx).await?;
 
@@ -144,7 +142,6 @@ impl CreateSet {
     }
 }
 
-#[tracing::instrument(name = "Set::delete_one", skip(tx))]
 pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<()>> {
     let res = sqlx::query_as::<_, (Uuid, Day)>(formatcp!(
         "{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING program_id, day",
@@ -185,7 +182,6 @@ pub struct UpdateSet {
 }
 
 impl UpdateSet {
-    #[tracing::instrument(name = "UpdateSet::update_one", skip_all)]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,

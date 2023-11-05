@@ -57,7 +57,6 @@ pub struct Reps {
 }
 
 impl Reps {
-    #[tracing::instrument(name = "Reps::select_for_profile", skip_all)]
     pub async fn select_for_profile(
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -72,7 +71,6 @@ impl Reps {
         .map_err(into_log_server_error!())
     }
 
-    #[tracing::instrument(name = "Reps::select_latest", skip_all)]
     pub async fn select_latest(
         movement_id: Uuid,
         profile_id: Uuid,
@@ -100,7 +98,6 @@ pub struct CreateReps {
 }
 
 impl CreateReps {
-    #[tracing::instrument(name = "CreateReps::insert_one", skip_all)]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -137,7 +134,6 @@ pub struct UpdateReps {
 }
 
 impl UpdateReps {
-    #[tracing::instrument(name = "UpdateReps::update_one", skip_all)]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -158,7 +154,6 @@ impl UpdateReps {
     }
 }
 
-#[tracing::instrument(skip_all)]
 pub async fn delete_latest_reps(
     profile_id: Uuid,
     movement_id: Uuid,

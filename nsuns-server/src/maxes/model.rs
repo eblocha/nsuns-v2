@@ -57,7 +57,6 @@ where
 }
 
 impl Max {
-    #[tracing::instrument(name = "Max::select_for_profile", skip_all)]
     pub async fn select_for_profile(
         profile_id: Uuid,
         executor: impl Executor<'_, Database = DB>,
@@ -72,7 +71,6 @@ impl Max {
         .map_err(into_log_server_error!())
     }
 
-    #[tracing::instrument(name = "Max::select_latest", skip_all)]
     pub async fn select_latest(
         movement_id: Uuid,
         profile_id: Uuid,
@@ -100,7 +98,6 @@ pub struct CreateMax {
 }
 
 impl CreateMax {
-    #[tracing::instrument(name = "CreateMax::insert_one", skip_all)]
     pub async fn insert_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -139,7 +136,6 @@ pub struct UpdateMax {
 }
 
 impl UpdateMax {
-    #[tracing::instrument(name = "UpdateMax::update_one", skip_all)]
     pub async fn update_one(
         self,
         executor: impl Executor<'_, Database = DB>,
@@ -160,7 +156,6 @@ impl UpdateMax {
     }
 }
 
-#[tracing::instrument(skip_all)]
 pub async fn delete_latest_maxes(
     profile_id: Uuid,
     movement_id: Uuid,

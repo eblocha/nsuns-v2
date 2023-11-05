@@ -30,7 +30,6 @@ pub struct Profile {
 }
 
 impl Profile {
-    #[tracing::instrument(name = "Profile::select_one", skip_all)]
     pub async fn select_one(
         executor: impl Executor<'_, Database = DB>,
         id: &Uuid,
@@ -43,7 +42,6 @@ impl Profile {
             .map_err(into_log_server_error!())
     }
 
-    #[tracing::instrument(name = "Profile::select_all", skip_all)]
     pub async fn select_all(
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Profile>> {
@@ -54,7 +52,6 @@ impl Profile {
             .map_err(into_log_server_error!())
     }
 
-    #[tracing::instrument(name = "Profile::update_one", skip_all)]
     pub async fn update_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Self>> {
         sqlx::query(formatcp!("{UPDATE} {TABLE} SET name = $1 WHERE id = $2"))
             .bind(&self.name)
@@ -72,7 +69,6 @@ impl Profile {
             .map_err(into_log_server_error!())
     }
 
-    #[tracing::instrument(name = "Profile::delete_one", skip_all)]
     pub async fn delete_one(
         executor: impl Executor<'_, Database = DB>,
         id: &Uuid,
@@ -94,7 +90,6 @@ pub struct CreateProfile {
 }
 
 impl CreateProfile {
-    #[tracing::instrument(name = "CreateProfile::create_one", skip_all)]
     pub async fn create_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Profile> {
         sqlx::query_as::<_, Profile>(formatcp!(
             "{INSERT_INTO} {TABLE} (name) VALUES ($1) RETURNING *"
