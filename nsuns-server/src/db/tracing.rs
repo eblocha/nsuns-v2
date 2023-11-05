@@ -3,6 +3,14 @@ use opentelemetry_semantic_conventions as semcov;
 use sqlx::Executor;
 use tracing_futures::Instrument;
 
+// Creates a span/event target with a suffix to indicate is a database query span
+#[macro_export]
+macro_rules! db_target {
+    () => {
+        const_format::concatcp!(module_path!(), $crate::db::tracing::TRACING_TARGET_SUFFIX)
+    };
+}
+
 /// Creates a tracing span for calling out to the database
 #[macro_export]
 macro_rules! db_span {
@@ -11,20 +19,34 @@ macro_rules! db_span {
     };
     ($name:expr) => {
         tracing::info_span!(
+            target: $crate::db_target!(),
             $name,
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
-            db.statement = tracing::field::Empty
+            // set by executor
+            db.statement = tracing::field::Empty,
+            // set globally
+            db.user = tracing::field::Empty,
+            db.connection_string = tracing::field::Empty,
+            db.name = tracing::field::Empty,
+            server.address = tracing::field::Empty,
         )
     };
     ($operation:expr, $table:expr) => {
         tracing::info_span!(
+            target: $crate::db_target!(),
             const_format::concatcp!($operation, " ", $table),
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
-            db.statement = tracing::field::Empty,
             db.operation = $operation,
             db.sql.table = $table,
+            // set by executor
+            db.statement = tracing::field::Empty,
+            // set globally
+            db.user = tracing::field::Empty,
+            db.connection_string = tracing::field::Empty,
+            db.name = tracing::field::Empty,
+            server.address = tracing::field::Empty,
         )
     }
 }
@@ -206,3 +228,5 @@ pub mod statements {
     pub const INSERT_INTO: &str = "INSERT INTO";
     pub const DELETE_FROM: &str = "DELETE FROM";
 }
+
+pub const TRACING_TARGET_SUFFIX: &str = "/db::tracing";
