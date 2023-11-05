@@ -19,6 +19,8 @@ pub fn bind(port: u16) -> anyhow::Result<AddrIncoming> {
 
 #[tracing::instrument(skip_all)]
 pub async fn initialize(settings: &Settings) -> anyhow::Result<Router> {
+    tracing::debug!("loaded configuration:\n{:#?}", settings);
+
     let pool = create_connection_pool(&settings.database);
 
     let migrations = Path::new(&settings.database.migrations);

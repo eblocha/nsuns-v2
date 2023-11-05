@@ -12,8 +12,6 @@ async fn main() -> Result<()> {
 
     let _guard = setup_tracing(&settings)?;
 
-    tracing::debug!("loaded configuration:\n{:#?}", settings);
-
     tokio::try_join!(
         server::run(&settings),
         metrics_server::run(&settings.metrics)
