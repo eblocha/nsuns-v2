@@ -1,6 +1,7 @@
 use tracing::{field::AsField, span, Subscriber, Value};
 use tracing_subscriber::registry::LookupSpan;
 
+/// A function that determines if global fields should be applied to a span by its attributes.
 pub trait FilterFn {
     fn enabled(&self, span: &span::Attributes<'_>) -> bool;
 }
@@ -12,6 +13,7 @@ impl<F: Fn(&span::Attributes<'_>) -> bool> FilterFn for F {
     }
 }
 
+/// A [`FilterFn`] that is always enabled.
 pub struct AlwaysEnabled;
 
 impl FilterFn for AlwaysEnabled {
@@ -51,6 +53,13 @@ impl<
     }
 
     fn new_span(&self, span: &span::Attributes<'_>) -> span::Id {
+        // Explanation:
+        // - the fields for a span are statically known at compile time. It's just a slice of &str.
+        // - we need to use the span's metadata to get a Field with a &str, which is an index into this array.
+        // - In order to record new values, we call `record` with a `Record` struct containing the new Field/Option<Value> pairs
+        // - The new fields will not be recorded if they aren't present on the span at compile time.
+        // - _Subscribers_ handle actually recording the data, holding it in memory, and logging/exporting it.
+
         let id = self.inner.new_span(span);
 
         if self.filter.enabled(span) {
@@ -173,12 +182,16 @@ pub trait WithGlobalFields<F: ?Sized, V, const N: usize>
 where
     Self: Sized,
 {
+    #[inline]
     fn with_global_fields(
         self,
         pairs: [(&'static F, V); N],
     ) -> GlobalFields<Self, F, V, AlwaysEnabled, N> {
         self.with_global_fields_filtered(pairs, AlwaysEnabled)
     }
+
+    /// Add global fields to a subscriber registry.
+    /// This will record fields for every newly created span with the subscriber below it.
     fn with_global_fields_filtered<Filt>(
         self,
         pairs: [(&'static F, V); N],
@@ -187,6 +200,7 @@ where
 }
 
 impl<S, F: ?Sized, V, const N: usize> WithGlobalFields<F, V, N> for S {
+    #[inline]
     fn with_global_fields_filtered<Filt>(
         self,
         pairs: [(&'static F, V); N],
