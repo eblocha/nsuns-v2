@@ -75,12 +75,15 @@ pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow:
         ("db.name", settings.database.database.clone()),
         ("db.user", settings.database.username.clone()),
         ("db.connection_string", connection_string),
+        ("server.address", settings.database.host.clone()),
     ];
 
     if let OpenTelemetryFeature::Enabled(settings) = &log_settings.opentelemetry {
         registry
             .with(otel_layer(settings)?)
-            .with_global_fields(global_fields)
+            .with_global_fields_filtered(global_fields, |attrs: &tracing::span::Attributes<'_>| {
+                attrs.metadata().target() == "nsuns_server::db"
+            })
             .try_init()
     } else {
         registry.with_global_fields(global_fields).try_init()

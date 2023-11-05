@@ -11,6 +11,7 @@ macro_rules! db_span {
     };
     ($name:expr) => {
         tracing::info_span!(
+            target: "nsuns_server::db",
             $name,
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
@@ -20,10 +21,12 @@ macro_rules! db_span {
             db.user = tracing::field::Empty,
             db.connection_string = tracing::field::Empty,
             db.name = tracing::field::Empty,
+            server.address = tracing::field::Empty,
         )
     };
     ($operation:expr, $table:expr) => {
         tracing::info_span!(
+            target: "nsuns_server::db",
             const_format::concatcp!($operation, " ", $table),
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
@@ -35,6 +38,7 @@ macro_rules! db_span {
             db.user = tracing::field::Empty,
             db.connection_string = tracing::field::Empty,
             db.name = tracing::field::Empty,
+            server.address = tracing::field::Empty,
         )
     }
 }
@@ -221,19 +225,47 @@ pub mod layer {
     use tracing::{field::AsField, span, Subscriber, Value};
     use tracing_subscriber::registry::LookupSpan;
 
-    pub struct GlobalFields<S, F: ?Sized + 'static, V, const N: usize> {
-        inner: S,
-        pairs: [(&'static F, V); N],
+    pub trait FilterFn {
+        fn enabled(&self, span: &span::Attributes<'_>) -> bool;
     }
 
-    impl<S, F: ?Sized, V, const N: usize> GlobalFields<S, F, V, N> {
-        pub fn new(subscriber: S, pairs: [(&'static F, V); N]) -> Self {
-            GlobalFields { inner: subscriber, pairs }
+    impl<F: Fn(&span::Attributes<'_>) -> bool> FilterFn for F {
+        fn enabled(&self, span: &span::Attributes<'_>) -> bool {
+            self(span)
         }
     }
 
-    impl<S: Subscriber, F: ?Sized + AsField + 'static, V: Value + 'static, const N: usize>
-        Subscriber for GlobalFields<S, F, V, N>
+    pub struct AlwaysEnabled;
+
+    impl FilterFn for AlwaysEnabled {
+        fn enabled(&self, _span: &span::Attributes<'_>) -> bool {
+            true
+        }
+    }
+
+    pub struct GlobalFields<S, F: ?Sized + 'static, V, Filt, const N: usize> {
+        inner: S,
+        pairs: [(&'static F, V); N],
+        filter: Filt,
+    }
+
+    impl<S, F: ?Sized, V, Filt, const N: usize> GlobalFields<S, F, V, Filt, N> {
+        pub fn new(subscriber: S, pairs: [(&'static F, V); N], filter: Filt) -> Self {
+            GlobalFields {
+                inner: subscriber,
+                pairs,
+                filter,
+            }
+        }
+    }
+
+    impl<
+            S: Subscriber,
+            F: ?Sized + AsField + 'static,
+            V: Value + 'static,
+            Filt: FilterFn + 'static,
+            const N: usize,
+        > Subscriber for GlobalFields<S, F, V, Filt, N>
     {
         fn enabled(&self, metadata: &tracing::Metadata<'_>) -> bool {
             self.inner.enabled(metadata)
@@ -242,23 +274,25 @@ pub mod layer {
         fn new_span(&self, span: &span::Attributes<'_>) -> span::Id {
             let id = self.inner.new_span(span);
 
-            let metadata = span.metadata();
+            if self.filter.enabled(span) {
+                let metadata = span.metadata();
 
-            self.pairs
-                .iter()
-                .filter_map(|(field, value)| {
-                    field
-                        .as_field(metadata)
-                        .map(|f| (f, Some(value as &dyn Value)))
-                })
-                .for_each(|(f, v)| {
-                    let pair = [(&f, v)];
-                    // FIXME this is a hidden API
-                    let values = span.fields().value_set(&pair);
-                    let values = span::Record::new(&values);
+                self.pairs
+                    .iter()
+                    .filter_map(|(field, value)| {
+                        field
+                            .as_field(metadata)
+                            .map(|f| (f, Some(value as &dyn Value)))
+                    })
+                    .for_each(|(f, v)| {
+                        let pair = [(&f, v)];
+                        // FIXME this is a hidden API
+                        let values = span.fields().value_set(&pair);
+                        let values = span::Record::new(&values);
 
-                    self.record(&id, &values);
-                });
+                        self.record(&id, &values);
+                    });
+            }
             id
         }
 
@@ -328,8 +362,9 @@ pub mod layer {
             S: LookupSpan<'span>,
             F: ?Sized + AsField + 'static,
             V: Value + 'static,
+            Filt,
             const N: usize,
-        > LookupSpan<'span> for GlobalFields<S, F, V, N>
+        > LookupSpan<'span> for GlobalFields<S, F, V, Filt, N>
     {
         type Data = S::Data;
 
@@ -342,12 +377,26 @@ pub mod layer {
     where
         Self: Sized,
     {
-        fn with_global_fields(self, pairs: [(&'static F, V); N]) -> GlobalFields<Self, F, V, N>;
+        fn with_global_fields(
+            self,
+            pairs: [(&'static F, V); N],
+        ) -> GlobalFields<Self, F, V, AlwaysEnabled, N> {
+            self.with_global_fields_filtered(pairs, AlwaysEnabled)
+        }
+        fn with_global_fields_filtered<Filt>(
+            self,
+            pairs: [(&'static F, V); N],
+            filter: Filt,
+        ) -> GlobalFields<Self, F, V, Filt, N>;
     }
 
     impl<S, F: ?Sized, V, const N: usize> WithGlobalFields<F, V, N> for S {
-        fn with_global_fields(self, pairs: [(&'static F, V); N]) -> GlobalFields<Self, F, V, N> {
-            GlobalFields::new(self, pairs)
+        fn with_global_fields_filtered<Filt>(
+            self,
+            pairs: [(&'static F, V); N],
+            filter: Filt,
+        ) -> GlobalFields<Self, F, V, Filt, N> {
+            GlobalFields::new(self, pairs, filter)
         }
     }
 }
