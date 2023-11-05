@@ -21,24 +21,6 @@ impl FilterFn for AlwaysEnabled {
     }
 }
 
-pub struct HasTarget<T> {
-    target: T,
-}
-
-impl<'a, T> FilterFn for HasTarget<T>
-where
-    T: PartialEq<&'a str>,
-{
-    #[inline]
-    fn enabled(&self, span: &span::Attributes<'_>) -> bool {
-        self.target == span.metadata().target()
-    }
-}
-
-pub fn has_target<'a, T>(target: T) -> HasTarget<T> {
-    HasTarget { target }
-}
-
 pub struct GlobalFields<S, F: ?Sized + 'static, V, Filt, const N: usize> {
     inner: S,
     pairs: [(&'static F, V); N],

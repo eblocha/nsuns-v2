@@ -12,10 +12,7 @@ use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*, registry::LookupS
 
 use crate::{db, settings::Settings, tracing::global_fields::WithGlobalFields};
 
-use super::{
-    global_fields::has_target,
-    settings::{LogSettings, OpenTelemetryFeature, OpenTelemetrySettings},
-};
+use super::settings::{LogSettings, OpenTelemetryFeature, OpenTelemetrySettings};
 
 fn otel_layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
     settings: &OpenTelemetrySettings,
@@ -84,7 +81,12 @@ pub fn setup_tracing(log_settings: &LogSettings, settings: &Settings) -> anyhow:
                 ("server.address", settings.database.host.clone()),
                 ("server.port", settings.database.port.to_string()),
             ],
-            has_target(db::tracing::TRACING_TARGET),
+            |attrs: &tracing::span::Attributes<'_>| {
+                attrs
+                    .metadata()
+                    .target()
+                    .ends_with(db::tracing::TRACING_TARGET_SUFFIX)
+            },
         )
         .with(
             tracing_subscriber::EnvFilter::builder()
