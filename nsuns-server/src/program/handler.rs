@@ -4,6 +4,7 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
+use transaction::acquire;
 use utoipa::IntoParams;
 use uuid::Uuid;
 
@@ -51,7 +52,8 @@ pub async fn reorder_sets(
     State(pool): State<Pool>,
     ValidatedJson(reorder): ValidatedJson<ReorderSets>,
 ) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await?;
+    let mut conn = acquire(&pool).await?;
+    let mut tx = transaction(&mut conn).await?;
     let res = reorder.reorder(&mut tx).await.map(or_404::<_, Json<_>>);
     commit_ok(res, tx).await
 }
@@ -61,7 +63,8 @@ pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> i
 }
 
 pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await?;
+    let mut conn = acquire(&pool).await?;
+    let mut tx = transaction(&mut conn).await?;
     let res = gather_program_summary(id, &mut tx)
         .await
         .map(or_404::<_, Json<_>>);

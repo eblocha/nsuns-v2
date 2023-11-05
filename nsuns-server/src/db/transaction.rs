@@ -4,7 +4,21 @@ use tracing::Instrument;
 
 use crate::{db_span, error::OperationResult, into_log_server_error};
 
-use super::pool::DB;
+use super::{pool::DB, Connection, Pool};
+
+/// Acquire a connection
+#[inline]
+pub async fn acquire(pool: &Pool) -> OperationResult<Connection> {
+    acquire_anyhow(pool).await.map_err(into_log_server_error!())
+}
+
+#[inline]
+pub async fn acquire_anyhow(pool: &Pool) -> anyhow::Result<Connection> {
+    pool.acquire()
+        .instrument(db_span!("acquire connection"))
+        .await
+        .with_context(|| "failed to acquire connection")
+}
 
 /// Acquire a new transaction
 #[inline]
