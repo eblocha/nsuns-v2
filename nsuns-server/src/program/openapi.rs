@@ -10,7 +10,10 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::extensions::{created, id_path_param, ok, param_in_default, JsonContent},
+    openapi::{
+        extensions::{created, id_path_param, ok, param_in_default, JsonContent},
+        Customizer,
+    },
     router::PROGRAMS_PATH,
 };
 
@@ -20,18 +23,7 @@ use super::{
     router::REORDER_SETS_PATH,
 };
 
-pub trait WithProgramsDefintions {
-    fn with_programs(self) -> Self;
-}
-
-impl WithProgramsDefintions for ComponentsBuilder {
-    fn with_programs(self) -> Self {
-        self.schema_from::<ProgramMeta>()
-            .schema_from::<CreateProgram>()
-            .schema_from::<UpdateProgram>()
-            .schema_from::<ProgramSummary>()
-    }
-}
+pub struct ProgramModule;
 
 fn program_response() -> Response {
     ResponseBuilder::new()
@@ -41,8 +33,18 @@ fn program_response() -> Response {
 
 const TAG: &str = "Programs";
 
-impl WithProgramsDefintions for PathsBuilder {
-    fn with_programs(self) -> Self {
+impl Customizer<ComponentsBuilder> for ProgramModule {
+    fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
+        builder
+            .schema_from::<ProgramMeta>()
+            .schema_from::<CreateProgram>()
+            .schema_from::<UpdateProgram>()
+            .schema_from::<ProgramSummary>()
+    }
+}
+
+impl Customizer<PathsBuilder> for ProgramModule {
+    fn customize(builder: PathsBuilder) -> PathsBuilder {
         let get_op = OperationBuilder::new()
             .parameters(Some(ProgramQuery::into_params(param_in_default)))
             .response(
@@ -108,26 +110,27 @@ impl WithProgramsDefintions for PathsBuilder {
             .tag(TAG)
             .build();
 
-        self.path(
-            PROGRAMS_PATH,
-            PathItemBuilder::new()
-                .operation(PathItemType::Get, get_op)
-                .operation(PathItemType::Post, post_op)
-                .operation(PathItemType::Put, put_op)
-                .build(),
-        )
-        .path(
-            concatcp!(PROGRAMS_PATH, REORDER_SETS_PATH),
-            PathItemBuilder::new()
-                .operation(PathItemType::Post, reorder_op)
-                .build(),
-        )
-        .path(
-            concatcp!(PROGRAMS_PATH, "/{id}"),
-            PathItemBuilder::new()
-                .operation(PathItemType::Get, summary_op)
-                .operation(PathItemType::Delete, delete_op)
-                .build(),
-        )
+        builder
+            .path(
+                PROGRAMS_PATH,
+                PathItemBuilder::new()
+                    .operation(PathItemType::Get, get_op)
+                    .operation(PathItemType::Post, post_op)
+                    .operation(PathItemType::Put, put_op)
+                    .build(),
+            )
+            .path(
+                concatcp!(PROGRAMS_PATH, REORDER_SETS_PATH),
+                PathItemBuilder::new()
+                    .operation(PathItemType::Post, reorder_op)
+                    .build(),
+            )
+            .path(
+                concatcp!(PROGRAMS_PATH, "/{id}"),
+                PathItemBuilder::new()
+                    .operation(PathItemType::Get, summary_op)
+                    .operation(PathItemType::Delete, delete_op)
+                    .build(),
+            )
     }
 }

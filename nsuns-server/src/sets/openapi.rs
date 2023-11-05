@@ -10,23 +10,16 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::extensions::{created, id_path_param, no_content, ok, JsonContent},
+    openapi::{
+        extensions::{created, id_path_param, no_content, ok, JsonContent},
+        Customizer,
+    },
     router::SETS_PATH,
 };
 
 use super::model::{CreateSet, Set, UpdateSet};
 
-pub trait WithSetsDefinition {
-    fn with_sets(self) -> Self;
-}
-
-impl WithSetsDefinition for ComponentsBuilder {
-    fn with_sets(self) -> Self {
-        self.schema_from::<Set>()
-            .schema_from::<CreateSet>()
-            .schema_from::<UpdateSet>()
-    }
-}
+pub struct SetsModule;
 
 fn set_response() -> Response {
     ResponseBuilder::new().json_content(Set::schema().1).build()
@@ -34,8 +27,17 @@ fn set_response() -> Response {
 
 const TAG: &str = "Sets";
 
-impl WithSetsDefinition for PathsBuilder {
-    fn with_sets(self) -> Self {
+impl Customizer<ComponentsBuilder> for SetsModule {
+    fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
+        builder
+            .schema_from::<Set>()
+            .schema_from::<CreateSet>()
+            .schema_from::<UpdateSet>()
+    }
+}
+
+impl Customizer<PathsBuilder> for SetsModule {
+    fn customize(builder: PathsBuilder) -> PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
@@ -62,18 +64,19 @@ impl WithSetsDefinition for PathsBuilder {
             .tag(TAG)
             .build();
 
-        self.path(
-            SETS_PATH,
-            PathItemBuilder::new()
-                .operation(PathItemType::Post, post_op)
-                .operation(PathItemType::Put, put_op)
-                .build(),
-        )
-        .path(
-            concatcp!(SETS_PATH, "/{id}"),
-            PathItemBuilder::new()
-                .operation(PathItemType::Delete, delete_op)
-                .build(),
-        )
+        builder
+            .path(
+                SETS_PATH,
+                PathItemBuilder::new()
+                    .operation(PathItemType::Post, post_op)
+                    .operation(PathItemType::Put, put_op)
+                    .build(),
+            )
+            .path(
+                concatcp!(SETS_PATH, "/{id}"),
+                PathItemBuilder::new()
+                    .operation(PathItemType::Delete, delete_op)
+                    .build(),
+            )
     }
 }

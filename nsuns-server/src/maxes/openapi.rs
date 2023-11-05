@@ -9,7 +9,10 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::extensions::{created, ok, param_in_default, JsonContent},
+    openapi::{
+        extensions::{created, ok, param_in_default, JsonContent},
+        Customizer,
+    },
     router::MAXES_PATH,
 };
 
@@ -18,17 +21,7 @@ use super::{
     model::{CreateMax, Max, UpdateMax},
 };
 
-pub trait WithMaxesDefinition {
-    fn with_maxes(self) -> Self;
-}
-
-impl WithMaxesDefinition for ComponentsBuilder {
-    fn with_maxes(self) -> Self {
-        self.schema_from::<Max>()
-            .schema_from::<CreateMax>()
-            .schema_from::<UpdateMax>()
-    }
-}
+pub struct MaxesModule;
 
 fn max_response() -> Response {
     ResponseBuilder::new().json_content(Max::schema().1).build()
@@ -36,8 +29,17 @@ fn max_response() -> Response {
 
 const TAG: &str = "Maxes";
 
-impl WithMaxesDefinition for PathsBuilder {
-    fn with_maxes(self) -> Self {
+impl Customizer<ComponentsBuilder> for MaxesModule {
+    fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
+        builder
+            .schema_from::<Max>()
+            .schema_from::<CreateMax>()
+            .schema_from::<UpdateMax>()
+    }
+}
+
+impl Customizer<PathsBuilder> for MaxesModule {
+    fn customize(builder: PathsBuilder) -> PathsBuilder {
         let get_op = OperationBuilder::new()
             .parameters(Some(MaxesQuery::into_params(param_in_default)))
             .response(
@@ -69,7 +71,7 @@ impl WithMaxesDefinition for PathsBuilder {
             .tag(TAG)
             .build();
 
-        self.path(
+        builder.path(
             MAXES_PATH,
             PathItemBuilder::new()
                 .operation(PathItemType::Get, get_op)

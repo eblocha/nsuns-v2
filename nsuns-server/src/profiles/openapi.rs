@@ -10,21 +10,16 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::extensions::{created, id_path_param, ok, JsonContent},
+    openapi::{
+        extensions::{created, id_path_param, ok, JsonContent},
+        Customizer,
+    },
     router::PROFILES_PATH,
 };
 
 use super::model::{CreateProfile, Profile};
 
-pub trait WithProfilesDefinition {
-    fn with_profiles(self) -> Self;
-}
-
-impl WithProfilesDefinition for ComponentsBuilder {
-    fn with_profiles(self) -> Self {
-        self.schema_from::<Profile>().schema_from::<CreateProfile>()
-    }
-}
+pub struct ProfilesModule;
 
 fn profile_response() -> Response {
     ResponseBuilder::new()
@@ -34,8 +29,16 @@ fn profile_response() -> Response {
 
 const TAG: &str = "Profiles";
 
-impl WithProfilesDefinition for PathsBuilder {
-    fn with_profiles(self) -> Self {
+impl Customizer<ComponentsBuilder> for ProfilesModule {
+    fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
+        builder
+            .schema_from::<Profile>()
+            .schema_from::<CreateProfile>()
+    }
+}
+
+impl Customizer<PathsBuilder> for ProfilesModule {
+    fn customize(builder: PathsBuilder) -> PathsBuilder {
         let get_index_op = OperationBuilder::new()
             .response(
                 ok(),
@@ -78,20 +81,21 @@ impl WithProfilesDefinition for PathsBuilder {
             .tag(TAG)
             .build();
 
-        self.path(
-            PROFILES_PATH,
-            PathItemBuilder::new()
-                .operation(PathItemType::Get, get_index_op)
-                .operation(PathItemType::Post, post_op)
-                .operation(PathItemType::Put, put_op)
-                .build(),
-        )
-        .path(
-            concatcp!(PROFILES_PATH, "/{id}"),
-            PathItemBuilder::new()
-                .operation(PathItemType::Get, get_one_op)
-                .operation(PathItemType::Delete, delete_op)
-                .build(),
-        )
+        builder
+            .path(
+                PROFILES_PATH,
+                PathItemBuilder::new()
+                    .operation(PathItemType::Get, get_index_op)
+                    .operation(PathItemType::Post, post_op)
+                    .operation(PathItemType::Put, put_op)
+                    .build(),
+            )
+            .path(
+                concatcp!(PROFILES_PATH, "/{id}"),
+                PathItemBuilder::new()
+                    .operation(PathItemType::Get, get_one_op)
+                    .operation(PathItemType::Delete, delete_op)
+                    .build(),
+            )
     }
 }

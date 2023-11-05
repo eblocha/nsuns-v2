@@ -9,22 +9,16 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::extensions::{created, ok, JsonContent},
+    openapi::{
+        extensions::{created, ok, JsonContent},
+        Customizer,
+    },
     router::MOVEMENTS_PATH,
 };
 
 use super::model::{CreateMovement, Movement};
 
-pub trait WithMovementsDefinition {
-    fn with_movements(self) -> Self;
-}
-
-impl WithMovementsDefinition for ComponentsBuilder {
-    fn with_movements(self) -> Self {
-        self.schema_from::<Movement>()
-            .schema_from::<CreateMovement>()
-    }
-}
+pub struct MovementsModule;
 
 fn movement_response() -> Response {
     ResponseBuilder::new()
@@ -34,8 +28,16 @@ fn movement_response() -> Response {
 
 const TAG: &str = "Movements";
 
-impl WithMovementsDefinition for PathsBuilder {
-    fn with_movements(self) -> Self {
+impl Customizer<ComponentsBuilder> for MovementsModule {
+    fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
+        builder
+            .schema_from::<Movement>()
+            .schema_from::<CreateMovement>()
+    }
+}
+
+impl Customizer<PathsBuilder> for MovementsModule {
+    fn customize(builder: PathsBuilder) -> PathsBuilder {
         let get_op = OperationBuilder::new()
             .response(
                 ok(),
@@ -66,7 +68,7 @@ impl WithMovementsDefinition for PathsBuilder {
             .tag(TAG)
             .build();
 
-        self.path(
+        builder.path(
             MOVEMENTS_PATH,
             PathItemBuilder::new()
                 .operation(PathItemType::Get, get_op)

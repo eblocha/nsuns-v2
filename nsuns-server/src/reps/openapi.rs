@@ -9,7 +9,10 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::extensions::{created, ok, param_in_default, JsonContent},
+    openapi::{
+        extensions::{created, ok, param_in_default, JsonContent},
+        Customizer,
+    },
     router::REPS_PATH,
 };
 
@@ -18,17 +21,7 @@ use super::{
     model::{CreateReps, Reps, UpdateReps},
 };
 
-pub trait WithRepsDefinition {
-    fn with_reps(self) -> Self;
-}
-
-impl WithRepsDefinition for ComponentsBuilder {
-    fn with_reps(self) -> Self {
-        self.schema_from::<Reps>()
-            .schema_from::<CreateReps>()
-            .schema_from::<UpdateReps>()
-    }
-}
+pub struct RepsModule;
 
 fn reps_response() -> Response {
     ResponseBuilder::new()
@@ -38,8 +31,17 @@ fn reps_response() -> Response {
 
 const TAG: &str = "Reps";
 
-impl WithRepsDefinition for PathsBuilder {
-    fn with_reps(self) -> Self {
+impl Customizer<ComponentsBuilder> for RepsModule {
+    fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
+        builder
+            .schema_from::<Reps>()
+            .schema_from::<CreateReps>()
+            .schema_from::<UpdateReps>()
+    }
+}
+
+impl Customizer<PathsBuilder> for RepsModule {
+    fn customize(builder: PathsBuilder) -> PathsBuilder {
         let get_op = OperationBuilder::new()
             .parameters(Some(RepsQuery::into_params(param_in_default)))
             .response(
@@ -71,7 +73,7 @@ impl WithRepsDefinition for PathsBuilder {
             .tag(TAG)
             .build();
 
-        self.path(
+        builder.path(
             REPS_PATH,
             PathItemBuilder::new()
                 .operation(PathItemType::Get, get_op)

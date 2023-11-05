@@ -8,29 +8,31 @@ use utoipa::{
 };
 
 use crate::{
-    openapi::extensions::{ok, JsonContent},
+    openapi::{
+        extensions::{ok, JsonContent},
+        Customizer,
+    },
     router::UPDATES_PATH,
 };
 
 use super::handler::{DeletedId, Removed, UpdatedState, Updates};
 
-pub trait WithUpdatesDefinition {
-    fn with_updates(self) -> Self;
-}
+pub struct UpdatesModule;
 
-impl WithUpdatesDefinition for ComponentsBuilder {
-    fn with_updates(self) -> Self {
-        self.schema_from::<Updates>()
+const TAG: &str = "Updates";
+
+impl Customizer<ComponentsBuilder> for UpdatesModule {
+    fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
+        builder
+            .schema_from::<Updates>()
             .schema_from::<UpdatedState>()
             .schema_from::<DeletedId>()
             .schema_from::<Removed>()
     }
 }
 
-const TAG: &str = "Updates";
-
-impl WithUpdatesDefinition for PathsBuilder {
-    fn with_updates(self) -> Self {
+impl Customizer<PathsBuilder> for UpdatesModule {
+    fn customize(builder: PathsBuilder) -> PathsBuilder {
         let post_op = OperationBuilder::new()
             .request_body(Some(
                 RequestBodyBuilder::new()
@@ -69,7 +71,7 @@ impl WithUpdatesDefinition for PathsBuilder {
             ))
             .build();
 
-        self.path(
+        builder.path(
             UPDATES_PATH,
             PathItemBuilder::new()
                 .operation(PathItemType::Post, post_op)

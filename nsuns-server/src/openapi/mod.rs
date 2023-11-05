@@ -5,10 +5,9 @@ use utoipa::{
 };
 
 use crate::{
-    maxes::openapi::WithMaxesDefinition, movements::openapi::WithMovementsDefinition,
-    profiles::openapi::WithProfilesDefinition, program::openapi::WithProgramsDefintions,
-    reps::openapi::WithRepsDefinition, sets::openapi::WithSetsDefinition,
-    updates::openapi::WithUpdatesDefinition,
+    maxes::openapi::MaxesModule, movements::openapi::MovementsModule,
+    profiles::openapi::ProfilesModule, program::openapi::ProgramModule, reps::openapi::RepsModule,
+    sets::openapi::SetsModule, updates::openapi::UpdatesModule,
 };
 
 use self::settings::OpenApiFeature;
@@ -18,26 +17,40 @@ pub mod settings;
 
 pub struct ApiDoc;
 
+trait WithModule<B> {
+    fn with_module<T: Customizer<B>>(self) -> Self;
+}
+
+pub trait Customizer<T> {
+    fn customize(builder: T) -> T;
+}
+
+impl<B> WithModule<B> for B {
+    fn with_module<T: Customizer<B>>(self) -> Self {
+        T::customize(self)
+    }
+}
+
 impl OpenApi for ApiDoc {
     fn openapi() -> utoipa::openapi::OpenApi {
         let paths = PathsBuilder::new()
-            .with_maxes()
-            .with_movements()
-            .with_profiles()
-            .with_programs()
-            .with_reps()
-            .with_sets()
-            .with_updates()
+            .with_module::<MaxesModule>()
+            .with_module::<MovementsModule>()
+            .with_module::<ProfilesModule>()
+            .with_module::<ProgramModule>()
+            .with_module::<RepsModule>()
+            .with_module::<SetsModule>()
+            .with_module::<UpdatesModule>()
             .build();
 
         let components = ComponentsBuilder::new()
-            .with_maxes()
-            .with_movements()
-            .with_profiles()
-            .with_programs()
-            .with_reps()
-            .with_sets()
-            .with_updates()
+            .with_module::<MaxesModule>()
+            .with_module::<MovementsModule>()
+            .with_module::<ProfilesModule>()
+            .with_module::<ProgramModule>()
+            .with_module::<RepsModule>()
+            .with_module::<SetsModule>()
+            .with_module::<UpdatesModule>()
             .build();
 
         OpenApiBuilder::new()
