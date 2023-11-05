@@ -28,6 +28,7 @@ impl Drop for TraceGuard {
 /// Set up tracing for the application.
 ///
 /// NOTE: this will configure tracing for the process _globally_, so do not call it outside the entry thread.
+#[must_use = "Telemetry will be de-initialized on guard drop"]
 pub fn setup_tracing(settings: &Settings) -> anyhow::Result<TraceGuard> {
     let fmt_layer = match settings.logging.json {
         true => fmt::layer()
