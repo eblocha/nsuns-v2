@@ -24,7 +24,6 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             "HTTP request",
             otel.kind = ?SpanKind::Server,
             otel.name = request.method().as_str(),
-            trace_id = Empty,
             http.request.method = request.method().as_str(),
             user_agent.original = user_agent(request),
             network.protocol.name = "http",
@@ -70,8 +69,6 @@ impl<B> OnResponse<B> for UpdateSpanOnResponse {
             semcov::trace::HTTP_RESPONSE_BODY_SIZE.as_str(),
             response_body_size(response),
         );
-
-        span.record("trace_id", get_trace_id(span));
     }
 }
 
