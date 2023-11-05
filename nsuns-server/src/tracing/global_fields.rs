@@ -6,6 +6,7 @@ pub trait FilterFn {
 }
 
 impl<F: Fn(&span::Attributes<'_>) -> bool> FilterFn for F {
+    #[inline]
     fn enabled(&self, span: &span::Attributes<'_>) -> bool {
         self(span)
     }
@@ -14,9 +15,28 @@ impl<F: Fn(&span::Attributes<'_>) -> bool> FilterFn for F {
 pub struct AlwaysEnabled;
 
 impl FilterFn for AlwaysEnabled {
+    #[inline]
     fn enabled(&self, _span: &span::Attributes<'_>) -> bool {
         true
     }
+}
+
+pub struct HasTarget<T> {
+    target: T,
+}
+
+impl<'a, T> FilterFn for HasTarget<T>
+where
+    T: PartialEq<&'a str>,
+{
+    #[inline]
+    fn enabled(&self, span: &span::Attributes<'_>) -> bool {
+        self.target == span.metadata().target()
+    }
+}
+
+pub fn has_target<'a, T>(target: T) -> HasTarget<T> {
+    HasTarget { target }
 }
 
 pub struct GlobalFields<S, F: ?Sized + 'static, V, Filt, const N: usize> {
@@ -43,6 +63,7 @@ impl<
         const N: usize,
     > Subscriber for GlobalFields<S, F, V, Filt, N>
 {
+    #[inline]
     fn enabled(&self, metadata: &tracing::Metadata<'_>) -> bool {
         self.inner.enabled(metadata)
     }
@@ -74,30 +95,37 @@ impl<
         id
     }
 
+    #[inline]
     fn record(&self, span: &span::Id, values: &span::Record<'_>) {
         self.inner.record(span, values)
     }
 
+    #[inline]
     fn record_follows_from(&self, span: &span::Id, follows: &span::Id) {
         self.inner.record_follows_from(span, follows)
     }
 
+    #[inline]
     fn event(&self, event: &tracing::Event<'_>) {
         self.inner.event(event)
     }
 
+    #[inline]
     fn enter(&self, span: &span::Id) {
         self.inner.enter(span)
     }
 
+    #[inline]
     fn exit(&self, span: &span::Id) {
         self.inner.exit(span)
     }
 
+    #[inline]
     fn on_register_dispatch(&self, subscriber: &tracing::Dispatch) {
         self.inner.on_register_dispatch(subscriber)
     }
 
+    #[inline]
     fn register_callsite(
         &self,
         metadata: &'static tracing::Metadata<'static>,
@@ -105,31 +133,38 @@ impl<
         self.inner.register_callsite(metadata)
     }
 
+    #[inline]
     fn max_level_hint(&self) -> Option<tracing_subscriber::filter::LevelFilter> {
         self.inner.max_level_hint()
     }
 
+    #[inline]
     fn event_enabled(&self, event: &tracing::Event<'_>) -> bool {
         self.inner.event_enabled(event)
     }
 
+    #[inline]
     fn clone_span(&self, id: &span::Id) -> span::Id {
         self.inner.clone_span(id)
     }
 
+    #[inline]
     fn drop_span(&self, id: span::Id) {
         #[allow(deprecated)]
         self.inner.drop_span(id)
     }
 
+    #[inline]
     fn try_close(&self, id: span::Id) -> bool {
         self.inner.try_close(id)
     }
 
+    #[inline]
     fn current_span(&self) -> tracing_core::span::Current {
         self.inner.current_span()
     }
 
+    #[inline]
     unsafe fn downcast_raw(&self, id: std::any::TypeId) -> Option<*const ()> {
         self.inner.downcast_raw(id)
     }
@@ -146,6 +181,7 @@ impl<
 {
     type Data = S::Data;
 
+    #[inline]
     fn span_data(&'span self, id: &span::Id) -> Option<Self::Data> {
         self.inner.span_data(id)
     }

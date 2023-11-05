@@ -11,7 +11,7 @@ macro_rules! db_span {
     };
     ($name:expr) => {
         tracing::info_span!(
-            target: "nsuns_server::db",
+            target: $crate::db::tracing::TRACING_TARGET,
             $name,
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
@@ -26,7 +26,7 @@ macro_rules! db_span {
     };
     ($operation:expr, $table:expr) => {
         tracing::info_span!(
-            target: "nsuns_server::db",
+            target: $crate::db::tracing::TRACING_TARGET,
             const_format::concatcp!($operation, " ", $table),
             otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
             db.system = $crate::db::pool::DB_NAME,
@@ -220,3 +220,5 @@ pub mod statements {
     pub const INSERT_INTO: &str = "INSERT INTO";
     pub const DELETE_FROM: &str = "DELETE FROM";
 }
+
+pub const TRACING_TARGET: &str = "nsuns_server::db::tracing";
