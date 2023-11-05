@@ -4,20 +4,30 @@ use tracing::Instrument;
 
 use crate::{db_span, error::OperationResult, into_log_server_error};
 
-use super::{pool::DB, Connection, Pool};
+use super::{pool::DB, maybe::{MaybePool, MaybePooledConnection}};
 
 /// Acquire a connection
 #[inline]
-pub async fn acquire(pool: &Pool) -> OperationResult<Connection> {
+pub async fn acquire(pool: &MaybePool) -> OperationResult<MaybePooledConnection> {
     acquire_anyhow(pool).await.map_err(into_log_server_error!())
 }
 
 #[inline]
-pub async fn acquire_anyhow(pool: &Pool) -> anyhow::Result<Connection> {
-    pool.acquire()
-        .instrument(db_span!("acquire connection"))
-        .await
-        .with_context(|| "failed to acquire connection")
+pub async fn acquire_anyhow(pool: &MaybePool) -> anyhow::Result<MaybePooledConnection> {
+    let conn = match pool {
+        MaybePool::Pool(p) => p
+            .acquire()
+            .instrument(db_span!("acquire connection"))
+            .await
+            .map(MaybePooledConnection::Pooled),
+        MaybePool::OnDemand(c) => c
+            .acquire()
+            .instrument(db_span!("acquire connection"))
+            .await
+            .map(MaybePooledConnection::OnDemand),
+    };
+
+    conn.with_context(|| "failed to acquire connection")
 }
 
 /// Acquire a new transaction

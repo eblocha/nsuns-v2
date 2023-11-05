@@ -25,6 +25,7 @@ pub struct DatabaseSettings {
     #[serde(default = "default_timeout")]
     #[serde(with = "crate::serde_duration")]
     pub timeout: Duration,
+    /// Set to zero to turn off connection pool
     #[serde(default = "default_max_connections")]
     pub max_connections: u32,
     pub migrations: String,
