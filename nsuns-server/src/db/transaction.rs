@@ -1,10 +1,26 @@
 use anyhow::Context;
-use sqlx::{Acquire, Transaction};
+use sqlx::{pool::PoolConnection, Acquire, Transaction};
 use tracing::Instrument;
 
 use crate::{db_span, error::OperationResult, into_log_server_error};
 
-use super::pool::DB;
+use super::{pool::DB, Pool};
+
+/// Acquire a new connection from the pool.
+/// Useful for creating a separate trace of connect vs. query
+pub async fn acquire(pool: &Pool) -> OperationResult<PoolConnection<DB>> {
+    acquire_unlogged(pool)
+        .await
+        .map_err(into_log_server_error!())
+}
+
+/// Used for initialization outside of a request context
+pub async fn acquire_unlogged(pool: &Pool) -> anyhow::Result<PoolConnection<DB>> {
+    pool.acquire()
+        .instrument(db_span!("acquire connection"))
+        .await
+        .context("failed to acquire connection")
+}
 
 /// Acquire a new transaction
 #[inline]

@@ -6,7 +6,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    db::{commit_ok, transaction, Pool, DB},
+    db::{commit_ok, transaction::{transaction, acquire}, Pool, DB},
     error::OperationResult,
     maxes::model::{delete_latest_maxes, CreateMax, Max},
     reps::model::{delete_latest_reps, CreateReps, Reps},
@@ -80,7 +80,8 @@ async fn run_updates(
 
 #[tracing::instrument(skip_all)]
 pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await?;
+    let mut conn = acquire(&pool).await?;
+    let mut tx = transaction(&mut *conn).await?;
     let res = run_updates(&mut tx, updates).await.map(Json);
     commit_ok(res, tx).await
 }
@@ -121,7 +122,8 @@ async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Operati
 
 #[tracing::instrument(skip_all)]
 pub async fn undo(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
-    let mut tx = transaction(&pool).await?;
+    let mut conn = acquire(&pool).await?;
+    let mut tx = transaction(&mut *conn).await?;
     let res = undo_updates(&mut tx, updates).await.map(Json);
     commit_ok(res, tx).await
 }

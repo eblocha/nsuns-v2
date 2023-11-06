@@ -8,7 +8,8 @@ use hyper::{
 };
 
 use crate::{
-    db::{create_connection_pool, run_migrations},
+    db::{acquire_unlogged, create_connection_pool, run_migrations},
+    log_error,
     router::router,
     settings::Settings,
     shutdown::shutdown_signal,
@@ -28,7 +29,9 @@ pub async fn initialize(settings: &Settings) -> anyhow::Result<Router> {
 
     let migrations = Path::new(&settings.database.migrations);
 
-    run_migrations(migrations, &pool).await?;
+    let mut conn = acquire_unlogged(&pool).await.map_err(log_error!())?;
+
+    run_migrations(migrations, &mut *conn).await?;
 
     let app = router(pool, settings);
     Ok(app)

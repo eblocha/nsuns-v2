@@ -8,7 +8,7 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
-    db::Pool,
+    db::{Pool, transaction::acquire},
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -27,7 +27,8 @@ pub async fn reps_index(
     State(pool): State<Pool>,
     Query(query): Query<RepsQuery>,
 ) -> impl IntoResponse {
-    Reps::select_for_profile(query.profile_id, &pool)
+    let mut conn = acquire(&pool).await?;
+    Reps::select_for_profile(query.profile_id, &mut *conn)
         .await
         .map(Json)
 }
@@ -37,7 +38,8 @@ pub async fn create_reps(
     State(pool): State<Pool>,
     ValidatedJson(reps): ValidatedJson<CreateReps>,
 ) -> impl IntoResponse {
-    reps.insert_one(&pool).await.map(Json).map(created)
+    let mut conn = acquire(&pool).await?;
+    reps.insert_one(&mut *conn).await.map(Json).map(created)
 }
 
 #[tracing::instrument(skip_all)]
@@ -45,5 +47,6 @@ pub async fn update_reps(
     State(pool): State<Pool>,
     ValidatedJson(reps): ValidatedJson<UpdateReps>,
 ) -> impl IntoResponse {
-    reps.update_one(&pool).await.map(or_404::<_, Json<_>>)
+    let mut conn = acquire(&pool).await?;
+    reps.update_one(&mut *conn).await.map(or_404::<_, Json<_>>)
 }
