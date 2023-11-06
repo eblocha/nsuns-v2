@@ -1,8 +1,11 @@
-use std::path::Path;
+use std::{net::SocketAddr, path::Path};
 
 use anyhow::Context;
-use axum::Router;
-use hyper::{server::conn::AddrIncoming, Server};
+use axum::{extract::connect_info::Connected, Router};
+use hyper::{
+    server::conn::{AddrIncoming, AddrStream},
+    Server,
+};
 
 use crate::{
     db::{create_connection_pool, run_migrations},
@@ -31,6 +34,21 @@ pub async fn initialize(settings: &Settings) -> anyhow::Result<Router> {
     Ok(app)
 }
 
+#[derive(Clone)]
+pub struct ClientInfo {
+    pub remote_addr: SocketAddr,
+    pub local_addr: SocketAddr,
+}
+
+impl Connected<&AddrStream> for ClientInfo {
+    fn connect_info(target: &AddrStream) -> Self {
+        ClientInfo {
+            remote_addr: target.remote_addr(),
+            local_addr: target.local_addr(),
+        }
+    }
+}
+
 pub async fn run(settings: &Settings) -> anyhow::Result<()> {
     let addr = bind(settings.server.port)?;
 
@@ -39,7 +57,7 @@ pub async fn run(settings: &Settings) -> anyhow::Result<()> {
     tracing::info!("listening on {}", addr.local_addr());
 
     Server::builder(addr)
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<ClientInfo>())
         .with_graceful_shutdown(shutdown_signal())
         .await
         .with_context(|| "application failed to start")

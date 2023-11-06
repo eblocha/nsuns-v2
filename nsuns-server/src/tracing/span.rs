@@ -1,3 +1,6 @@
+use std::net::IpAddr;
+
+use axum::extract::{ConnectInfo, MatchedPath};
 use http::Version;
 use opentelemetry_api::{
     propagation::TextMapPropagator,
@@ -10,6 +13,8 @@ use tower_http::trace::{MakeSpan, OnResponse};
 use tracing::{field::Empty, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
+use crate::server::ClientInfo;
+
 /// Set the request span's parent as the incoming otel span, if present.
 #[derive(Debug, Clone)]
 pub struct OpenTelemetryRequestSpan;
@@ -20,14 +25,36 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
 
         let parent = TraceContextPropagator::new().extract(&extractor);
 
+        let matched_path = request
+            .extensions()
+            .get::<MatchedPath>()
+            .map(|path| path.as_str());
+
+        let method_verb = request.method().as_str();
+
+        let span_name = matched_path
+            .map(|m| format!("{method_verb} {m}"))
+            .unwrap_or_else(|| method_verb.to_owned());
+
+        let client_info = request
+            .extensions()
+            .get::<ConnectInfo<ClientInfo>>()
+            .map(|c| c.0.clone());
+
         let tracing_span = tracing::info_span!(
             "HTTP request",
             otel.kind = ?SpanKind::Server,
-            otel.name = request.method().as_str(),
-            http.request.method = request.method().as_str(),
+            otel.name = span_name,
+            http.request.method = method_verb,
+            http.route = matched_path,
             user_agent.original = user_agent(request),
+            network.local.address = client_info.as_ref().map(network_local_ip).map(|ip| ip.to_string()),
+            network.local.port = client_info.as_ref().map(network_local_port),
+            network.peer.address = client_info.as_ref().map(network_peer_ip).map(|ip| ip.to_string()),
+            network.peer.port = client_info.as_ref().map(network_peer_port),
             network.protocol.name = "http",
             network.protocol.version = protocol_version(request),
+            "network.type" = client_info.as_ref().map(network_type),
             server.address = http_host(request),
             url.path = request.uri().path(),
             url.query = request.uri().query(),
@@ -119,6 +146,37 @@ fn http_host<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get(http::header::HOST)
         .map_or(req.uri().host(), |h| h.to_str().ok())
+}
+
+// Client Info
+
+#[inline]
+fn network_peer_ip(client_info: &ClientInfo) -> IpAddr {
+    client_info.remote_addr.ip()
+}
+
+#[inline]
+fn network_peer_port(client_info: &ClientInfo) -> u16 {
+    client_info.remote_addr.port()
+}
+
+#[inline]
+fn network_local_ip(client_info: &ClientInfo) -> IpAddr {
+    client_info.local_addr.ip()
+}
+
+#[inline]
+fn network_local_port(client_info: &ClientInfo) -> u16 {
+    client_info.local_addr.port()
+}
+
+#[inline]
+fn network_type(client_info: &ClientInfo) -> &'static str {
+    if network_peer_ip(client_info).is_ipv4() {
+        "ipv4"
+    } else {
+        "ipv6"
+    }
 }
 
 pub trait WithSpan: Sized {
