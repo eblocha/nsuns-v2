@@ -84,19 +84,15 @@ pub struct ProgramMeta {
     pub created_on: NaiveDateTime,
 }
 
+const PROGRAM_META_COLS: &str = "id, name, description, owner, created_on";
+
 impl ProgramMeta {
     pub async fn select_all_for_profile(
         executor: impl Executor<'_, Database = DB>,
         owner: &Uuid,
     ) -> OperationResult<Vec<Self>> {
         sqlx::query_as::<_, Self>(formatcp!(
-            "{SELECT}
-            id,
-            name,
-            description,
-            owner,
-            created_on
-            FROM {TABLE} WHERE owner = $1 ORDER BY created_on",
+            "{SELECT} {PROGRAM_META_COLS} FROM {TABLE} WHERE owner = $1 ORDER BY created_on",
         ))
         .bind(owner)
         .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
@@ -110,13 +106,7 @@ impl ProgramMeta {
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
         sqlx::query_as::<_, Self>(formatcp!(
-            "{SELECT}
-            id,
-            name,
-            description,
-            owner,
-            created_on
-            FROM {TABLE} WHERE id = $1",
+            "{SELECT} {PROGRAM_META_COLS} FROM {TABLE} WHERE id = $1",
         ))
         .bind(id)
         .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
@@ -154,7 +144,7 @@ impl CreateProgram {
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<ProgramMeta> {
         sqlx::query_as::<_, ProgramMeta>(formatcp!(
-            "{INSERT_INTO} {TABLE} (name, description, owner) VALUES ($1, $2, $3) RETURNING *",
+            "{INSERT_INTO} {TABLE} (name, description, owner) VALUES ($1, $2, $3) RETURNING {PROGRAM_META_COLS}",
         ))
         .bind(self.name)
         .bind(self.description)
@@ -182,7 +172,7 @@ impl UpdateProgram {
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<ProgramMeta>> {
         sqlx::query_as::<_, ProgramMeta>(formatcp!(
-            "{UPDATE} {TABLE} SET name = $1, description = $2 WHERE id = $3 RETURNING *",
+            "{UPDATE} {TABLE} SET name = $1, description = $2 WHERE id = $3 RETURNING {PROGRAM_META_COLS}",
         ))
         .bind(self.name)
         .bind(self.description)
@@ -202,12 +192,14 @@ pub async fn delete_one(
     id: Uuid,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<Option<ProgramMeta>> {
-    sqlx::query_as::<_, ProgramMeta>(formatcp!("{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING *"))
-        .bind(id)
-        .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
-        .await
-        .with_context(|| format!("failed to delete program with id={id}"))
-        .map_err(into_log_server_error!())
+    sqlx::query_as::<_, ProgramMeta>(formatcp!(
+        "{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING {PROGRAM_META_COLS}"
+    ))
+    .bind(id)
+    .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
+    .await
+    .with_context(|| format!("failed to delete program with id={id}"))
+    .map_err(into_log_server_error!())
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
