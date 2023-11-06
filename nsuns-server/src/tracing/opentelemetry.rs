@@ -27,12 +27,16 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
             trace::config()
                 .with_sampler(Sampler::AlwaysOn)
                 .with_id_generator(XrayIdGenerator::default())
-                .with_max_events_per_span(64)
-                .with_max_attributes_per_span(16)
-                .with_resource(Resource::new(vec![KeyValue::new(
-                    semcov::resource::SERVICE_NAME,
-                    settings.service_name.clone(),
-                )])),
+                .with_resource(Resource::new(vec![
+                    KeyValue::new(
+                        semcov::resource::SERVICE_NAME,
+                        settings.service_name.clone(),
+                    ),
+                    KeyValue::new(
+                        semcov::resource::SERVICE_VERSION,
+                        env!("CARGO_PKG_VERSION"),
+                    ),
+                ])),
         )
         .install_batch(Tokio)
         .with_context(|| "failed to install otel tracer")?;

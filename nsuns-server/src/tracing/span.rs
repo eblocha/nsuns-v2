@@ -76,6 +76,11 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             otel.status_code = Empty,
             otel.status_description = Empty,
             http.response.body.size = Empty,
+            // auth
+            enduser.id = Empty,
+            enduser.role = Empty,
+            enduser.scope = Empty,
+            session.id = Empty,
         );
 
         tracing_span.set_parent(parent);

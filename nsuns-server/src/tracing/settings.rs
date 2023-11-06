@@ -60,7 +60,7 @@ pub fn default_exporter_timeout() -> Duration {
 }
 
 pub fn default_service_name() -> String {
-    "nsuns".to_string()
+    env!("CARGO_PKG_NAME").to_string()
 }
 
 #[derive(Debug, Deserialize)]
