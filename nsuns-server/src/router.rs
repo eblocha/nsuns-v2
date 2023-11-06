@@ -8,9 +8,16 @@ use tower_http::{
 };
 
 use crate::{
-    db::Pool, health::health_check, maxes, metrics::middleware::WithMetrics, movements,
-    openapi::WithOpenApi, profiles, program, reps, sets, settings::Settings,
-    tracing::middleware::WithTracing, updates,
+    db::Pool,
+    health::health_check,
+    maxes,
+    metrics::middleware::WithMetrics,
+    movements,
+    openapi::WithOpenApi,
+    profiles, program, reps, sets,
+    settings::Settings,
+    tracing::middleware::{InstrumentLayer, WithTracing},
+    updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -47,6 +54,8 @@ where
 }
 
 pub fn router(pool: Pool, settings: &Settings) -> Router {
+    let compression = CompressionLayer::new().compress_when(SizeAbove::new(10 * 1024));
+
     Router::new()
         .nest(PROFILES_PATH, profiles::router())
         .nest(PROGRAMS_PATH, program::router())
@@ -57,7 +66,10 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .nest(UPDATES_PATH, updates::router())
         .with_state(pool)
         .route(HEALTH_PATH, get(health_check))
-        .layer(CompressionLayer::new().compress_when(SizeAbove::new(1024)))
+        .layer(
+            compression
+                .instrument(|_: &http::Request<_>| tracing::debug_span!("compression-layer")),
+        )
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
         .static_files(settings.server.static_dir.as_ref())

@@ -8,7 +8,15 @@ use axum::{
     response::IntoResponse,
     Router,
 };
-use tower_http::{trace::TraceLayer, LatencyUnit};
+use tower::{
+    layer::util::{Identity, Stack},
+    ServiceBuilder,
+};
+use tower_http::{
+    classify::{ServerErrorsAsFailures, SharedClassifier},
+    trace::TraceLayer,
+    LatencyUnit,
+};
 
 use crate::tracing::span::get_trace_id;
 
@@ -83,6 +91,32 @@ where
                 .make_span_with(OpenTelemetryRequestSpan)
                 .on_response(UpdateSpanOnResponse)
                 .on_failure(()),
+        )
+    }
+}
+
+pub type BareTraceLayer<M> =
+    TraceLayer<SharedClassifier<ServerErrorsAsFailures>, M, (), (), (), (), ()>;
+
+pub type TracedLayer<L, M> = ServiceBuilder<Stack<BareTraceLayer<M>, Stack<L, Identity>>>;
+
+pub trait InstrumentLayer<M>
+where
+    Self: Sized,
+{
+    fn instrument(self, make_span: M) -> TracedLayer<Self, M>;
+}
+
+impl<L, M> InstrumentLayer<M> for L {
+    fn instrument(self, make_span: M) -> TracedLayer<Self, M> {
+        ServiceBuilder::new().layer(self).layer(
+            TraceLayer::new_for_http()
+                .make_span_with(make_span)
+                .on_response(())
+                .on_failure(())
+                .on_request(())
+                .on_eos(())
+                .on_body_chunk(()),
         )
     }
 }
