@@ -41,6 +41,17 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             .get::<ConnectInfo<ClientInfo>>()
             .map(|c| c.0.clone());
 
+        let peer_address = client_info
+            .as_ref()
+            .map(network_peer_ip)
+            .map(|ip| ip.to_string());
+
+        let client_address = forwarded_for(request).or(peer_address.as_ref().map(|s| s.as_str()));
+
+        let server_address = http_host(request).or_else(|| forwarded_host(request));
+
+        let url_scheme = request.uri().scheme_str().or_else(|| forwarded_proto(request));
+
         let tracing_span = tracing::info_span!(
             "HTTP request",
             otel.kind = ?SpanKind::Server,
@@ -48,17 +59,18 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             http.request.method = method_verb,
             http.route = matched_path,
             user_agent.original = user_agent(request),
+            client.address = client_address,
             network.local.address = client_info.as_ref().map(network_local_ip).map(|ip| ip.to_string()),
             network.local.port = client_info.as_ref().map(network_local_port),
-            network.peer.address = client_info.as_ref().map(network_peer_ip).map(|ip| ip.to_string()),
+            network.peer.address = peer_address,
             network.peer.port = client_info.as_ref().map(network_peer_port),
             network.protocol.name = "http",
             network.protocol.version = protocol_version(request),
             "network.type" = client_info.as_ref().map(network_type),
-            server.address = http_host(request),
+            server.address = server_address,
             url.path = request.uri().path(),
             url.query = request.uri().query(),
-            url.scheme = request.uri().scheme_str(),
+            url.scheme = url_scheme,
             // set in response
             http.response.status_code = Empty,
             otel.status_code = Empty,
@@ -177,6 +189,29 @@ fn network_type(client_info: &ClientInfo) -> &'static str {
     } else {
         "ipv6"
     }
+}
+
+fn forwarded_for<B>(req: &http::Request<B>) -> Option<&str> {
+    req.headers()
+        .get("X-Forwarded-For")
+        .map(|h| h.to_str().ok())
+        .flatten()
+        .map(|h| h.split(',').next())
+        .flatten()
+}
+
+fn forwarded_host<B>(req: &http::Request<B>) -> Option<&str> {
+    req.headers()
+        .get("X-Forwarded-Host")
+        .map(|h| h.to_str().ok())
+        .flatten()
+}
+
+fn forwarded_proto<B>(req: &http::Request<B>) -> Option<&str> {
+    req.headers()
+        .get("X-Forwarded-Proto")
+        .map(|h| h.to_str().ok())
+        .flatten()
 }
 
 pub trait WithSpan: Sized {
