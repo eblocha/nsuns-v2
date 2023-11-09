@@ -46,7 +46,7 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             .map(network_peer_ip)
             .map(|ip| ip.to_string());
 
-        let client_address = forwarded_for(request).or(peer_address.as_ref().map(|s| s.as_str()));
+        let client_address = forwarded_for(request).or(peer_address.as_deref());
 
         let server_address = http_host(request).or_else(|| forwarded_host(request));
 
@@ -202,24 +202,20 @@ fn network_type(client_info: &ClientInfo) -> &'static str {
 fn forwarded_for<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get("X-Forwarded-For")
-        .map(|h| h.to_str().ok())
-        .flatten()
-        .map(|h| h.split(',').next())
-        .flatten()
+        .and_then(|h| h.to_str().ok())
+        .and_then(|h| h.split(',').next())
 }
 
 fn forwarded_host<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get("X-Forwarded-Host")
-        .map(|h| h.to_str().ok())
-        .flatten()
+        .and_then(|h| h.to_str().ok())
 }
 
 fn forwarded_proto<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get("X-Forwarded-Proto")
-        .map(|h| h.to_str().ok())
-        .flatten()
+        .and_then(|h| h.to_str().ok())
 }
 
 pub trait WithSpan: Sized {
