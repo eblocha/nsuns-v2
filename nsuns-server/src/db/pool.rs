@@ -1,34 +1,24 @@
+use std::path::Path;
+
 use anyhow::Context;
-use sqlx::{
-    migrate::MigrationSource,
-    postgres::{PgConnectOptions, PgPoolOptions},
-    Acquire, Postgres,
-};
+use sqlx::{migrate::MigrationSource, postgres::PgPoolOptions, Acquire, Postgres};
 use tracing::Instrument;
 
 use crate::db_span;
 
-use super::settings::DatabaseSettings;
+use super::{acquire_unlogged, settings::DatabaseSettings};
 
 pub type DB = Postgres;
 pub type Pool = sqlx::Pool<DB>;
 
 pub const DB_NAME: &str = "postgresql";
 
-pub fn create_connection_pool(settings: &DatabaseSettings) -> Pool {
-    let options: PgConnectOptions = settings.into();
-
-    PgPoolOptions::new()
-        .max_connections(settings.max_connections)
-        .acquire_timeout(settings.timeout)
-        .connect_lazy_with(options)
-}
-
-pub async fn run_migrations(
+async fn run_migrations(
     migrations: impl MigrationSource<'_>,
     acquire: impl Acquire<'_, Database = DB>,
 ) -> anyhow::Result<()> {
     let migrator = sqlx::migrate::Migrator::new(migrations)
+        .instrument(db_span!("read migrations"))
         .await
         .with_context(|| "failed to read migrations")?;
 
@@ -37,4 +27,21 @@ pub async fn run_migrations(
         .instrument(db_span!("apply migrations"))
         .await
         .with_context(|| "failed to perform database migrations")
+}
+
+pub async fn prepare(settings: &DatabaseSettings) -> anyhow::Result<Pool> {
+    let options = settings.into();
+
+    let pool = PgPoolOptions::new()
+        .max_connections(settings.max_connections)
+        .acquire_timeout(settings.timeout)
+        .connect_lazy_with(options);
+
+    let migrations = Path::new(&settings.migrations);
+
+    let mut conn = acquire_unlogged(&pool).await?;
+
+    run_migrations(migrations, &mut *conn).await?;
+
+    Ok(pool)
 }
