@@ -171,6 +171,6 @@ pub async fn delete_latest_maxes(
     .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
     .await
     .map(|res| res.map(|(id,)| id))
-    .with_context(|| "failed to delete latest maxes")
+    .context("failed to delete latest maxes")
     .map_err(into_log_server_error!())
 }

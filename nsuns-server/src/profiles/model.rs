@@ -48,7 +48,7 @@ impl Profile {
         sqlx::query_as::<_, Self>(formatcp!("{SELECT} * FROM {TABLE}"))
             .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
-            .with_context(|| "failed to select all profiles")
+            .context("failed to select all profiles")
             .map_err(into_log_server_error!())
     }
 
@@ -97,7 +97,7 @@ impl CreateProfile {
         .bind(self.name)
         .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
-        .with_context(|| "failed to create profile")
+        .context("failed to create profile")
         .map_err(into_log_server_error!())
     }
 }

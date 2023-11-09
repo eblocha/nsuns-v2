@@ -24,7 +24,7 @@ pub async fn run(settings: &MetricsFeature) -> anyhow::Result<()> {
             .serve(app.into_make_service())
             .with_graceful_shutdown(shutdown_signal())
             .await
-            .with_context(|| "metrics listener failed to start")
+            .context("metrics listener failed to start")
     } else {
         Ok(())
     }

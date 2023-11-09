@@ -53,5 +53,5 @@ pub async fn run(settings: &Settings) -> anyhow::Result<()> {
         .serve(app.into_make_service_with_connect_info::<ClientInfo>())
         .with_graceful_shutdown(shutdown_signal())
         .await
-        .with_context(|| "application failed to start")
+        .context("application failed to start")
 }

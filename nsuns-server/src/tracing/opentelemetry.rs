@@ -39,7 +39,7 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
                 ])),
         )
         .install_batch(Tokio)
-        .with_context(|| "failed to install otel tracer")?;
+        .context("failed to install otel tracer")?;
 
     let opentelemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 

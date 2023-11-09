@@ -7,7 +7,7 @@ use nsuns_server::{
 #[tokio::main]
 async fn main() -> Result<()> {
     let settings = Settings::new()
-        .with_context(|| "failed to load settings")
+        .context("failed to load settings")
         .map_err(log_error!())?;
 
     let _guard = setup_tracing(&settings)?;

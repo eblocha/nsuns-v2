@@ -54,7 +54,7 @@ impl Movement {
         sqlx::query_as::<_, Self>(formatcp!("{SELECT} * FROM {TABLE}"))
             .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
-            .with_context(|| "failed to select movements")
+            .context("failed to select movements")
             .map_err(into_log_server_error!())
     }
 

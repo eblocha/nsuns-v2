@@ -31,7 +31,7 @@ pub async fn transaction<'a>(
         .begin()
         .instrument(db_span!("begin transaction"))
         .await
-        .with_context(|| "failed to start a transaction")
+        .context("failed to start a transaction")
         .map_err(into_log_server_error!())
 }
 
@@ -47,7 +47,7 @@ pub async fn commit_ok<T>(
             .commit()
             .instrument(db_span!("commit transaction"))
             .await
-            .with_context(|| "failed to commit transaction"),
+            .context("failed to commit transaction"),
         Err(ref e) => tx
             .rollback()
             .instrument(db_span!("rollback transaction"))

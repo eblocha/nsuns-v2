@@ -20,13 +20,13 @@ async fn run_migrations(
     let migrator = sqlx::migrate::Migrator::new(migrations)
         .instrument(db_span!("read migrations"))
         .await
-        .with_context(|| "failed to read migrations")?;
+        .context("failed to read migrations")?;
 
     migrator
         .run(acquire)
         .instrument(db_span!("apply migrations"))
         .await
-        .with_context(|| "failed to perform database migrations")
+        .context("failed to perform database migrations")
 }
 
 pub async fn prepare(settings: &DatabaseSettings) -> anyhow::Result<Pool> {
