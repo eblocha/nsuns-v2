@@ -6,7 +6,11 @@ use axum::{
 use uuid::Uuid;
 
 use crate::{
-    db::{commit_ok, transaction::{transaction, acquire}, Pool},
+    db::{
+        commit_ok,
+        transaction::{acquire, transaction},
+        Pool,
+    },
     response_transforms::{created, no_content_or_404, or_404},
     validation::ValidatedJson,
 };

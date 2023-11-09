@@ -54,7 +54,10 @@ pub async fn update_program(
     ValidatedJson(program): ValidatedJson<UpdateProgram>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    program.update_one(&mut *conn).await.map(or_404::<_, Json<_>>)
+    program
+        .update_one(&mut *conn)
+        .await
+        .map(or_404::<_, Json<_>>)
 }
 
 #[tracing::instrument(skip_all)]

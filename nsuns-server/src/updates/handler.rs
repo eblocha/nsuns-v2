@@ -6,7 +6,11 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    db::{commit_ok, transaction::{transaction, acquire}, Pool, DB},
+    db::{
+        commit_ok,
+        transaction::{acquire, transaction},
+        Pool, DB,
+    },
     error::OperationResult,
     maxes::model::{delete_latest_maxes, CreateMax, Max},
     reps::model::{delete_latest_reps, CreateReps, Reps},

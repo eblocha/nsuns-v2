@@ -1,6 +1,10 @@
 use axum::{extract::State, response::IntoResponse, Json};
 
-use crate::{db::{Pool, acquire}, response_transforms::or_404, validation::ValidatedJson};
+use crate::{
+    db::{acquire, Pool},
+    response_transforms::or_404,
+    validation::ValidatedJson,
+};
 
 use super::model::{CreateMovement, Movement};
 
@@ -25,5 +29,8 @@ pub async fn update_movement(
     ValidatedJson(movement): ValidatedJson<Movement>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    movement.update_one(&mut *conn).await.map(or_404::<_, Json<_>>)
+    movement
+        .update_one(&mut *conn)
+        .await
+        .map(or_404::<_, Json<_>>)
 }

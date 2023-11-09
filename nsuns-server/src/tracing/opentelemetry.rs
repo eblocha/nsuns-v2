@@ -32,10 +32,7 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
                         semcov::resource::SERVICE_NAME,
                         settings.service_name.clone(),
                     ),
-                    KeyValue::new(
-                        semcov::resource::SERVICE_VERSION,
-                        env!("CARGO_PKG_VERSION"),
-                    ),
+                    KeyValue::new(semcov::resource::SERVICE_VERSION, env!("CARGO_PKG_VERSION")),
                 ])),
         )
         .install_batch(Tokio)

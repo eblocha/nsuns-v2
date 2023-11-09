@@ -8,7 +8,7 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
-    db::{Pool, transaction::acquire},
+    db::{transaction::acquire, Pool},
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };

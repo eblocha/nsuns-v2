@@ -50,7 +50,10 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
 
         let server_address = http_host(request).or_else(|| forwarded_host(request));
 
-        let url_scheme = request.uri().scheme_str().or_else(|| forwarded_proto(request));
+        let url_scheme = request
+            .uri()
+            .scheme_str()
+            .or_else(|| forwarded_proto(request));
 
         let tracing_span = tracing::info_span!(
             "HTTP request",
