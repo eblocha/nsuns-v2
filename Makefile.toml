@@ -15,7 +15,8 @@ DIST = "dist"
 DEFAULT_CONFIG_SOURCE = "${CONFIG_ROOT}/settings.toml"
 # Location of server configuration files
 SERVER_CONFIG = "${SERVER_DIR}/${CONFIG_ROOT}"
-COMPOSE_FILE = "${SERVER_DIR}/tests/docker-compose.yml"
+COMPOSE_FILE = "./docker-compose.yml"
+TEST_COMPOSE_FILE = "${SERVER_DIR}/tests/docker-compose.yml"
 CARGO_BUILD_FLAGS = ""
 SERVER_BIN = "target/release/nsuns-server"
 
@@ -23,6 +24,7 @@ SERVER_BIN = "target/release/nsuns-server"
 CARGO_BUILD_FLAGS = "--target=${RPI_TARGET}"
 SERVER_BIN = "target/${RPI_TARGET}/release/nsuns-server"
 DEFAULT_CONFIG_SOURCE = "${CONFIG_ROOT}/settings.toml,${CONFIG_ROOT}/settings-rpi-overrides.toml"
+COMPOSE_FILE = "./docker/docker-compose.rpi.yml"
 
 # BUILD
 
@@ -59,7 +61,7 @@ script = '''
 cp "${SERVER_BIN}" "${DIST}"
 cp -r "${SERVER_CONFIG}" "${DIST}"
 cp -r "${SERVER_DIR}/db" "${DIST}"
-cp docker-compose.yml "${DIST}"
+cp "${COMPOSE_FILE}" "${DIST}/docker-compose.yml"
 '''
 
 [tasks.default]
@@ -118,7 +120,7 @@ description = "Start a database for integration testing"
 script_runner = "@shell"
 script = '''
 echo "Starting test database"
-docker compose --file "${COMPOSE_FILE}" up -d --wait
+docker compose --file "${TEST_COMPOSE_FILE}" up -d --wait
 '''
 
 [tasks.stop-test-db]
@@ -127,7 +129,7 @@ description = "Stop the test database"
 script_runner = "@shell"
 script = '''
 echo "Stopping test database"
-docker compose --file "${COMPOSE_FILE}" down
+docker compose --file "${TEST_COMPOSE_FILE}" down
 '''
 
 [tasks.test-server-internal]
