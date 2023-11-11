@@ -30,6 +30,7 @@ macro_rules! db_span {
             db.connection_string = tracing::field::Empty,
             db.name = tracing::field::Empty,
             server.address = tracing::field::Empty,
+            server.port = tracing::field::Empty,
         )
     };
     ($operation:expr, $table:expr) => {
@@ -47,6 +48,7 @@ macro_rules! db_span {
             db.connection_string = tracing::field::Empty,
             db.name = tracing::field::Empty,
             server.address = tracing::field::Empty,
+            server.port = tracing::field::Empty,
         )
     }
 }
