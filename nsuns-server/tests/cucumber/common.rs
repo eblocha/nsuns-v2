@@ -1,7 +1,7 @@
 use axum::Router;
 use nsuns_server::{
     db::settings::{default_timeout, DatabaseSettings},
-    metrics::settings::MetricsFeature,
+    observability::metrics::settings::MetricsFeature,
     openapi::settings::OpenApiFeature,
     server,
     settings::{ServerSettings, Settings},

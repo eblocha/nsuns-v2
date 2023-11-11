@@ -8,8 +8,9 @@ use config::{
 use serde::Deserialize;
 
 use crate::{
-    db::settings::DatabaseSettings, metrics::settings::MetricsFeature,
-    observability::tracing::settings::LogSettings, openapi::settings::OpenApiFeature,
+    db::settings::DatabaseSettings,
+    observability::{metrics::settings::MetricsFeature, tracing::settings::LogSettings},
+    openapi::settings::OpenApiFeature,
 };
 
 fn default_server_port() -> u16 {

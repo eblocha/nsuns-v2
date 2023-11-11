@@ -8,12 +8,12 @@ use axum::{
 };
 use http::Response;
 
-use crate::{
-    metrics::names::{HTTP_SERVER_ACTIVE_REQUESTS, HTTP_SERVER_REQUEST_DURATION},
-    observability::attributes::HttpRequestAttributes,
-};
+use crate::observability::attributes::HttpRequestAttributes;
 
-use super::settings::MetricsFeature;
+use super::{
+    names::{HTTP_SERVER_ACTIVE_REQUESTS, HTTP_SERVER_REQUEST_DURATION},
+    settings::MetricsFeature,
+};
 
 type Attribute = (&'static str, String);
 

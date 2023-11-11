@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use nsuns_server::{
-    log_error, metrics::server as metrics_server, observability::tracing::setup::setup_tracing,
+    log_error, observability::metrics::server as metrics_server, observability::tracing::setup::setup_tracing,
     server, settings::Settings,
 };
 

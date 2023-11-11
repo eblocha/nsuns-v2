@@ -3,7 +3,6 @@ pub mod error;
 pub mod feature;
 mod health;
 pub mod maxes;
-pub mod metrics;
 pub mod movements;
 pub mod observability;
 pub mod openapi;
