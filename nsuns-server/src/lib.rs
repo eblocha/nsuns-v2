@@ -5,6 +5,7 @@ mod health;
 pub mod maxes;
 pub mod metrics;
 pub mod movements;
+mod observability;
 pub mod openapi;
 pub mod profiles;
 pub mod program;

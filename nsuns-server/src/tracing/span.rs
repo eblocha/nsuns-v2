@@ -1,7 +1,4 @@
-use std::net::IpAddr;
-
-use axum::extract::{ConnectInfo, MatchedPath};
-use http::Version;
+use axum::extract::MatchedPath;
 use opentelemetry_api::{
     propagation::TextMapPropagator,
     trace::{SpanKind, TraceContextExt},
@@ -13,7 +10,7 @@ use tower_http::trace::{MakeSpan, OnResponse};
 use tracing::{field::Empty, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-use crate::server::ClientInfo;
+use crate::observability::extension::HttpRequestAttributes;
 
 /// Set the request span's parent as the incoming otel span, if present.
 #[derive(Debug, Clone)]
@@ -36,24 +33,20 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             .map(|m| format!("{method_verb} {m}"))
             .unwrap_or_else(|| method_verb.to_owned());
 
-        let client_info = request
-            .extensions()
-            .get::<ConnectInfo<ClientInfo>>()
-            .map(|c| c.0.clone());
+        let attrs = request.extensions().get::<HttpRequestAttributes>();
 
-        let peer_address = client_info
-            .as_ref()
-            .map(network_peer_ip)
-            .map(|ip| ip.to_string());
-
-        let client_address = forwarded_for(request).or(peer_address.as_deref());
-
-        let server_address = http_host(request).or_else(|| forwarded_host(request));
-
-        let url_scheme = request
-            .uri()
-            .scheme_str()
-            .or_else(|| forwarded_proto(request));
+        let user_agent_original = attrs.and_then(|a| a.user_agent_original.as_ref());
+        let client_address = attrs.and_then(|a| a.client_address.as_ref());
+        let network_local_addr =
+            attrs.and_then(|a| a.network_local_address.map(|ip| ip.to_string()));
+        let network_local_port = attrs.and_then(|a| a.network_local_port);
+        let network_peer_addr = attrs.and_then(|a| a.network_peer_address.map(|ip| ip.to_string()));
+        let network_peer_port = attrs.and_then(|a| a.network_peer_port);
+        let network_protocol_name = attrs.map(|a| a.network_protocol_name.as_str());
+        let network_protocol_version = attrs.and_then(|a| a.network_protocol_version);
+        let network_type = attrs.and_then(|a| a.network_type);
+        let server_address = attrs.and_then(|a| a.server_address.as_ref());
+        let url_scheme = attrs.and_then(|a| a.url_scheme.as_ref());
 
         let tracing_span = tracing::info_span!(
             "HTTP request",
@@ -61,15 +54,15 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
             otel.name = span_name,
             http.request.method = method_verb,
             http.route = matched_path,
-            user_agent.original = user_agent(request),
+            user_agent.original = user_agent_original,
             client.address = client_address,
-            network.local.address = client_info.as_ref().map(network_local_ip).map(|ip| ip.to_string()),
-            network.local.port = client_info.as_ref().map(network_local_port),
-            network.peer.address = peer_address,
-            network.peer.port = client_info.as_ref().map(network_peer_port),
-            network.protocol.name = "http",
-            network.protocol.version = protocol_version(request),
-            "network.type" = client_info.as_ref().map(network_type),
+            network.local.address = network_local_addr,
+            network.local.port = network_local_port,
+            network.peer.address = network_peer_addr,
+            network.peer.port = network_peer_port,
+            network.protocol.name = network_protocol_name,
+            network.protocol.version = network_protocol_version,
+            "network.type" = network_type,
             server.address = server_address,
             url.path = request.uri().path(),
             url.query = request.uri().query(),
@@ -130,13 +123,6 @@ pub fn get_trace_id(span: &tracing::Span) -> Option<String> {
 }
 
 #[inline]
-fn user_agent<B>(req: &http::Request<B>) -> Option<&str> {
-    req.headers()
-        .get(http::header::USER_AGENT)
-        .and_then(|h| h.to_str().ok())
-}
-
-#[inline]
 fn response_body_size<B>(res: &http::Response<B>) -> Option<u64> {
     res.headers()
         .get(http::header::CONTENT_LENGTH)
@@ -147,75 +133,6 @@ fn response_body_size<B>(res: &http::Response<B>) -> Option<u64> {
                 .map(Some)
                 .unwrap_or_default()
         })
-}
-
-#[inline]
-fn protocol_version<B>(req: &http::Request<B>) -> Option<&str> {
-    match req.version() {
-        Version::HTTP_09 => Some("0.9"),
-        Version::HTTP_10 => Some("1.0"),
-        Version::HTTP_11 => Some("1.1"),
-        Version::HTTP_2 => Some("2.0"),
-        Version::HTTP_3 => Some("3.0"),
-        _ => None,
-    }
-}
-
-#[inline]
-fn http_host<B>(req: &http::Request<B>) -> Option<&str> {
-    req.headers()
-        .get(http::header::HOST)
-        .map_or(req.uri().host(), |h| h.to_str().ok())
-}
-
-// Client Info
-
-#[inline]
-fn network_peer_ip(client_info: &ClientInfo) -> IpAddr {
-    client_info.remote_addr.ip()
-}
-
-#[inline]
-fn network_peer_port(client_info: &ClientInfo) -> u16 {
-    client_info.remote_addr.port()
-}
-
-#[inline]
-fn network_local_ip(client_info: &ClientInfo) -> IpAddr {
-    client_info.local_addr.ip()
-}
-
-#[inline]
-fn network_local_port(client_info: &ClientInfo) -> u16 {
-    client_info.local_addr.port()
-}
-
-#[inline]
-fn network_type(client_info: &ClientInfo) -> &'static str {
-    if network_peer_ip(client_info).is_ipv4() {
-        "ipv4"
-    } else {
-        "ipv6"
-    }
-}
-
-fn forwarded_for<B>(req: &http::Request<B>) -> Option<&str> {
-    req.headers()
-        .get("X-Forwarded-For")
-        .and_then(|h| h.to_str().ok())
-        .and_then(|h| h.split(',').next())
-}
-
-fn forwarded_host<B>(req: &http::Request<B>) -> Option<&str> {
-    req.headers()
-        .get("X-Forwarded-Host")
-        .and_then(|h| h.to_str().ok())
-}
-
-fn forwarded_proto<B>(req: &http::Request<B>) -> Option<&str> {
-    req.headers()
-        .get("X-Forwarded-Proto")
-        .and_then(|h| h.to_str().ok())
 }
 
 pub trait WithSpan: Sized {

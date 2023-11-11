@@ -23,8 +23,7 @@ pub async fn initialize(settings: &Settings) -> anyhow::Result<Router> {
         .await
         .map_err(log_error!())?;
 
-    let app = router(pool, settings);
-    Ok(app)
+    router(pool, settings)
 }
 
 #[derive(Clone)]

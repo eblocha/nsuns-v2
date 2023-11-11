@@ -8,8 +8,8 @@ use tower_http::{
 
 use crate::{
     db::Pool, health::health_check, maxes, metrics::middleware::WithMetrics, movements,
-    openapi::WithOpenApi, profiles, program, reps, sets, settings::Settings,
-    tracing::middleware::WithTracing, updates,
+    observability::middleware::CollectAttributes, openapi::WithOpenApi, profiles, program, reps,
+    sets, settings::Settings, tracing::middleware::WithTracing, updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -45,8 +45,8 @@ where
     }
 }
 
-pub fn router(pool: Pool, settings: &Settings) -> Router {
-    Router::new()
+pub fn router(pool: Pool, settings: &Settings) -> anyhow::Result<Router> {
+    Ok(Router::new()
         .nest(PROFILES_PATH, profiles::router())
         .nest(PROGRAMS_PATH, program::router())
         .nest(SETS_PATH, sets::router())
@@ -61,4 +61,5 @@ pub fn router(pool: Pool, settings: &Settings) -> Router {
         .static_files(settings.server.static_dir.as_ref())
         .with_tracing()
         .with_metrics(&settings.metrics)
+        .collect_attributes())
 }
