@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use config::builder::BuilderState;
 use opentelemetry_otlp::{OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_TIMEOUT};
+use opentelemetry_sdk::trace::{BatchConfig, SpanLimits};
 use serde::Deserialize;
 
 use crate::{
@@ -50,6 +51,132 @@ impl<S: BuilderState> CustomizeConfigBuilder<S> for LogSettings {
     }
 }
 
+pub fn default_max_queue_size() -> usize {
+    2048
+}
+
+pub fn default_scheduled_delay() -> Duration {
+    Duration::from_secs(5)
+}
+
+pub fn default_max_export_batch_size() -> usize {
+    512
+}
+
+pub fn default_max_export_timeout() -> Duration {
+    Duration::from_secs(30)
+}
+
+pub fn default_max_concurrent_exports() -> usize {
+    1
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(default)]
+pub struct SpanBatchSettings {
+    /// The maximum queue size to buffer spans for delayed processing. If the
+    /// queue gets full it drops the spans. The default value of is 2048.
+    #[serde(default = "default_max_queue_size")]
+    pub max_queue_size: usize,
+
+    /// The delay interval in milliseconds between two consecutive processing
+    /// of batches. The default value is 5 seconds.
+    #[serde(default = "default_scheduled_delay")]
+    #[serde(with = "crate::serde_duration")]
+    pub scheduled_delay: Duration,
+
+    /// The maximum number of spans to process in a single batch. If there are
+    /// more than one batch worth of spans then it processes multiple batches
+    /// of spans one batch after the other without any delay. The default value
+    /// is 512.
+    #[serde(default = "default_max_export_batch_size")]
+    pub max_export_batch_size: usize,
+
+    /// The maximum duration to export a batch of data.
+    #[serde(default = "default_max_export_timeout")]
+    #[serde(with = "crate::serde_duration")]
+    pub max_export_timeout: Duration,
+
+    /// Maximum number of concurrent exports
+    ///
+    /// Limits the number of spawned tasks for exports and thus memory consumed
+    /// by an exporter. A value of 1 will cause exports to be performed
+    /// synchronously on the BatchSpanProcessor task.
+    #[serde(default = "default_max_concurrent_exports")]
+    pub max_concurrent_exports: usize,
+}
+
+impl Default for SpanBatchSettings {
+    fn default() -> Self {
+        Self {
+            max_queue_size: default_max_queue_size(),
+            scheduled_delay: default_scheduled_delay(),
+            max_export_batch_size: default_max_export_batch_size(),
+            max_export_timeout: default_max_export_timeout(),
+            max_concurrent_exports: default_max_concurrent_exports(),
+        }
+    }
+}
+
+impl From<&SpanBatchSettings> for BatchConfig {
+    fn from(settings: &SpanBatchSettings) -> Self {
+        BatchConfig::default()
+            .with_max_queue_size(settings.max_queue_size)
+            .with_scheduled_delay(settings.scheduled_delay)
+            .with_max_export_batch_size(settings.max_export_batch_size)
+            .with_max_export_timeout(settings.max_export_timeout)
+            .with_max_concurrent_exports(settings.max_concurrent_exports)
+    }
+}
+
+pub fn default_span_limit() -> u32 {
+    128
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(default)]
+pub struct SpanSettings {
+    /// The max events that can be added to a `Span`.
+    #[serde(default = "default_span_limit")]
+    pub max_events_per_span: u32,
+    /// The max attributes that can be added to a `Span`.
+    #[serde(default = "default_span_limit")]
+    pub max_attributes_per_span: u32,
+    /// The max links that can be added to a `Span`.
+    #[serde(default = "default_span_limit")]
+    pub max_links_per_span: u32,
+    /// The max attributes that can be added into an `Event`
+    #[serde(default = "default_span_limit")]
+    pub max_attributes_per_event: u32,
+    /// The max attributes that can be added into a `Link`
+    #[serde(default = "default_span_limit")]
+    pub max_attributes_per_link: u32,
+}
+
+impl Default for SpanSettings {
+    fn default() -> Self {
+        Self {
+            max_events_per_span: default_span_limit(),
+            max_attributes_per_span: default_span_limit(),
+            max_links_per_span: default_span_limit(),
+            max_attributes_per_event: default_span_limit(),
+            max_attributes_per_link: default_span_limit(),
+        }
+    }
+}
+
+impl From<&SpanSettings> for SpanLimits {
+    fn from(settings: &SpanSettings) -> Self {
+        Self {
+            max_events_per_span: settings.max_events_per_span,
+            max_attributes_per_span: settings.max_attributes_per_span,
+            max_links_per_span: settings.max_links_per_span,
+            max_attributes_per_event: settings.max_attributes_per_event,
+            max_attributes_per_link: settings.max_attributes_per_link,
+        }
+    }
+}
+
 pub fn default_exporter_host() -> String {
     // jaeger default port
     "http://localhost:4317".to_string()
@@ -73,6 +200,10 @@ pub struct OpenTelemetrySettings {
     pub exporter_timeout: Duration,
     #[serde(default = "default_service_name")]
     pub service_name: String,
+    #[serde(default)]
+    pub batch: SpanBatchSettings,
+    #[serde(default)]
+    pub span_limits: SpanSettings,
 }
 
 impl Default for OpenTelemetrySettings {
@@ -81,6 +212,8 @@ impl Default for OpenTelemetrySettings {
             exporter_host: default_exporter_host(),
             exporter_timeout: default_exporter_timeout(),
             service_name: default_service_name(),
+            batch: Default::default(),
+            span_limits: Default::default(),
         }
     }
 }
