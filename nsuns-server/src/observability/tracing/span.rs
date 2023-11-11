@@ -10,7 +10,7 @@ use tower_http::trace::{MakeSpan, OnResponse};
 use tracing::{field::Empty, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-use crate::observability::extension::HttpRequestAttributes;
+use crate::observability::attributes::HttpRequestAttributes;
 
 /// Set the request span's parent as the incoming otel span, if present.
 #[derive(Debug, Clone)]
@@ -22,31 +22,30 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
 
         let parent = TraceContextPropagator::new().extract(&extractor);
 
+        let attrs: HttpRequestAttributes = request.into();
+
         let matched_path = request
             .extensions()
             .get::<MatchedPath>()
             .map(|path| path.as_str());
 
-        let method_verb = request.method().as_str();
+        let method_verb = attrs.http_request_method.as_str();
 
         let span_name = matched_path
             .map(|m| format!("{method_verb} {m}"))
             .unwrap_or_else(|| method_verb.to_owned());
 
-        let attrs = request.extensions().get::<HttpRequestAttributes>();
-
-        let user_agent_original = attrs.and_then(|a| a.user_agent_original.as_ref());
-        let client_address = attrs.and_then(|a| a.client_address.as_ref());
-        let network_local_addr =
-            attrs.and_then(|a| a.network_local_address.map(|ip| ip.to_string()));
-        let network_local_port = attrs.and_then(|a| a.network_local_port);
-        let network_peer_addr = attrs.and_then(|a| a.network_peer_address.map(|ip| ip.to_string()));
-        let network_peer_port = attrs.and_then(|a| a.network_peer_port);
-        let network_protocol_name = attrs.map(|a| a.network_protocol_name.as_str());
-        let network_protocol_version = attrs.and_then(|a| a.network_protocol_version);
-        let network_type = attrs.and_then(|a| a.network_type);
-        let server_address = attrs.and_then(|a| a.server_address.as_ref());
-        let url_scheme = attrs.and_then(|a| a.url_scheme.as_ref());
+        let user_agent_original = attrs.user_agent_original;
+        let client_address = attrs.client_address;
+        let network_local_addr = attrs.network_local_address.map(|ip| ip.to_string());
+        let network_local_port = attrs.network_local_port;
+        let network_peer_addr = attrs.network_peer_address.map(|ip| ip.to_string());
+        let network_peer_port = attrs.network_peer_port;
+        let network_protocol_name = attrs.network_protocol_name;
+        let network_protocol_version = attrs.network_protocol_version;
+        let network_type = attrs.network_type;
+        let server_address = attrs.server_address;
+        let url_scheme = attrs.url_scheme;
 
         let tracing_span = tracing::info_span!(
             "HTTP request",

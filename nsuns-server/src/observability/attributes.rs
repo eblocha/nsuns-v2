@@ -7,30 +7,30 @@ use crate::server::ClientInfo;
 
 /// Attributes computed from an HTTP request. Used for telemetry spans and metrics.
 #[derive(Debug, Clone)]
-pub struct HttpRequestAttributes {
+pub struct HttpRequestAttributes<'r> {
     pub http_request_method: http::Method,
-    pub http_route: Option<String>,
-    pub user_agent_original: Option<String>,
+    pub http_route: Option<&'r str>,
+    pub user_agent_original: Option<&'r str>,
     pub client_address: Option<String>,
     pub network_local_address: Option<IpAddr>,
     pub network_local_port: Option<u16>,
     pub network_peer_address: Option<IpAddr>,
     pub network_peer_port: Option<u16>,
-    pub network_protocol_name: String,
+    pub network_protocol_name: &'static str,
     pub network_protocol_version: Option<&'static str>,
     pub network_type: Option<&'static str>,
-    pub server_address: Option<String>,
-    pub url_path: String,
-    pub url_query: Option<String>,
-    pub url_scheme: Option<String>,
+    pub server_address: Option<&'r str>,
+    pub url_path: &'r str,
+    pub url_query: Option<&'r str>,
+    pub url_scheme: Option<&'r str>,
 }
 
-impl<B> From<&http::Request<B>> for HttpRequestAttributes {
-    fn from(request: &http::Request<B>) -> Self {
+impl<'r, B> From<&'r http::Request<B>> for HttpRequestAttributes<'r> {
+    fn from(request: &'r http::Request<B>) -> Self {
         let matched_path = request
             .extensions()
             .get::<MatchedPath>()
-            .map(|path| path.as_str().to_owned());
+            .map(|path| path.as_str());
 
         let client_info = request
             .extensions()
@@ -39,15 +39,16 @@ impl<B> From<&http::Request<B>> for HttpRequestAttributes {
 
         let peer_address = client_info.as_ref().map(network_peer_ip);
 
-        let client_address = forwarded_for(request).or(peer_address.map(|ip| ip.to_string()));
+        let client_address = forwarded_for(request)
+            .map(ToOwned::to_owned)
+            .or(peer_address.map(|ip| ip.to_string()));
 
         let server_address = http_host(request).or_else(|| forwarded_host(request));
 
         let url_scheme = request
             .uri()
             .scheme_str()
-            .or_else(|| forwarded_proto(request))
-            .map(ToOwned::to_owned);
+            .or_else(|| forwarded_proto(request));
 
         Self {
             http_request_method: request.method().clone(),
@@ -58,22 +59,22 @@ impl<B> From<&http::Request<B>> for HttpRequestAttributes {
             network_local_port: client_info.as_ref().map(network_local_port),
             network_peer_address: peer_address,
             network_peer_port: client_info.as_ref().map(network_peer_port),
-            network_protocol_name: "http".to_owned(),
+            network_protocol_name: "http",
             network_protocol_version: protocol_version(request),
             network_type: client_info.as_ref().map(network_type),
             server_address,
-            url_path: request.uri().path().to_owned(),
-            url_query: request.uri().query().map(ToOwned::to_owned),
+            url_path: request.uri().path(),
+            url_query: request.uri().query(),
             url_scheme,
         }
     }
 }
 
 #[inline]
-fn user_agent<B>(req: &http::Request<B>) -> Option<String> {
+fn user_agent<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get(http::header::USER_AGENT)
-        .and_then(|h| h.to_str().map(ToOwned::to_owned).ok())
+        .and_then(|h| h.to_str().ok())
 }
 
 #[inline]
@@ -89,11 +90,10 @@ fn protocol_version<B>(req: &http::Request<B>) -> Option<&'static str> {
 }
 
 #[inline]
-fn http_host<B>(req: &http::Request<B>) -> Option<String> {
+fn http_host<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get(http::header::HOST)
         .map_or(req.uri().host(), |h| h.to_str().ok())
-        .map(ToOwned::to_owned)
 }
 
 // Client Info
@@ -127,19 +127,17 @@ fn network_type(client_info: &ClientInfo) -> &'static str {
     }
 }
 
-fn forwarded_for<B>(req: &http::Request<B>) -> Option<String> {
+fn forwarded_for<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get("X-Forwarded-For")
         .and_then(|h| h.to_str().ok())
         .and_then(|h| h.split(',').next())
-        .map(ToOwned::to_owned)
 }
 
-fn forwarded_host<B>(req: &http::Request<B>) -> Option<String> {
+fn forwarded_host<B>(req: &http::Request<B>) -> Option<&str> {
     req.headers()
         .get("X-Forwarded-Host")
         .and_then(|h| h.to_str().ok())
-        .map(ToOwned::to_owned)
 }
 
 fn forwarded_proto<B>(req: &http::Request<B>) -> Option<&str> {

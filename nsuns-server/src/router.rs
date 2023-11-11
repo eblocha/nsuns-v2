@@ -8,8 +8,8 @@ use tower_http::{
 
 use crate::{
     db::Pool, health::health_check, maxes, metrics::middleware::WithMetrics, movements,
-    observability::middleware::CollectAttributes, openapi::WithOpenApi, profiles, program, reps,
-    sets, settings::Settings, tracing::middleware::WithTracing, updates,
+    observability::tracing::middleware::WithTracing, openapi::WithOpenApi, profiles, program, reps,
+    sets, settings::Settings, updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -60,6 +60,5 @@ pub fn router(pool: Pool, settings: &Settings) -> anyhow::Result<Router> {
         .layer(CatchPanicLayer::new())
         .static_files(settings.server.static_dir.as_ref())
         .with_tracing()
-        .with_metrics(&settings.metrics)
-        .collect_attributes())
+        .with_metrics(&settings.metrics))
 }

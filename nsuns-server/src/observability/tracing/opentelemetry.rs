@@ -23,6 +23,7 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
     let tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(otlp_exporter)
+        .with_batch_config(trace::BatchConfig::default())
         .with_trace_config(
             trace::config()
                 .with_sampler(Sampler::AlwaysOn)

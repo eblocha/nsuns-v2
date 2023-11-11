@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use crate::{
     db::settings::DatabaseSettings, metrics::settings::MetricsFeature,
-    openapi::settings::OpenApiFeature, tracing::settings::LogSettings,
+    observability::tracing::settings::LogSettings, openapi::settings::OpenApiFeature,
 };
 
 fn default_server_port() -> u16 {

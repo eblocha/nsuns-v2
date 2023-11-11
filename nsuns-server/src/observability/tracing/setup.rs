@@ -1,7 +1,7 @@
 use opentelemetry_api::global;
 use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*};
 
-use crate::{db, settings::Settings, tracing::global_fields::WithGlobalFields};
+use crate::{db, observability::tracing::global_fields::WithGlobalFields, settings::Settings};
 
 use super::{opentelemetry, settings::OpenTelemetryFeature};
 

@@ -18,9 +18,7 @@ use tower_http::{
     LatencyUnit,
 };
 
-use crate::tracing::span::get_trace_id;
-
-use super::span::{OpenTelemetryRequestSpan, UpdateSpanOnResponse};
+use super::span::{get_trace_id, OpenTelemetryRequestSpan, UpdateSpanOnResponse};
 
 struct Latency {
     unit: LatencyUnit,
