@@ -9,6 +9,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  prometheus:
+    image: prom/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - 9090:9090
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    extra_hosts:
+      host.docker.internal: host-gateway
+
   tempo:
     image: grafana/tempo:latest
     command: ["-config.file=/etc/tempo.yaml"]
@@ -34,5 +46,6 @@ services:
 
 volumes:
   pgdata:
-  grafana_data:
+  prometheus_data:
   tempo_data:
+  grafana_data:

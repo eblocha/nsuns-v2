@@ -1,16 +1,19 @@
 use std::future::ready;
 
 use axum::{routing::get, Router};
-use metrics_exporter_prometheus::PrometheusBuilder;
+use metrics_exporter_prometheus::{Matcher, PrometheusBuilder};
 
-use crate::observability::tracing::middleware::WithTracing;
-
-use super::settings::MetricsSettings;
+use super::{names::HTTP_SERVER_REQUEST_DURATION, settings::MetricsSettings};
 
 pub fn router(settings: &MetricsSettings) -> anyhow::Result<Router> {
-    let recorder = PrometheusBuilder::new().install_recorder()?;
-    let router = Router::new()
-        .route(&settings.path, get(move || ready(recorder.render())))
-        .with_tracing();
+    let recorder = PrometheusBuilder::new()
+        .set_buckets_for_metric(
+            Matcher::Full(HTTP_SERVER_REQUEST_DURATION.to_string()),
+            &[
+                0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0,
+            ],
+        )?
+        .install_recorder()?;
+    let router = Router::new().route(&settings.path, get(move || ready(recorder.render())));
     Ok(router)
 }
