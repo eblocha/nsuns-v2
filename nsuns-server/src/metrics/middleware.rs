@@ -45,7 +45,10 @@ fn build_attrs(attrs: &HttpRequestAttributes) -> Vec<Attribute> {
 }
 
 fn finalize_attrs<B>(attrs: &mut Vec<Attribute>, response: &Response<B>) {
-    attrs.push(("http.response.status_code", response.status().as_u16().to_string()));
+    attrs.push((
+        "http.response.status_code",
+        response.status().as_u16().to_string(),
+    ));
 }
 
 async fn track_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
