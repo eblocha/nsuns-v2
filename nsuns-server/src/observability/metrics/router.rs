@@ -1,9 +1,11 @@
-use std::future::ready;
+use std::{future::ready, sync::{Arc, Mutex}};
 
 use axum::{routing::get, Router};
 use metrics_exporter_prometheus::{Matcher, PrometheusBuilder};
 
-use super::{names::HTTP_SERVER_REQUEST_DURATION, settings::MetricsSettings};
+use super::{
+    names::HTTP_SERVER_REQUEST_DURATION, process::{record_process_metrics, create_system}, settings::MetricsSettings,
+};
 
 pub fn router(settings: &MetricsSettings) -> anyhow::Result<Router> {
     let recorder = PrometheusBuilder::new()
@@ -14,6 +16,16 @@ pub fn router(settings: &MetricsSettings) -> anyhow::Result<Router> {
             ],
         )?
         .install_recorder()?;
-    let router = Router::new().route(&settings.path, get(move || ready(recorder.render())));
+
+    let sys = Arc::new(Mutex::new(create_system()));
+
+    let router = Router::new().route(
+        &settings.path,
+        get(move || {
+            // ignore errors recording process metrics
+            let _ = record_process_metrics(sys.clone());
+            ready(recorder.render())
+        }),
+    );
     Ok(router)
 }
