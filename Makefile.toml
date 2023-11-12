@@ -199,6 +199,7 @@ docker run -d \
   --add-host host.docker.internal:host-gateway \
   -e "DATABASE_NAME=load_test" \
   -e "DATABASE_HOST=host.docker.internal" \
+  -e "OPENTELEMETRY_ENABLED=false" \
   -p 8080:8080 \
   -p 9100:9100 \
   --health-cmd='curl http://localhost:8080/actuator/health || exit 1' \

@@ -5,7 +5,8 @@ host = "localhost"
 port = 5432
 database = "postgres"
 migrations = "db/migrations"
-timeout = "1s"
+timeout = "5s"
+max_connections = 100
 
 [server]
 static_dir = "assets"

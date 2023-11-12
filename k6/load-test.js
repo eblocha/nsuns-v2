@@ -1,5 +1,5 @@
 import http from "k6/http";
-import { sleep } from "k6";
+import { check, sleep } from "k6";
 
 const host = __ENV.TARGET_HOST || "host.docker.internal:8080";
 
@@ -9,10 +9,16 @@ export const options = {
   },
   // Ramp the number of virtual users up and down
   stages: [
-    { duration: "30s", target: 200 },
-    { duration: "1m", target: 500 },
-    { duration: "1m", target: 500 },
-    { duration: "30s", target: 200 },
+    { duration: "30s", target: 1000 },
+    { duration: "1m", target: 1000 },
+    { duration: "30s", target: 5000 },
+    { duration: "1m", target: 5000 },
+    { duration: "30s", target: 1000 },
+    { duration: "1m", target: 1000 },
+    { duration: "30s", target: 5000 },
+    { duration: "1m", target: 5000 },
+    { duration: "30s", target: 1000 },
+    { duration: "1m", target: 1000 },
   ],
 };
 
@@ -22,6 +28,11 @@ function randomName() {
 
 let profile;
 let program;
+
+const checks = {
+  "is created": (response) => response.status === 201,
+  "body is json": (response) => response.body.startsWith("{")
+};
 
 export default function () {
   if (!profile) {
@@ -37,6 +48,8 @@ export default function () {
         },
       }
     );
+
+    check(profiles_res, checks);
 
     profile = JSON.parse(profiles_res.body);
 
@@ -55,13 +68,20 @@ export default function () {
       }
     );
 
+    check(program_res, checks);
+
     program = JSON.parse(program_res.body);
 
     sleep(0.1);
   }
 
   // get the summary
-  http.get(`http://${host}/api/programs/${program.id}`);
+  const res = http.get(`http://${host}/api/programs/${program.id}`);
 
-  // sleep(0.1);
+  check(res, {
+    "is ok": (response) => response.status === 200,
+    "body is json": (response) => response.body.startsWith("{")
+  });
+
+  sleep(0.1);
 }
