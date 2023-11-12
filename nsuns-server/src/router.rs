@@ -64,6 +64,6 @@ pub fn router(pool: Pool, settings: &Settings) -> anyhow::Result<Router> {
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
         .static_files(settings.server.static_dir.as_ref())
-        .with_tracing()
-        .with_metrics(&settings.metrics))
+        .with_metrics(&settings.metrics)
+        .with_tracing())
 }

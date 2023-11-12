@@ -18,10 +18,9 @@ use super::{
 type Attribute = (&'static str, String);
 
 fn build_attrs(attrs: &HttpRequestAttributes) -> Vec<Attribute> {
-    let mut duration_attrs = Vec::with_capacity(9);
+    let mut duration_attrs = Vec::with_capacity(6);
 
     duration_attrs.extend([
-        ("otel.scope.name", "nsuns-server".to_string()),
         ("http.request.method", attrs.http_request_method.to_string()),
         (
             "network.protocol.name",
@@ -58,10 +57,7 @@ async fn track_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
 
     let method = attrs.http_request_method.clone();
 
-    let active_requests_attrs = [
-        ("otel.scope.name", "nsuns-server".to_string()),
-        ("http.request.method", method.to_string()),
-    ];
+    let active_requests_attrs = [("http.request.method", method.to_string())];
 
     let mut duration_attrs = build_attrs(&attrs);
 
