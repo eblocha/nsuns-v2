@@ -12,6 +12,15 @@ use tracing_subscriber::registry::LookupSpan;
 
 use super::settings::OpenTelemetrySettings;
 
+fn service_version() -> String {
+    let pkg_version = env!("CARGO_PKG_VERSION");
+
+    match option_env!("NSUNS_BUILD_GIT_HASH") {
+        Some(hash) => format!("{pkg_version}-{hash}"),
+        None => pkg_version.to_owned(),
+    }
+}
+
 pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
     settings: &OpenTelemetrySettings,
 ) -> anyhow::Result<OpenTelemetryLayer<S, Tracer>> {
@@ -34,7 +43,7 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
                         semcov::resource::SERVICE_NAME,
                         settings.service_name.clone(),
                     ),
-                    KeyValue::new(semcov::resource::SERVICE_VERSION, env!("CARGO_PKG_VERSION")),
+                    KeyValue::new(semcov::resource::SERVICE_VERSION, service_version()),
                 ])),
         )
         .install_batch(Tokio)
