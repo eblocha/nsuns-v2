@@ -172,3 +172,63 @@ description = "Run the server locally in dev mode."
 cwd = "${SERVER_DIR}"
 command = "cargo"
 args = ["run", "${@}"]
+
+# LOAD TESTING
+
+[tasks.load-test-reset-db]
+category = "Load Testing"
+description = "Prepare the load testing database."
+private = true
+env = { PGPASSWORD = "postgres" }
+script = '''
+psql -h localhost -d postgres -U postgres -c "DROP DATABASE load_test;"
+psql -h localhost -d postgres -U postgres -c "CREATE DATABASE load_test;"
+'''
+
+[tasks.load-test-start-target]
+category = "Load Testing"
+description = "Start target server"
+private = true
+dependencies = ["build"]
+script = '''
+docker build --tag nsuns-server .
+
+docker run -d \
+  --rm \
+  --name=nsuns-server-load-test \
+  --add-host host.docker.internal:host-gateway \
+  -e "DATABASE_NAME=load_test" \
+  -e "DATABASE_HOST=host.docker.internal" \
+  -p 8080:8080 \
+  -p 9100:9100 \
+  --health-cmd='curl http://localhost:8080/actuator/health || exit 1' \
+  --health-interval=1s \
+  nsuns-server
+'''
+
+[tasks.load-test-stop-target]
+category = "Load Testing"
+description = "Stop the target server"
+script = "docker stop nsuns-server-load-test"
+
+[tasks.load-test-execute]
+category = "Load Testing"
+description = "Execute the load testing against the target."
+private = true
+script = '''
+docker run \
+  --rm \
+  --tty \
+  -v ./k6:/scripts \
+  --add-host host.docker.internal:host-gateway \
+  grafana/k6:latest run /scripts/load-test.js --env TARGET_HOST="host.docker.internal:8080"
+'''
+
+[tasks.load-test]
+category = "Load Testing"
+description = "Run load testing with k6"
+run_task = { name = [
+  "load-test-reset-db",
+  "load-test-start-target",
+  "load-test-execute",
+], fork = true, cleanup_task = "load-test-stop-target" }

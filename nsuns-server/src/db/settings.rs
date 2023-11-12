@@ -51,6 +51,7 @@ impl<S: BuilderState> CustomizeConfigBuilder<S> for DatabaseSettings {
             .set_env_override_unwrap(&format!("{prefix}.port"), "DATABASE_PORT")
             .set_env_override_unwrap(&format!("{prefix}.username"), "DATABASE_USERNAME")
             .set_env_override_unwrap(&format!("{prefix}.password"), "DATABASE_PASSWORD")
+            .set_env_override_unwrap(&format!("{prefix}.database"), "DATABASE_NAME")
             .set_env_override_unwrap(&format!("{prefix}.migrations"), "DATABASE_MIGRATIONS")
             .set_env_override_unwrap(&format!("{prefix}.timeout"), "DATABASE_CONNECTION_TIMEOUT")
             .set_env_override_unwrap(
