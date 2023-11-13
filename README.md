@@ -53,3 +53,19 @@ linker = "/usr/bin/aarch64-linux-gnu-gcc"
 ```
 
 To get a list of cargo-make targets, use `cargo make --list-all-steps`.
+
+### Metrics
+
+The base docker-compose file includes services for monitoring the server. The grafana UI is accessible at http://localhost:3100. You can import some example dashboard definitions from `./config/grafana-dashboards`
+
+### Load Testing
+
+Load testing can be performed with the `cargo make load-test` command. This will create a `load_test` database, start the server, and run k6 against it.
+
+Metrics can be monitored while the load test is running. Example below to show the effect of enabling opentelemetry (enabled on the left):
+
+![Metrics 1](images/load-test-otel-comparison-1.jpg)
+
+![Metrics 2](images/load-test-otel-comparison-2.jpg)
+
+In this case, the server container could not export the traces since it can't connect to the tempo instance (different docker network). You are seeing the overhead of trying to add unpublished spans to a full sync channel.
