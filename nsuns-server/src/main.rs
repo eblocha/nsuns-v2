@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use nsuns_server::{
-    log_error, observability::metrics::server as metrics_server, observability::tracing::setup::setup_tracing,
-    server, settings::Settings,
+    log_error, observability::metrics::server as metrics_server,
+    observability::tracing::setup::setup_tracing, server, settings::Settings,
 };
 
 #[tokio::main]
