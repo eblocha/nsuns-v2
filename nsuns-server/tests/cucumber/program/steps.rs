@@ -25,7 +25,7 @@ async fn create_program(world: &mut NsunsWorld, name: String) {
         .json::<_>()
         .await;
 
-    world.program_world.program_meta = Some(program_meta)
+    world.program_world.program_meta = Some(program_meta);
 }
 
 #[when("I fetch my programs")]
@@ -65,7 +65,7 @@ async fn delete_program(world: &mut NsunsWorld) {
         .delete(&format!("{PROGRAMS_PATH}/{program_id}"))
         .send()
         .await;
-    assert_eq!(StatusCode::OK, res.status())
+    assert_eq!(StatusCode::OK, res.status());
 }
 
 #[when(regex = r#"I update my program to have name "(.*)""#)]

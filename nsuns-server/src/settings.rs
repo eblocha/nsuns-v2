@@ -148,7 +148,7 @@ impl Settings {
         let config = builder.build();
 
         config
-            .and_then(|cfg| cfg.try_deserialize())
+            .and_then(config::Config::try_deserialize)
             .with_context(|| format!("failed to parse settings! config_source={config_source:?}"))
     }
 }

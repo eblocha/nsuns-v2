@@ -7,10 +7,12 @@ use sqlx::postgres::PgConnectOptions;
 
 use crate::settings::{CustomizeConfigBuilder, SetEnvOverride};
 
+#[must_use]
 pub fn default_timeout() -> Duration {
     Duration::from_secs(3)
 }
 
+#[must_use]
 pub fn default_max_connections() -> u32 {
     5
 }

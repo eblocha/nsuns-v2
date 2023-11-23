@@ -17,9 +17,9 @@ async fn create_maxes(world: &mut NsunsWorld, amount: f64, movement_name: String
         .client
         .post(MAXES_PATH)
         .json_body(&CreateMax {
-            amount,
-            movement_id,
             profile_id,
+            movement_id,
+            amount,
         })
         .send()
         .await;

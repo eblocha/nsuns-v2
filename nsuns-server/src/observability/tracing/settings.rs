@@ -10,10 +10,12 @@ use crate::{
     settings::{CustomizeConfigBuilder, SetEnvOverride},
 };
 
+#[must_use]
 pub fn default_json_format() -> bool {
     true
 }
 
+#[must_use]
 pub fn default_directive() -> String {
     "info".to_string()
 }
@@ -51,22 +53,27 @@ impl<S: BuilderState> CustomizeConfigBuilder<S> for LogSettings {
     }
 }
 
+#[must_use]
 pub fn default_max_queue_size() -> usize {
     2048
 }
 
+#[must_use]
 pub fn default_scheduled_delay() -> Duration {
     Duration::from_secs(5)
 }
 
+#[must_use]
 pub fn default_max_export_batch_size() -> usize {
     512
 }
 
+#[must_use]
 pub fn default_max_export_timeout() -> Duration {
     Duration::from_secs(30)
 }
 
+#[must_use]
 pub fn default_max_concurrent_exports() -> usize {
     1
 }
@@ -129,6 +136,7 @@ impl From<&SpanBatchSettings> for BatchConfig {
     }
 }
 
+#[must_use]
 pub fn default_span_limit() -> u32 {
     128
 }
@@ -177,15 +185,18 @@ impl From<&SpanSettings> for SpanLimits {
     }
 }
 
+#[must_use]
 pub fn default_exporter_host() -> String {
     // jaeger default port
     "http://localhost:4317".to_string()
 }
 
+#[must_use]
 pub fn default_exporter_timeout() -> Duration {
     Duration::from_secs(3)
 }
 
+#[must_use]
 pub fn default_service_name() -> String {
     env!("CARGO_PKG_NAME").to_string()
 }

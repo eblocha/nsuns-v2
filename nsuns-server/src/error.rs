@@ -89,7 +89,7 @@ macro_rules! log_server_error_impl {
     };
 }
 
-/// Create a closure that logs an ErrorWithStatus if it's a server error, then returns the error.
+/// Create a closure that logs an `ErrorWithStatus` if it's a server error, then returns the error.
 ///
 /// Useful for logging errors with `result.map_err(log_server_error!())`
 #[macro_export]
@@ -103,8 +103,8 @@ macro_rules! log_server_error {
     };
 }
 
-/// Create a closure that converts an error into an ErrorWithStatus, logs it if appropriate,
-/// then returns the ErrorWithStatus.
+/// Create a closure that converts an error into an `ErrorWithStatus`, logs it if appropriate,
+/// then returns the `ErrorWithStatus`.
 ///
 /// Useful for logging errors with `result.map_err(into_log_server_error!())`
 #[macro_export]

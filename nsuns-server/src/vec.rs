@@ -11,12 +11,12 @@ impl<T> MoveWithin for Vec<T> {
     ///
     /// Panics if the `from` or `to` indices are out of bounds.
     fn move_within(&mut self, from: usize, to: usize) -> bool {
-        if from != to {
+        if from == to {
+            false
+        } else {
             let element = self.remove(from);
             self.insert(to, element);
             true
-        } else {
-            false
         }
     }
 }

@@ -7,22 +7,27 @@ use utoipa::openapi::{
 
 pub const APPLICATION_JSON: &str = "application/json";
 
+#[must_use]
 pub fn ok() -> &'static str {
     StatusCode::OK.as_str()
 }
 
+#[must_use]
 pub fn created() -> &'static str {
     StatusCode::CREATED.as_str()
 }
 
+#[must_use]
 pub fn no_content() -> &'static str {
     StatusCode::NO_CONTENT.as_str()
 }
 
+#[must_use]
 pub fn param_in_default() -> Option<ParameterIn> {
     None
 }
 
+#[must_use]
 pub fn id_path_param(description: Option<&str>) -> Option<Vec<Parameter>> {
     Some(vec![ParameterBuilder::new()
         .name("id")

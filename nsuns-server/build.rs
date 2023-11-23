@@ -17,6 +17,6 @@ fn git_revision_hash() -> Option<String> {
 
 fn main() {
     if let Some(rev) = git_revision_hash() {
-        println!("cargo:rustc-env=NSUNS_BUILD_GIT_HASH={}", rev);
+        println!("cargo:rustc-env=NSUNS_BUILD_GIT_HASH={rev}");
     }
 }

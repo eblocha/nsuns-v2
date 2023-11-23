@@ -82,7 +82,7 @@ pub async fn test_sets_for_day(world: &mut NsunsWorld, movement_names: String, d
     .map(|movement| movement.name.clone())
     .collect();
 
-    assert_eq!(names, actual_names)
+    assert_eq!(names, actual_names);
 }
 
 #[when(regex = r"I reorder (\S+) from (\d+) to (\d+)")]

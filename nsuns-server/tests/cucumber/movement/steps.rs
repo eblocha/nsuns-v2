@@ -24,7 +24,7 @@ async fn create_movement(world: &mut NsunsWorld, name: String) {
         .json::<_>()
         .await;
 
-    world.movement_world.movement = Some(movement)
+    world.movement_world.movement = Some(movement);
 }
 
 #[given("I fetch all movements")]

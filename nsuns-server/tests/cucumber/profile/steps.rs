@@ -21,7 +21,7 @@ async fn create_profile(world: &mut NsunsWorld, name: String) {
         .json::<_>()
         .await;
 
-    world.profile_world.profile = Some(profile)
+    world.profile_world.profile = Some(profile);
 }
 
 #[when(regex = r#"^I rename the profile to "(.*)""#)]
@@ -76,7 +76,7 @@ async fn get_profile(world: &mut NsunsWorld, name: String) {
         .find(|profile| profile.id == profile_id)
         .expect("Profile not found");
 
-    assert_eq!(name, profile.name)
+    assert_eq!(name, profile.name);
 }
 
 #[then("My profile does not exist")]
@@ -89,5 +89,5 @@ async fn profile_not_found(world: &mut NsunsWorld) {
         .iter()
         .find(|profile| profile.id == profile_id);
 
-    assert!(profile.is_none())
+    assert!(profile.is_none());
 }

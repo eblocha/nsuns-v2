@@ -30,7 +30,7 @@ impl<'r, B> From<&'r http::Request<B>> for HttpRequestAttributes<'r> {
         let matched_path = request
             .extensions()
             .get::<MatchedPath>()
-            .map(|path| path.as_str());
+            .map(axum::extract::MatchedPath::as_str);
 
         let client_info = request
             .extensions()

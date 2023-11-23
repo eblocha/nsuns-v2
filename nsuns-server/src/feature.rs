@@ -54,16 +54,8 @@ fn try_parse_str(s: String) -> Result<bool, String> {
     let lowercase = s.to_lowercase();
 
     match lowercase.as_str() {
-        "yes" => Ok(true),
-        "no" => Ok(false),
-        "on" => Ok(true),
-        "off" => Ok(false),
-        "y" => Ok(true),
-        "n" => Ok(false),
-        "t" => Ok(true),
-        "f" => Ok(false),
-        "1" => Ok(true),
-        "0" => Ok(false),
+        "yes" | "on" | "y" | "t" | "1" => Ok(true),
+        "no" | "off" | "n" | "f" | "0" => Ok(false),
         _ => Err(parse_failed(&Value::String(s))),
     }
 }

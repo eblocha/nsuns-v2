@@ -13,8 +13,8 @@ fn get_updates(world: &NsunsWorld) -> Updates {
         .collect();
 
     Updates {
-        movement_ids,
         profile_id,
+        movement_ids,
     }
 }
 

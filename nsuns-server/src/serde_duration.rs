@@ -1,4 +1,4 @@
-//! Deserialize a std::time::Duration from a string like "1ms", "1s", "1us", "1ns"
+//! Deserialize a `std::time::Duration` from a string like "1ms", "1s", "1us", "1ns"
 
 use std::time::Duration;
 

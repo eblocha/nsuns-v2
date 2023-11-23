@@ -88,32 +88,32 @@ impl<
 
     #[inline]
     fn record(&self, span: &span::Id, values: &span::Record<'_>) {
-        self.inner.record(span, values)
+        self.inner.record(span, values);
     }
 
     #[inline]
     fn record_follows_from(&self, span: &span::Id, follows: &span::Id) {
-        self.inner.record_follows_from(span, follows)
+        self.inner.record_follows_from(span, follows);
     }
 
     #[inline]
     fn event(&self, event: &tracing::Event<'_>) {
-        self.inner.event(event)
+        self.inner.event(event);
     }
 
     #[inline]
     fn enter(&self, span: &span::Id) {
-        self.inner.enter(span)
+        self.inner.enter(span);
     }
 
     #[inline]
     fn exit(&self, span: &span::Id) {
-        self.inner.exit(span)
+        self.inner.exit(span);
     }
 
     #[inline]
     fn on_register_dispatch(&self, subscriber: &tracing::Dispatch) {
-        self.inner.on_register_dispatch(subscriber)
+        self.inner.on_register_dispatch(subscriber);
     }
 
     #[inline]
@@ -142,7 +142,7 @@ impl<
     #[inline]
     fn drop_span(&self, id: span::Id) {
         #[allow(deprecated)]
-        self.inner.drop_span(id)
+        self.inner.drop_span(id);
     }
 
     #[inline]

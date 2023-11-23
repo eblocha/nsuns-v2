@@ -27,13 +27,12 @@ impl<B> MakeSpan<B> for OpenTelemetryRequestSpan {
         let matched_path = request
             .extensions()
             .get::<MatchedPath>()
-            .map(|path| path.as_str());
+            .map(axum::extract::MatchedPath::as_str);
 
         let method_verb = attrs.http_request_method.as_str();
 
-        let span_name = matched_path
-            .map(|m| format!("{method_verb} {m}"))
-            .unwrap_or_else(|| method_verb.to_owned());
+        let span_name =
+            matched_path.map_or_else(|| method_verb.to_owned(), |m| format!("{method_verb} {m}"));
 
         let user_agent_original = attrs.user_agent_original;
         let client_address = attrs.client_address;
