@@ -34,9 +34,9 @@ export const SetList: Component<{
   return (
     <div class="w-full h-full flex flex-col border rounded border-gray-700 overflow-hidden">
       <div class="flex flex-row items-center border-b border-gray-700 p-2 bg-gray-900">
-        <h2 class="text-xl">{dayNames[props.day]}</h2>
+        <h2 class="text-3xl">{dayNames[props.day]}</h2>
         <button
-          class="text-button ml-auto text-sm"
+          class="text-button ml-auto"
           onClick={goToToday}
           disabled={day() === today()}
         >
@@ -49,7 +49,7 @@ export const SetList: Component<{
             <For
               each={sections()}
               fallback={
-                <div class="w-full flex flex-col items-center justify-center text-lg">
+                <div class="w-full flex flex-col items-center justify-center text-xl">
                   <span class="italic">Rest day</span>
                   <Moon class="mt-4 text-2xl" />
                 </div>
@@ -61,14 +61,14 @@ export const SetList: Component<{
                     <hr class="border-gray-600" />
                   </Show>
                   <h3
-                    class="text-lg mb-1"
+                    class="text-2xl mb-1"
                     title={section.movement.description || undefined}
                   >
                     {section.movement.name}
                   </h3>
                   <For each={section.sets}>
                     {({ set, index }) => (
-                      <li class="w-full mb-1 rounded">
+                      <li class="w-full mb-1 rounded text-xl">
                         <SetComponent
                           onClick={() => props.setCurrentSet(index)}
                           isActive={props.currentSet === index}
