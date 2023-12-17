@@ -1,7 +1,7 @@
 use tokio::signal;
 
 /// Create a future that completes when a shutdown signal is received.
-/// 
+///
 /// # Panics
 /// If the signal handlers fail to install.
 pub async fn shutdown_signal() {
