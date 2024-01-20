@@ -14,7 +14,10 @@ export const createDelayedLatch = <T>(signal: Accessor<T>, delay: number, invert
     on(signal, (value) => {
       const now = performance.now();
       const elapsed = Math.floor(now - turnedTrue);
-      if (value || invert || elapsed > delay) {
+
+      const isImmediateValue = invert ? !value : !!value;
+
+      if (isImmediateValue || elapsed > delay) {
         setDelayed(() => value);
         turnedTrue = now;
       } else {
