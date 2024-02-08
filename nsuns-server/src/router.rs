@@ -1,4 +1,4 @@
-use std::{fmt::Display, path::Path};
+use std::path::Path;
 
 use axum::{routing::get, Router};
 use tower_http::{
@@ -33,15 +33,18 @@ trait StaticFiles<P> {
 impl<S, P> StaticFiles<P> for Router<S>
 where
     S: Clone + Send + Sync + 'static,
-    P: AsRef<Path> + Display,
+    P: AsRef<Path>,
 {
     fn static_files(self, static_dir: Option<P>) -> Self {
         if let Some(ref static_dir) = static_dir {
+            let mut path_buf = static_dir.as_ref().to_path_buf();
+            path_buf.push("index.html");
+
             let serve_dir = ServeDir::new(static_dir)
                 .precompressed_gzip()
                 .precompressed_br()
                 .precompressed_deflate()
-                .not_found_service(ServeFile::new(format!("{static_dir}/index.html")));
+                .not_found_service(ServeFile::new(path_buf));
 
             self.fallback_service(serve_dir)
         } else {
