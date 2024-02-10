@@ -1,5 +1,5 @@
 import { A, useParams } from "@solidjs/router";
-import { Component, Match, Switch } from "solid-js";
+import { Component, Match, Switch, createEffect, onCleanup } from "solid-js";
 import { Days } from "./Days";
 import { ProgramDetails } from "./ProgramDetails";
 import { useProgramSummaryQuery } from "../../hooks/queries/sets";
@@ -34,8 +34,24 @@ export const ProgramBuilder: Component = () => {
 
   const query = useProgramSummaryQuery(() => params.programId);
 
+  let view: HTMLDivElement | undefined;
+
+  createEffect(() => {
+    const timeout = setTimeout(() => {
+      view?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+
+    onCleanup(() => clearTimeout(timeout));
+  });
+
   return (
-    <div class="w-full min-h-full overflow-visible 2xl:border-l border-gray-700 p-5 relative">
+    <div
+      ref={view}
+      class="w-full min-h-full overflow-visible 2xl:border-l border-gray-700 p-5 relative"
+    >
       <div class="flex flex-col overflow-visible relative">
         <Switch>
           <Match when={query.isLoading}>
