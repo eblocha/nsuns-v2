@@ -35,29 +35,27 @@ export const ProgramBuilder: Component = () => {
   const query = useProgramSummaryQuery(() => params.programId);
 
   return (
-    <div class="w-full min-h-full overflow-visible border-l border-gray-700 p-5 relative">
-      <div class="col-span-3 flex flex-col overflow-visible relative">
-        <div class="flex-grow flex flex-col overflow-visible relative">
-          <Switch>
-            <Match when={query.isLoading}>
-              <Loading />
-            </Match>
-            <Match when={query.isError}>
-              <Error message={`${query.error}`} />
-            </Match>
-            <Match when={query.isSuccess}>
-              <div class="mb-8 border-b border-gray-700 flex-shrink-0">
-                <ProgramDetails
-                  program={query.data!.program}
-                  profileId={params.profileId}
-                />
-              </div>
-              <div class="flex-grow overflow-visible">
-                <Days summary={query.data!} />
-              </div>
-            </Match>
-          </Switch>
-        </div>
+    <div class="w-full min-h-full overflow-visible 2xl:border-l border-gray-700 p-5 relative">
+      <div class="flex flex-col overflow-visible relative">
+        <Switch>
+          <Match when={query.isLoading}>
+            <Loading />
+          </Match>
+          <Match when={query.isError}>
+            <Error message={`${query.error}`} />
+          </Match>
+          <Match when={query.isSuccess}>
+            <div class="mb-8 border-b border-gray-700 flex-shrink-0">
+              <ProgramDetails
+                program={query.data!.program}
+                profileId={params.profileId}
+              />
+            </div>
+            <div class="flex-grow overflow-visible">
+              <Days summary={query.data!} />
+            </div>
+          </Match>
+        </Switch>
       </div>
     </div>
   );

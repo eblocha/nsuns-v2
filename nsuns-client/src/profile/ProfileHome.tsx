@@ -23,8 +23,8 @@ export const ProfileHome: Component = () => {
   const isFetching = createDelayedLatch(() => programsQuery.isFetching, 200);
 
   return (
-    <div class="2xl:h-full grid grid-rows-2 2xl:grid-rows-1 2xl:grid-cols-8 2xl:overflow-hidden">
-      <div class="2xl:h-full py-12 px-24 2xl:overflow-auto col-span-3">
+    <div class="flex flex-col 2xl:h-full 2xl:grid 2xl:grid-rows-1 2xl:grid-cols-8 2xl:overflow-hidden">
+      <div class="2xl:h-full py-12 px-24 2xl:overflow-auto 2xl:col-span-3">
         <div class="w-full mb-4">
           <div class="mb-4">
             <ProfileGreeting id={params.profileId} />
