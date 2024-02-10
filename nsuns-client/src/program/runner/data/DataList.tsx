@@ -119,34 +119,50 @@ export const DataList: Component = () => {
   });
 
   return (
-    <ul>
-      <Switch>
-        <Match when={isLoading()}>
-          <Loading />
-        </Match>
-        <Match when={isSuccess()}>
-          <For each={maxesToShow()}>
-            {({ movement, maxes, reps }) => (
-              <li class="w-full grid grid-cols-2 gap-4 mt-2">
-                {/* @ts-expect-error: complaining about tagged union types */}
-                <StatRow
-                  movement={movement}
-                  stats={maxes}
-                  type="max"
-                  profileId={profileId()}
-                />
-                <StatRow
-                  movement={movement}
-                  stats={reps}
-                  type="reps"
-                  profileId={profileId()}
-                />
-              </li>
-            )}
-          </For>
-        </Match>
-      </Switch>
-    </ul>
+    <Switch>
+      <Match when={isLoading()}>
+        <Loading />
+      </Match>
+      <Match when={isSuccess()}>
+        <div class="flex-grow w-full overflow-auto grid grid-cols-1 2xl:grid-cols-2">
+          <div>
+            <div class="text-3xl">Maxes</div>
+            <ul>
+              <For each={maxesToShow()}>
+                {({ movement, maxes }) => (
+                  <li class="w-full mt-2">
+                    {/* @ts-expect-error: complaining about tagged union types */}
+                    <StatRow
+                      movement={movement}
+                      stats={maxes}
+                      type="max"
+                      profileId={profileId()}
+                    />
+                  </li>
+                )}
+              </For>
+            </ul>
+          </div>
+          <div>
+            <div class="text-3xl mt-2 2xl:mt-0">Reps</div>
+            <ul>
+              <For each={maxesToShow()}>
+                {({ movement, reps }) => (
+                  <li class="w-full mt-2">
+                    <StatRow
+                      movement={movement}
+                      stats={reps}
+                      type="reps"
+                      profileId={profileId()}
+                    />
+                  </li>
+                )}
+              </For>
+            </ul>
+          </div>
+        </div>
+      </Match>
+    </Switch>
   );
 };
 

@@ -38,8 +38,8 @@ export const ProgramRunner: Component = () => {
             <TitleBanner />
           </div>
         </div>
-        <div class="flex-grow p-5 overflow-hidden grid grid-cols-3">
-          <div class="h-full overflow-hidden flex flex-row items-center">
+        <div class="flex-grow p-5 overflow-hidden grid grid-rows-2 lg:grid-rows-1 lg:grid-cols-7 2xl:grid-cols-3">
+          <div class="w-full lg:h-full overflow-hidden flex flex-row items-center lg:col-span-3 2xl:col-span-1">
             <button
               class="w-10 h-10 m-2 circle-text-button flex flex-row items-center justify-center"
               onClick={decrementDay}
@@ -56,14 +56,8 @@ export const ProgramRunner: Component = () => {
               <ArrowRight />
             </button>
           </div>
-          <div class="col-span-2 h-full flex flex-col gap-4 overflow-hidden">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="text-3xl">Maxes</div>
-              <div class="text-3xl">Reps</div>
-            </div>
-            <div class="flex-grow w-full overflow-auto">
-              <DataList />
-            </div>
+          <div class="w-full lg:h-full lg:col-span-4 2xl:col-span-2 flex flex-col gap-4 overflow-hidden">
+            <DataList />
             <Tools />
           </div>
         </div>
