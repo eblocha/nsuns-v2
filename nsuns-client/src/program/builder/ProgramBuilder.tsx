@@ -1,4 +1,4 @@
-import { useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { Component, Match, Switch } from "solid-js";
 import { Days } from "./Days";
 import { ProgramDetails } from "./ProgramDetails";
@@ -45,11 +45,21 @@ export const ProgramBuilder: Component = () => {
             <Error message={`${query.error}`} />
           </Match>
           <Match when={query.isSuccess}>
-            <div class="mb-8 border-b border-gray-700 flex-shrink-0">
-              <ProgramDetails
-                program={query.data!.program}
-                profileId={params.profileId}
-              />
+            <div class="mb-8 border-b border-gray-700 flex-shrink-0 flex flex-row gap-2">
+              <div class="flex-grow">
+                <ProgramDetails
+                  program={query.data!.program}
+                  profileId={params.profileId}
+                />
+              </div>
+              <div class="flex-shrink-0">
+                <A
+                  href={`/profile/${params.profileId}`}
+                  class="text-button"
+                >
+                  Close
+                </A>
+              </div>
             </div>
             <div class="flex-grow overflow-visible">
               <Days summary={query.data!} />
