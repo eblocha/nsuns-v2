@@ -63,6 +63,7 @@ export const ProfileHome: Component = () => {
                         <ProgramItem
                           program={program}
                           index={i()}
+                          isActive={program.id.toString() === params.programId}
                         />
                       </li>
                     )}

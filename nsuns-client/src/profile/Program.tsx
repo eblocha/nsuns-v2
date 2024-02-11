@@ -68,13 +68,15 @@ const DeleteProgram: Component<{
 export const ProgramItem: Component<{
   program: Program;
   index: number;
+  isActive: boolean;
 }> = (props) => {
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
+  const params = useParams<{ profileId: string }>();
 
   return (
     <>
       <A
-        href={`program/${props.program.id}`}
+        href={props.isActive ? `/profile/${params.profileId}` : `program/${props.program.id}`}
         class={`w-full ${styles.program} hover:bg-gray-900 flex flex-row`}
       >
         <div class="w-full flex flex-row justify-between items-center">
