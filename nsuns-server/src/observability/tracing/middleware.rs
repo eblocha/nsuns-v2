@@ -9,6 +9,7 @@ use axum::{
     Router,
 };
 use tower_http::{trace::TraceLayer, LatencyUnit};
+use tracing_core::Level;
 
 use super::span::{get_trace_id, OpenTelemetryRequestSpan, UpdateSpanOnResponse};
 
@@ -40,30 +41,46 @@ impl fmt::Display for Latency {
     }
 }
 
-pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse {
-    let start = Instant::now();
+struct RequestMetadata {
+    start: Instant,
+    method: String,
+    path: String,
+    query: Option<String>,
+}
 
-    // info to be logged
-    let method = req.method().to_string();
-    let path = req.uri().path().to_string();
-    let query = req.uri().query().map(ToString::to_string);
+fn collect<B>(req: &http::Request<B>) -> RequestMetadata {
+    RequestMetadata {
+        start: Instant::now(),
+        method: req.method().to_string(),
+        path: req.uri().path().to_owned(),
+        query: req.uri().query().map(ToOwned::to_owned),
+    }
+}
+
+pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse {
+    let meta = if tracing::enabled!(Level::INFO) {
+        Some(collect(&req))
+    } else {
+        None
+    };
 
     let res = next.run(req).await;
 
-    let trace_id = get_trace_id(&tracing::Span::current());
+    if let Some(meta) = meta {
+        let trace_id = get_trace_id(&tracing::Span::current());
 
-    let latency = Latency::new_dynamic_unit(start.elapsed());
+        let latency = Latency::new_dynamic_unit(meta.start.elapsed());
 
-    tracing::info!(
-        %latency,
-        status = res.status().as_u16(),
-        method,
-        path,
-        query,
-        trace_id,
-        "finished processing request",
-    );
-
+        tracing::info!(
+            %latency,
+            status = res.status().as_u16(),
+            method = meta.method,
+            path = meta.path,
+            query = meta.query,
+            trace_id,
+            "finished processing request",
+        );
+    }
     res
 }
 

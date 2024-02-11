@@ -201,6 +201,10 @@ pub fn default_service_name() -> String {
     env!("CARGO_PKG_NAME").to_string()
 }
 
+pub fn default_sample_rate() -> f64 {
+    0.1
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct OpenTelemetrySettings {
@@ -215,6 +219,8 @@ pub struct OpenTelemetrySettings {
     pub batch: SpanBatchSettings,
     #[serde(default)]
     pub span_limits: SpanSettings,
+    #[serde(default = "default_sample_rate")]
+    pub sample_rate: f64,
 }
 
 impl Default for OpenTelemetrySettings {
@@ -225,6 +231,7 @@ impl Default for OpenTelemetrySettings {
             service_name: default_service_name(),
             batch: Default::default(),
             span_limits: Default::default(),
+            sample_rate: default_sample_rate(),
         }
     }
 }

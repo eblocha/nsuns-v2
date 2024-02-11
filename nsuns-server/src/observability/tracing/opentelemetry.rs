@@ -35,7 +35,7 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
         .with_batch_config((&settings.batch).into())
         .with_trace_config(
             trace::config()
-                .with_sampler(Sampler::AlwaysOn)
+                .with_sampler(Sampler::TraceIdRatioBased(settings.sample_rate))
                 .with_span_limits((&settings.span_limits).into())
                 .with_id_generator(XrayIdGenerator::default())
                 .with_resource(Resource::new(vec![

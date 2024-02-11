@@ -200,6 +200,7 @@ docker run -d \
   -e "DATABASE_NAME=load_test" \
   -e "DATABASE_HOST=host.docker.internal" \
   -e "OTEL_ENABLED=false" \
+  -e "OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4317" \
   -p 8080:8080 \
   -p 9100:9100 \
   --health-cmd='curl http://localhost:8080/actuator/health || exit 1' \
