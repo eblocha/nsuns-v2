@@ -124,7 +124,7 @@ export const DataList: Component = () => {
         <Loading />
       </Match>
       <Match when={isSuccess()}>
-        <div class="flex-grow w-full overflow-auto grid grid-cols-1 2xl:grid-cols-2">
+        <div class="flex-grow overflow-auto grid grid-cols-1 2xl:grid-cols-2 mx-14 lg:mx-0 mt-4 lg:mt-0">
           <div>
             <div class="text-3xl">Maxes</div>
             <ul>
