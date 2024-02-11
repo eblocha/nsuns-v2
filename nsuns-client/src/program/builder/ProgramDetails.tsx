@@ -37,7 +37,7 @@ export const ProgramDetails: Component<{
 
   return (
     <form
-      class="flex flex-col mb-2"
+      class="flex flex-col"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();

@@ -61,7 +61,7 @@ export const ProgramBuilder: Component = () => {
             <Error message={`${query.error}`} />
           </Match>
           <Match when={query.isSuccess}>
-            <div class="mb-8 border-b border-gray-700 flex-shrink-0 flex flex-row gap-2">
+            <div class="mb-8 pb-2 border-b border-gray-700 flex-shrink-0 flex flex-row items-center gap-2">
               <div class="flex-grow">
                 <ProgramDetails
                   program={query.data!.program}
