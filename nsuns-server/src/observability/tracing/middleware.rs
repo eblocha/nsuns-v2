@@ -8,6 +8,7 @@ use axum::{
     response::IntoResponse,
     Router,
 };
+use http::Method;
 use tower_http::{trace::TraceLayer, LatencyUnit};
 use tracing_core::Level;
 
@@ -43,7 +44,7 @@ impl fmt::Display for Latency {
 
 struct RequestMetadata {
     start: Instant,
-    method: String,
+    method: Method,
     path: String,
     query: Option<String>,
 }
@@ -51,7 +52,7 @@ struct RequestMetadata {
 fn collect<B>(req: &http::Request<B>) -> RequestMetadata {
     RequestMetadata {
         start: Instant::now(),
-        method: req.method().to_string(),
+        method: req.method().clone(),
         path: req.uri().path().to_owned(),
         query: req.uri().query().map(ToOwned::to_owned),
     }
@@ -74,7 +75,7 @@ pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse
         tracing::info!(
             %latency,
             status = res.status().as_u16(),
-            method = meta.method,
+            method = %meta.method,
             path = meta.path,
             query = meta.query,
             trace_id,
