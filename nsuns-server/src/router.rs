@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use axum::{routing::get, Router};
+use axum::{extract::FromRef, routing::get, Router};
 use tower_http::{
     catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
@@ -53,7 +53,22 @@ where
     }
 }
 
-pub fn router(pool: Pool, settings: &Settings) -> anyhow::Result<Router> {
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: Pool,
+}
+
+impl FromRef<AppState> for Pool {
+    fn from_ref(input: &AppState) -> Self {
+        input.pool.clone()
+    }
+}
+
+pub trait State: Clone + Send + Sync + 'static {}
+
+impl<S> State for S where S: Clone + Send + Sync + 'static {}
+
+pub fn router(state: AppState, settings: &Settings) -> anyhow::Result<Router> {
     Ok(Router::new()
         .nest(PROFILES_PATH, profiles::router())
         .nest(PROGRAMS_PATH, program::router())
@@ -62,7 +77,7 @@ pub fn router(pool: Pool, settings: &Settings) -> anyhow::Result<Router> {
         .nest(MAXES_PATH, maxes::router())
         .nest(REPS_PATH, reps::router())
         .nest(UPDATES_PATH, updates::router())
-        .with_state(pool)
+        .with_state(state)
         .route(HEALTH_PATH, get(health_check))
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())

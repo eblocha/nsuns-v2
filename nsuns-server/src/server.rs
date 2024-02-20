@@ -7,7 +7,12 @@ use hyper::{
     Server,
 };
 
-use crate::{db, log_error, router::router, settings::Settings, shutdown::shutdown_signal};
+use crate::{
+    db, log_error,
+    router::{router, AppState},
+    settings::Settings,
+    shutdown::shutdown_signal,
+};
 
 pub fn bind(port: u16) -> anyhow::Result<AddrIncoming> {
     let addr = std::net::SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, port));
@@ -23,7 +28,7 @@ pub async fn initialize(settings: &Settings) -> anyhow::Result<Router> {
         .await
         .map_err(log_error!())?;
 
-    router(pool, settings)
+    router(AppState { pool }, settings)
 }
 
 #[derive(Clone)]
