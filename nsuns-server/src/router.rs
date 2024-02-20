@@ -1,6 +1,7 @@
 use std::path::Path;
 
-use axum::{extract::FromRef, routing::get, Router};
+use axum::{routing::get, Router};
+use axum_macros::FromRef;
 use tower_http::{
     catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
@@ -53,15 +54,9 @@ where
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, FromRef)]
 pub struct AppState {
     pub pool: Pool,
-}
-
-impl FromRef<AppState> for Pool {
-    fn from_ref(input: &AppState) -> Self {
-        input.pool.clone()
-    }
 }
 
 pub trait State: Clone + Send + Sync + 'static {}
