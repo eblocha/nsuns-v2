@@ -4,6 +4,13 @@ use nsuns_server::{
     observability::tracing::setup::setup_tracing, server, settings::Settings,
 };
 
+#[cfg(not(target_env = "msvc"))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let settings = Settings::new()

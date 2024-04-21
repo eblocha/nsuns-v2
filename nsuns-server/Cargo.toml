@@ -60,6 +60,9 @@ utoipa-swagger-ui = { version = "3.1.4", features = ["axum"] }
 uuid = { version = "1.4.0", features = ["serde", "v4"] }
 validator = { version = "0.16.1", features = ["derive"] }
 
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.5"
+
 [dev-dependencies]
 axum-test-helper = "0.3.0"
 cucumber = "0.20.1"
