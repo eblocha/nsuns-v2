@@ -1,13 +1,15 @@
 use std::path::Path;
 
-use axum::{routing::get, Router};
+use axum::{middleware::from_fn_with_state, routing::get, Router};
 use axum_macros::FromRef;
+use tower_cookies::CookieManagerLayer;
 use tower_http::{
     catch_panic::CatchPanicLayer,
     services::{ServeDir, ServeFile},
 };
 
 use crate::{
+    auth::{self, middleware::manage_session},
     db::Pool,
     health::health_check,
     maxes, movements,
@@ -26,6 +28,7 @@ pub const MAXES_PATH: &str = "/api/maxes";
 pub const REPS_PATH: &str = "/api/reps";
 pub const UPDATES_PATH: &str = "/api/updates";
 pub const HEALTH_PATH: &str = "/actuator/health";
+pub const AUTH_PATH: &str = "/api/auth";
 
 trait StaticFiles<P> {
     fn static_files(self, static_dir: Option<P>) -> Self;
@@ -72,7 +75,10 @@ pub fn router(state: AppState, settings: &Settings) -> anyhow::Result<Router> {
         .nest(MAXES_PATH, maxes::router())
         .nest(REPS_PATH, reps::router())
         .nest(UPDATES_PATH, updates::router())
-        .with_state(state)
+        .nest(AUTH_PATH, auth::router())
+        .route_layer(from_fn_with_state(state.clone(), manage_session))
+        .with_state(state.clone())
+        .layer(CookieManagerLayer::new())
         .route(HEALTH_PATH, get(health_check))
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())

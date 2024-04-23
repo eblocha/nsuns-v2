@@ -10,7 +10,7 @@ build = "build.rs"
 [dependencies]
 anyhow = "1.0.72"
 async-trait = "0.1.71"
-axum = "0.6.18"
+axum = { version = "0.6.18", features = ["headers"] }
 axum-macros = "0.3.7"
 chrono = { version = "0.4.26", features = ["serde"] }
 config = "0.13.3"
@@ -28,6 +28,7 @@ opentelemetry-semantic-conventions = "0.12.0"
 opentelemetry-stdout = { version = "0.1.0", features = ["trace"] }
 opentelemetry_api = "0.20.0"
 opentelemetry_sdk = { version = "0.20.0", features = ["rt-tokio", "metrics"] }
+password-auth = "1.0.0"
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.171", features = ["derive"] }
 serde_json = "1.0.103"
@@ -41,8 +42,10 @@ sqlx = { version = "0.7.1", features = [
   "chrono",
 ] }
 thiserror = "1.0.43"
+time = "0.3.36"
 tokio = { version = "1.29.1", features = ["full"] }
 tower = { version = "0.4.13", features = ["util", "timeout"] }
+tower-cookies = { version = "0.9.0", features = ["private"] }
 tower-http = { version = "0.4.1", features = [
   "add-extension",
   "trace",

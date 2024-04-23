@@ -19,3 +19,4 @@ pub mod shutdown;
 pub mod updates;
 pub mod validation;
 mod vec;
+pub mod auth;
