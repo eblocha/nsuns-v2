@@ -70,12 +70,18 @@ async fn login_anonymous(
     keys: &JwtKeys,
     cookies: Cookies,
 ) -> OperationResult<()> {
-    let owner_id = create_anonymous_user(&mut **tx, create_new_expiry_date())
+    let expiry_date = create_new_expiry_date();
+
+    let owner_id = create_anonymous_user(&mut **tx, expiry_date)
         .await
         .context("failed to create new anonymous owner")
         .map_err(into_log_server_error!())?;
 
-    let claims = Claims::generate(owner_id, None);
+    let claims = Claims {
+        owner_id,
+        user_id: None,
+        expiry_date,
+    };
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
     let cookie = create_token_cookie(token);
 

@@ -25,14 +25,10 @@ pub struct Claims {
 
 impl Claims {
     pub fn generate(owner_id: Uuid, user_id: Option<Uuid>) -> Self {
-        let expiry_date = Utc::now()
-            .checked_add_days(Days::new(2))
-            .expect("future timestamp does not overflow");
-
         Self {
             owner_id,
             user_id,
-            expiry_date,
+            expiry_date: create_new_expiry_date(),
         }
     }
 }
