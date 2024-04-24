@@ -13,10 +13,3 @@ CREATE TABLE users (
   CONSTRAINT unique_username UNIQUE (username),
   CONSTRAINT unique_owner UNIQUE (owner_id)
 );
-
-CREATE TABLE sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id UUID NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
-  data BYTEA NOT NULL,
-  expiry_date TIMESTAMPTZ NOT NULL
-);
