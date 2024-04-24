@@ -1,13 +1,13 @@
 import { Component, Show } from "solid-js";
-import { Input } from "../forms/Input";
+import { Input } from "../../forms/Input";
 import { A } from "@solidjs/router";
-import { Spinner } from "../icons/Spinner";
-import { useNavigateToProfileHome } from "../hooks/navigation";
-import { createControl, required } from "../hooks/forms";
-import { ErrorMessages } from "../forms/ErrorMessages";
-import { Warning } from "../icons/Warning";
-import { displayError } from "../util/errors";
-import { createCreateProfileMutation } from "../hooks/queries/profiles";
+import { Spinner } from "../../icons/Spinner";
+import { useNavigateToProfileHome } from "../../hooks/navigation";
+import { createControl, required } from "../../hooks/forms";
+import { ErrorMessages } from "../../forms/ErrorMessages";
+import { Warning } from "../../icons/Warning";
+import { displayError } from "../../util/errors";
+import { createCreateProfileMutation } from "../../hooks/queries/profiles";
 
 export const CreateProfile: Component = () => {
   const navigateToProfileHome = useNavigateToProfileHome();

@@ -24,3 +24,7 @@ enabled = true
 scheduled_delay = "500ms"
 max_concurrent_exports = 2
 max_queue_size = 8192
+
+[auth]
+jwt_encoding_secret = "jwt-secret"
+jwt_decoding_secret = "jwt-secret"

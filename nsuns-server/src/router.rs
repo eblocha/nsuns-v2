@@ -9,7 +9,7 @@ use tower_http::{
 };
 
 use crate::{
-    auth::{self, middleware::manage_session},
+    auth::{self, middleware::manage_tokens, token::JwtKeys},
     db::Pool,
     health::health_check,
     maxes, movements,
@@ -60,6 +60,7 @@ where
 #[derive(Clone, FromRef)]
 pub struct AppState {
     pub pool: Pool,
+    pub keys: JwtKeys,
 }
 
 pub trait State: Clone + Send + Sync + 'static {}
@@ -76,13 +77,13 @@ pub fn router(state: AppState, settings: &Settings) -> anyhow::Result<Router> {
         .nest(REPS_PATH, reps::router())
         .nest(UPDATES_PATH, updates::router())
         .nest(AUTH_PATH, auth::router())
-        .route_layer(from_fn_with_state(state.clone(), manage_session))
         .with_state(state.clone())
+        .route_layer(from_fn_with_state(state.clone(), manage_tokens))
         .layer(CookieManagerLayer::new())
-        .route(HEALTH_PATH, get(health_check))
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
         .static_files(settings.server.static_dir.as_ref())
+        .route(HEALTH_PATH, get(health_check))
         .with_metrics(&settings.metrics)
         .with_tracing())
 }

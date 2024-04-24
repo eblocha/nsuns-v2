@@ -1,4 +1,5 @@
 use axum::headers::authorization::Basic;
+use chrono::{DateTime, Utc};
 use const_format::formatcp;
 use password_auth::{verify_password, ParseError, VerifyError};
 use secrecy::{ExposeSecret, SecretString};
@@ -9,7 +10,10 @@ use uuid::Uuid;
 
 use crate::{
     db::{
-        tracing::{statements::SELECT, InstrumentExecutor},
+        tracing::{
+            statements::{DELETE_FROM, INSERT_INTO, SELECT},
+            InstrumentExecutor,
+        },
         DB,
     },
     db_span,
@@ -20,6 +24,7 @@ const TABLE: &str = "users";
 #[derive(Debug, Clone, Deserialize)]
 pub struct User {
     pub id: Uuid,
+    pub owner_id: Uuid,
     pub username: String,
     password_hash: SecretString,
 }
@@ -27,6 +32,7 @@ pub struct User {
 #[derive(Clone, Serialize, Deserialize, FromRow)]
 struct UserRow {
     id: Uuid,
+    owner_id: Uuid,
     username: String,
     password_hash: String,
 }
@@ -35,6 +41,7 @@ impl From<UserRow> for User {
     fn from(value: UserRow) -> Self {
         User {
             id: value.id,
+            owner_id: value.owner_id,
             username: value.username,
             password_hash: value.password_hash.into(),
         }
@@ -74,4 +81,31 @@ pub async fn authenticate(
     } else {
         Ok(None)
     }
+}
+
+pub async fn create_anonymous_user(
+    executor: impl Executor<'_, Database = DB>,
+    expiry_date: DateTime<Utc>,
+) -> Result<Uuid, Error> {
+    let id = sqlx::query_as::<_, (Uuid,)>(formatcp!(
+        "{INSERT_INTO} owners (expiry_date) VALUES ($1) RETURNING id"
+    ))
+    .bind(expiry_date)
+    .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, "owners")))
+    .await?
+    .0;
+
+    Ok(id)
+}
+
+pub async fn delete_owner(
+    executor: impl Executor<'_, Database = DB>,
+    id: Uuid,
+) -> Result<(), Error> {
+    sqlx::query(formatcp!("{DELETE_FROM} owners WHERE id = $1"))
+        .bind(id)
+        .execute(executor.instrument_executor(db_span!(DELETE_FROM, "owners")))
+        .await?;
+
+    Ok(())
 }

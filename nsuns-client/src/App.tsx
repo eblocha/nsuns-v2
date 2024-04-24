@@ -1,19 +1,27 @@
 import { Route, Router, Routes } from "@solidjs/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { Component } from "solid-js";
-import { Login } from "./login/Login";
-import { CreateProfile } from "./login/CreateProfile";
+import { SelectProfile } from "./profile/entry/SelectProfile";
+import { CreateProfile } from "./profile/entry/CreateProfile";
 import { ProfileHome } from "./profile/ProfileHome";
 import { NewProgram } from "./program/NewProgram";
 import { ProgramBuilder } from "./program/builder/ProgramBuilder";
 import { ProgramRunner } from "./program/runner/ProgramRunner";
 import { NotFound } from "./NotFound";
+import { ApiError } from "./api";
+import { Login } from "./login/Login";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       staleTime: 200,
+      retry: (count, error: unknown) => {
+        if (error instanceof ApiError) {
+          return error.status !== 401 && error.status !== 403 && error.status !== 0 && count < 3;
+        }
+        return count < 3;
+      },
     },
   },
 });
@@ -25,6 +33,10 @@ export const App: Component = () => {
         <Routes>
           <Route
             path="/"
+            component={SelectProfile}
+          />
+          <Route
+            path="/login"
             component={Login}
           />
           <Route

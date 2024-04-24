@@ -1,12 +1,10 @@
 use anyhow::{anyhow, Context};
 use axum::{
-    extract::{Query, State},
+    extract::State,
     headers::{authorization::Basic, Authorization},
-    response::Redirect,
     TypedHeader,
 };
 use http::StatusCode;
-use serde::Deserialize;
 use sqlx::Transaction;
 use tower_cookies::{Cookie, Cookies};
 use transaction::{acquire, commit_ok};
@@ -18,31 +16,13 @@ use crate::{
 };
 
 use super::{
-    session::{
-        delete_session, delete_sessions_for_user, get_session_id_from_cookies, new_user_session,
-        COOKIE_NAME,
-    },
-    user::authenticate,
+    token::{create_new_expiry_date, create_token_cookie, Claims, JwtKeys, COOKIE_NAME},
+    user::{authenticate, create_anonymous_user, delete_owner},
 };
-
-#[derive(Debug, Deserialize)]
-pub struct LoginQuery {
-    pub next: Option<String>,
-}
-
-impl LoginQuery {
-    pub fn to_redirect(&self) -> Redirect {
-        if let Some(ref next) = self.next {
-            // TODO handle invalid URI
-            Redirect::to(next.as_str())
-        } else {
-            Redirect::to("/")
-        }
-    }
-}
 
 async fn login_user(
     tx: &mut Transaction<'_, DB>,
+    keys: &JwtKeys,
     auth: Basic,
     cookies: Cookies,
 ) -> OperationResult<()> {
@@ -61,79 +41,84 @@ async fn login_user(
         }
     };
 
-    // delete current user session if it exists
-    delete_sessions_for_user(tx, user.id)
-        .await
-        .with_context(|| format!("Failed to delete sessions for username={}", user.username))
-        .map_err(into_log_server_error!())?;
+    let claims = Claims::generate(user.owner_id, Some(user.id));
+    let token = keys.encode(&claims).map_err(into_log_server_error!())?;
+    let cookie = create_token_cookie(token);
 
-    // delete session stored in cookie if it exists
-    if let Some(session_id) = get_session_id_from_cookies(&cookies) {
-        delete_session(&mut **tx, session_id)
-            .await
-            .context("failed to delete current session")
-            .map_err(into_log_server_error!())?;
-    }
-
-    // create a new session
-    new_user_session(tx, Some(user.id), cookies)
-        .await
-        .context("failed to create new session")
-        .map_err(into_log_server_error!())?;
+    cookies.add(cookie);
 
     Ok(())
 }
 
 pub async fn login(
     State(pool): State<Pool>,
+    State(keys): State<JwtKeys>,
     TypedHeader(Authorization(creds)): TypedHeader<Authorization<Basic>>,
-    Query(query): Query<LoginQuery>,
     cookies: Cookies,
-) -> OperationResult<Redirect> {
+) -> OperationResult<()> {
     let mut tx = transaction(&pool).await?;
 
-    let res = login_user(&mut tx, creds, cookies).await;
+    let res = login_user(&mut tx, &keys, creds, cookies).await;
 
     commit_ok(res, tx).await?;
 
-    Ok(query.to_redirect())
+    Ok(())
 }
 
-pub async fn anonymous_session(
-    State(pool): State<Pool>,
-    Query(query): Query<LoginQuery>,
+async fn login_anonymous(
+    tx: &mut Transaction<'_, DB>,
+    keys: &JwtKeys,
     cookies: Cookies,
-) -> OperationResult<Redirect> {
+) -> OperationResult<()> {
+    let owner_id = create_anonymous_user(&mut **tx, create_new_expiry_date())
+        .await
+        .context("failed to create new anonymous owner")
+        .map_err(into_log_server_error!())?;
+
+    let claims = Claims::generate(owner_id, None);
+    let token = keys.encode(&claims).map_err(into_log_server_error!())?;
+    let cookie = create_token_cookie(token);
+
+    cookies.add(cookie);
+
+    Ok(())
+}
+
+pub async fn anonymous(
+    State(pool): State<Pool>,
+    State(keys): State<JwtKeys>,
+    cookies: Cookies,
+) -> OperationResult<()> {
     let mut tx = transaction(&pool).await?;
 
-    let res = new_user_session(&mut tx, None, cookies)
-        .await
-        .context("failed to create new session")
-        .map_err(into_log_server_error!());
+    let res = login_anonymous(&mut tx, &keys, cookies).await;
 
     commit_ok(res, tx).await?;
 
-    Ok(query.to_redirect())
+    Ok(())
 }
 
 pub async fn logout(
     State(pool): State<Pool>,
-    Query(query): Query<LoginQuery>,
+    State(keys): State<JwtKeys>,
     cookies: Cookies,
-) -> OperationResult<Redirect> {
-    let mut conn = acquire(&pool).await?;
+) -> OperationResult<()> {
+    cookies.remove(Cookie::new(COOKIE_NAME, ""));
 
-    if let Some(cookie) = cookies.get(COOKIE_NAME) {
-        // delete session if it exists
-        if let Ok(session_id) = cookie.value().parse() {
-            delete_session(&mut *conn, session_id)
+    if let Some(claims) = cookies
+        .get(COOKIE_NAME)
+        .and_then(|cookie| cookie.value_raw())
+        .and_then(|token| keys.decode(token).ok())
+    {
+        // delete owner from db if it is anonymous
+        if claims.user_id.is_none() {
+            let mut conn = acquire(&pool).await?;
+            delete_owner(&mut *conn, claims.owner_id)
                 .await
-                .context("Failed to delete session")
+                .context("failed to delete anonymous owner")
                 .map_err(into_log_server_error!())?;
         }
-
-        cookies.remove(Cookie::new(COOKIE_NAME, ""));
     }
 
-    Ok(query.to_redirect())
+    Ok(())
 }
