@@ -30,6 +30,7 @@ function randomName() {
 }
 
 let profile;
+let cookie;
 let program;
 
 const checks = {
@@ -38,11 +39,22 @@ const checks = {
 };
 
 export default function () {
-  if (!profile) {
+  if (!profile || !cookie) {
+    // create anonymous session
+    const auth = http.post(`http://${host}/api/auth/anonymous`);
+
+    check(auth, {
+      "is-ok": auth.status === 200,
+      "has-cookie": auth.cookies["JWT"] && auth.cookies["JWT"].length,
+    });
+
+    cookie = auth.cookies["JWT"][0].value;
+
     const sets = 8;
 
     const headers = {
       "content-type": "application/json",
+      Cookie: "JWT=" + encodeURIComponent(cookie),
     };
 
     // create a profile
@@ -98,12 +110,12 @@ export default function () {
         const set_res = http.post(
           `http://${host}/api/sets`,
           JSON.stringify({
-            program_id: program.id,
-            movement_id,
+            programId: program.id,
+            movementId: movement_id,
             day,
             reps: 8,
-            amount: 10,
-            percentage_of_max: movement_id,
+            amount: 75,
+            percentageOfMax: movement_id,
           }),
           { headers }
         );
@@ -116,7 +128,11 @@ export default function () {
   }
 
   // get the summary
-  const res = http.get(`http://${host}/api/programs/${program.id}`);
+  const res = http.get(`http://${host}/api/programs/${program.id}`, {
+    headers: {
+      Cookie: "JWT=" + encodeURIComponent(cookie),
+    },
+  });
 
   check(res, {
     "is ok": (response) => response.status === 200,
