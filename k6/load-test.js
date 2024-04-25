@@ -33,19 +33,14 @@ let profile;
 let cookie;
 let program;
 
-const checks = {
-  "is created": (response) => response.status === 201,
-  "body is json": (response) => response.body.startsWith("{"),
-};
-
 export default function () {
   if (!profile || !cookie) {
     // create anonymous session
     const auth = http.post(`http://${host}/api/auth/anonymous`);
 
     check(auth, {
-      "is-ok": auth.status === 200,
-      "has-cookie": auth.cookies["JWT"] && auth.cookies["JWT"].length,
+      "auth is ok": auth.status === 204,
+      "auth has cookie": auth.cookies["JWT"] && auth.cookies["JWT"].length,
     });
 
     cookie = auth.cookies["JWT"][0].value;
@@ -66,7 +61,10 @@ export default function () {
       { headers }
     );
 
-    check(profiles_res, checks);
+    check(profiles_res, {
+      "profile is created": (response) => response.status === 201,
+      "profile create response body is json": (response) => response.body.startsWith("{"),
+    });
 
     profile = JSON.parse(profiles_res.body);
 
@@ -82,7 +80,10 @@ export default function () {
       { headers }
     );
 
-    check(program_res, checks);
+    check(program_res, {
+      "program is created": (response) => response.status === 201,
+      "program create response body is json": (response) => response.body.startsWith("{"),
+    });
 
     program = JSON.parse(program_res.body);
 
@@ -99,7 +100,10 @@ export default function () {
         { headers }
       );
 
-      check(res, checks);
+      check(res, {
+        "movement is created": (response) => response.status === 201,
+        "movement create response body is json": (response) => response.body.startsWith("{"),
+      });
 
       const movement_id = JSON.parse(res.body).id;
 
@@ -120,7 +124,10 @@ export default function () {
           { headers }
         );
 
-        check(set_res, checks);
+        check(set_res, {
+          "set is created": (response) => response.status === 201,
+          "set create response body is json": (response) => response.body.startsWith("{"),
+        });
       }
     }
 
@@ -135,8 +142,8 @@ export default function () {
   });
 
   check(res, {
-    "is ok": (response) => response.status === 200,
-    "body is json": (response) => response.body.startsWith("{"),
+    "summary is ok": (response) => response.status === 200,
+    "summary response body is json": (response) => response.body.startsWith("{"),
   });
 
   sleep(1);

@@ -3,7 +3,7 @@ use axum::{extract::State, response::IntoResponse, Json};
 use crate::{
     auth::token::OwnerId,
     db::{acquire, Pool},
-    response_transforms::or_404,
+    response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
 
@@ -22,7 +22,11 @@ pub async fn create_movement(
     ValidatedJson(movement): ValidatedJson<CreateMovement>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    movement.insert_one(owner_id, &mut *conn).await.map(Json)
+    movement
+        .insert_one(owner_id, &mut *conn)
+        .await
+        .map(Json)
+        .map(created)
 }
 
 #[tracing::instrument(skip_all)]

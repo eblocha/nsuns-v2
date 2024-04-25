@@ -56,14 +56,14 @@ pub async fn login(
     State(keys): State<JwtKeys>,
     TypedHeader(Authorization(creds)): TypedHeader<Authorization<Basic>>,
     cookies: Cookies,
-) -> OperationResult<()> {
+) -> OperationResult<StatusCode> {
     let mut tx = transaction(&pool).await?;
 
     let res = login_user(&mut tx, &keys, creds, cookies).await;
 
     commit_ok(res, tx).await?;
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn login_anonymous(
@@ -96,14 +96,14 @@ pub async fn anonymous(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
     cookies: Cookies,
-) -> OperationResult<()> {
+) -> OperationResult<StatusCode> {
     let mut tx = transaction(&pool).await?;
 
     let res = login_anonymous(&mut tx, &keys, cookies).await;
 
     commit_ok(res, tx).await?;
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
 
 #[tracing::instrument(skip_all)]
@@ -111,7 +111,7 @@ pub async fn logout(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
     cookies: Cookies,
-) -> OperationResult<()> {
+) -> OperationResult<StatusCode> {
     cookies.remove(Cookie::named(COOKIE_NAME));
 
     if let Some(claims) = cookies
@@ -129,5 +129,5 @@ pub async fn logout(
         }
     }
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }

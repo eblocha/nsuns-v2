@@ -18,5 +18,5 @@ async fn anonymous(world: &mut NsunsWorld) {
         world.auth_cookie = Some(cookie.value().to_owned())
     }
 
-    assert_eq!(StatusCode::OK, res.status());
+    assert_eq!(StatusCode::NO_CONTENT, res.status());
 }
