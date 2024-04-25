@@ -93,7 +93,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 11,
         "x": 0,
         "y": 1
       },
@@ -139,40 +139,6 @@
             "fixedColor": "orange",
             "mode": "fixed"
           },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineStyle": {
-              "fill": "solid"
-            },
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -188,39 +154,49 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 13,
+        "x": 11,
         "y": 1
       },
-      "id": 11,
+      "id": 1,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
+        "displayMode": "basic",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showUnfilled": false,
+        "valueMode": "hidden"
       },
+      "pluginVersion": "10.1.1",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum(http_server_active_requests{otel_scope_name=\"$service\"})",
+          "exemplar": false,
+          "expr": "sum(http_server_request_duration_bucket{otel_scope_name=\"$service\"}) by (le)",
+          "format": "heatmap",
+          "fullMetaSearch": false,
+          "includeNullMetadata": false,
           "instant": false,
-          "legendFormat": "active requests",
+          "legendFormat": "{{le}}",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
-      "title": "Active Requests",
-      "type": "timeseries"
+      "title": "Response Time (s)",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -284,7 +260,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 11,
         "x": 0,
         "y": 9
       },
@@ -353,8 +329,178 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "pointSize": {
+              "fixed": 5
+            },
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "show": "points"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 11,
+        "y": 9
+      },
+      "id": 13,
+      "options": {
+        "dims": {
+          "frame": 0
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "series": [
+          {
+            "pointColor": {},
+            "x": "Throughput",
+            "y": "Latency P(99)"
+          },
+          {
+            "pointColor": {},
+            "x": "Throughput",
+            "y": "Latency P(50)"
+          }
+        ],
+        "seriesMapping": "manual",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_request_duration_bucket{otel_scope_name=\"nsuns-server\"}[$rate])) by (le))",
+          "format": "time_series",
+          "instant": false,
+          "legendFormat": "Latency P(99)",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_request_duration_bucket{otel_scope_name=\"nsuns-server\"}[$rate])) by (le))",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Latency P(50)",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(rate(http_server_request_duration_count{otel_scope_name=\"nsuns-server\"}[$rate]))",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Throughput",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Throughput vs Latency",
+      "transformations": [
+        {
+          "id": "concatenate",
+          "options": {
+            "frameNameLabel": "frame",
+            "frameNameMode": "drop"
+          }
+        }
+      ],
+      "type": "xychart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "fixedColor": "orange",
             "mode": "fixed"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -371,49 +517,39 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 7,
+        "x": 17,
         "y": 9
       },
-      "id": 1,
+      "id": 11,
       "options": {
-        "displayMode": "basic",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
-        "showUnfilled": false,
-        "valueMode": "hidden"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
-      "pluginVersion": "10.1.1",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "disableTextWrap": false,
           "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum(http_server_request_duration_bucket{otel_scope_name=\"$service\"}) by (le)",
-          "format": "heatmap",
-          "fullMetaSearch": false,
-          "includeNullMetadata": false,
+          "expr": "sum(http_server_active_requests{otel_scope_name=\"$service\"})",
           "instant": false,
-          "legendFormat": "{{le}}",
+          "legendFormat": "active requests",
           "range": true,
-          "refId": "A",
-          "useBackend": false
+          "refId": "A"
         }
       ],
-      "title": "Response Time (s)",
-      "type": "bargauge"
+      "title": "Active Requests",
+      "type": "timeseries"
     },
     {
       "collapsed": false,
@@ -838,8 +974,8 @@
         "auto_min": "10s",
         "current": {
           "selected": false,
-          "text": "1m",
-          "value": "1m"
+          "text": "15s",
+          "value": "15s"
         },
         "description": "The time window to use to compute rates",
         "hide": 0,
@@ -847,7 +983,7 @@
         "name": "rate",
         "options": [
           {
-            "selected": false,
+            "selected": true,
             "text": "15s",
             "value": "15s"
           },
@@ -857,7 +993,7 @@
             "value": "30s"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "1m",
             "value": "1m"
           },
@@ -876,13 +1012,13 @@
     ]
   },
   "time": {
-    "from": "2023-11-12T23:55:25.901Z",
-    "to": "2023-11-13T00:12:41.632Z"
+    "from": "2024-04-25T03:08:32.478Z",
+    "to": "2024-04-25T03:15:30.029Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Server Health",
   "uid": "e5b410e2-eac8-4b0a-aaab-edd622afe36c",
-  "version": 48,
+  "version": 52,
   "weekStart": ""
 }
