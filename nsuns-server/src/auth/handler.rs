@@ -50,6 +50,7 @@ async fn login_user(
     Ok(())
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn login(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
@@ -70,9 +71,9 @@ async fn login_anonymous(
     keys: &JwtKeys,
     cookies: Cookies,
 ) -> OperationResult<()> {
-    let expiry_date = create_new_expiry_date();
+    let exp = create_new_expiry_date();
 
-    let owner_id = create_anonymous_user(&mut **tx, expiry_date)
+    let owner_id = create_anonymous_user(&mut **tx, exp)
         .await
         .context("failed to create new anonymous owner")
         .map_err(into_log_server_error!())?;
@@ -80,7 +81,7 @@ async fn login_anonymous(
     let claims = Claims {
         owner_id,
         user_id: None,
-        expiry_date,
+        exp,
     };
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
     let cookie = create_token_cookie(token);
@@ -90,6 +91,7 @@ async fn login_anonymous(
     Ok(())
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn anonymous(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
@@ -104,12 +106,13 @@ pub async fn anonymous(
     Ok(())
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn logout(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
     cookies: Cookies,
 ) -> OperationResult<()> {
-    cookies.remove(Cookie::new(COOKIE_NAME, ""));
+    cookies.remove(Cookie::named(COOKIE_NAME));
 
     if let Some(claims) = cookies
         .get(COOKIE_NAME)

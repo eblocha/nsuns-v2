@@ -1,7 +1,12 @@
 use std::path::Path;
 
-use axum::{middleware::from_fn_with_state, routing::get, Router};
+use axum::{
+    middleware::{from_fn, from_fn_with_state},
+    routing::get,
+    Router,
+};
 use axum_macros::FromRef;
+use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{
     catch_panic::CatchPanicLayer,
@@ -9,7 +14,11 @@ use tower_http::{
 };
 
 use crate::{
-    auth::{self, middleware::manage_tokens, token::JwtKeys},
+    auth::{
+        self,
+        middleware::{manage_tokens, redirect_on_missing_auth_cookie},
+        token::JwtKeys,
+    },
     db::Pool,
     health::health_check,
     maxes, movements,
@@ -45,10 +54,15 @@ where
             path_buf.push("index.html");
 
             let serve_dir = ServeDir::new(static_dir)
+                .append_index_html_on_directories(false)
                 .precompressed_gzip()
                 .precompressed_br()
                 .precompressed_deflate()
-                .not_found_service(ServeFile::new(path_buf));
+                .fallback(
+                    ServiceBuilder::new()
+                        .layer(from_fn(redirect_on_missing_auth_cookie))
+                        .service(ServeFile::new(path_buf)),
+                );
 
             self.fallback_service(serve_dir)
         } else {
@@ -79,10 +93,10 @@ pub fn router(state: AppState, settings: &Settings) -> anyhow::Result<Router> {
         .nest(AUTH_PATH, auth::router())
         .with_state(state.clone())
         .route_layer(from_fn_with_state(state.clone(), manage_tokens))
-        .layer(CookieManagerLayer::new())
         .with_openapi(&settings.openapi)
         .layer(CatchPanicLayer::new())
         .static_files(settings.server.static_dir.as_ref())
+        .layer(CookieManagerLayer::new())
         .route(HEALTH_PATH, get(health_check))
         .with_metrics(&settings.metrics)
         .with_tracing())

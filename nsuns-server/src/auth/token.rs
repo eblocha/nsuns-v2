@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use chrono::{DateTime, Days, Utc};
+use chrono::{serde::ts_milliseconds, DateTime, Days, Utc};
 use http::StatusCode;
 use jsonwebtoken::{
     decode, encode,
@@ -20,7 +20,8 @@ use super::settings::AuthSettings;
 pub struct Claims {
     pub owner_id: Uuid,
     pub user_id: Option<Uuid>,
-    pub expiry_date: DateTime<Utc>,
+    #[serde(with = "ts_milliseconds")]
+    pub exp: DateTime<Utc>,
 }
 
 impl Claims {
@@ -28,7 +29,7 @@ impl Claims {
         Self {
             owner_id,
             user_id,
-            expiry_date: create_new_expiry_date(),
+            exp: create_new_expiry_date(),
         }
     }
 }
@@ -69,8 +70,8 @@ impl From<Error> for ErrorWithStatus<anyhow::Error> {
     fn from(error: Error) -> Self {
         let status_code = match error.kind() {
             ErrorKind::InvalidToken => StatusCode::BAD_REQUEST,
-            ErrorKind::MissingRequiredClaim(_) => StatusCode::FORBIDDEN,
-            ErrorKind::ExpiredSignature
+            ErrorKind::MissingRequiredClaim(_)
+            | ErrorKind::ExpiredSignature
             | ErrorKind::InvalidIssuer
             | ErrorKind::InvalidAudience
             | ErrorKind::InvalidSubject

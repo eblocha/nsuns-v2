@@ -1,33 +1,30 @@
-use anyhow::{anyhow, Context};
-use axum::{extract::State, middleware::Next, response::Response};
-use chrono::Utc;
-use http::{Request, StatusCode};
-use tower_cookies::{Cookie, Cookies};
-use uuid::Uuid;
-
-use crate::{
-    error::{ErrorWithStatus, OperationResult},
-    into_log_server_error,
+use anyhow::anyhow;
+use axum::{
+    extract::State,
+    middleware::Next,
+    response::{IntoResponse, Redirect, Response},
 };
+use chrono::Utc;
+use http::{Request, StatusCode, Uri};
+use tower_cookies::{Cookie, Cookies};
 
-use super::token::{create_token_cookie, Claims, JwtKeys, COOKIE_NAME};
+use crate::error::{ErrorWithStatus, OperationResult};
 
-fn renew_token(
-    keys: &JwtKeys,
-    cookies: &Cookies,
-    expired_claims: &Claims,
-    user_id: Uuid,
-) -> OperationResult<Claims> {
-    let new_claims = Claims::generate(expired_claims.owner_id, Some(user_id));
+use super::token::{JwtKeys, COOKIE_NAME};
 
-    let token = keys
-        .encode(&new_claims)
-        .context("failed to generate new token")
-        .map_err(into_log_server_error!())?;
-
-    cookies.add(create_token_cookie(token));
-
-    Ok(new_claims)
+pub async fn redirect_on_missing_auth_cookie<B>(
+    cookies: Cookies,
+    uri: Uri,
+    request: Request<B>,
+    next: Next<B>,
+) -> Response {
+    if cookies.get(COOKIE_NAME).is_none() && uri.path() != "/login" {
+        Redirect::to("/login").into_response()
+    } else if cookies.get(COOKIE_NAME).is_some() && uri.path() == "/login" {
+        Redirect::to("/").into_response()
+    } else {
+        next.run(request).await
+    }
 }
 
 pub async fn manage_tokens<B>(
@@ -38,19 +35,14 @@ pub async fn manage_tokens<B>(
 ) -> OperationResult<Response> {
     if let Some(token) = cookies
         .get(COOKIE_NAME)
-        .and_then(|cookie| cookie.value_raw())
+        .map(|cookie| cookie.value().to_owned())
     {
-        let mut claims = keys.decode(token)?;
+        // TODO determine if we should remove the cookie
+        let claims = keys.decode(&token)?;
 
-        if Utc::now().gt(&claims.expiry_date) {
-            if let Some(user_id) = claims.user_id {
-                // automatically generate a new session if the existing one is expired and not anonymous
-                claims = renew_token(&keys, &cookies, &claims, user_id)?;
-            } else {
-                // expired anonymous user
-                cookies.remove(Cookie::named(COOKIE_NAME));
-                return Err(ErrorWithStatus::new(StatusCode::UNAUTHORIZED, anyhow!("")));
-            }
+        if Utc::now().gt(&claims.exp) {
+            cookies.remove(Cookie::named(COOKIE_NAME));
+            return Err(ErrorWithStatus::new(StatusCode::UNAUTHORIZED, anyhow!("")));
         }
 
         request.extensions_mut().insert(claims);

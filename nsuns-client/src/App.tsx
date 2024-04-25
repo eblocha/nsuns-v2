@@ -16,7 +16,7 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       staleTime: 200,
-      retry: (count, error: unknown) => {
+      retry: (count, error) => {
         if (error instanceof ApiError) {
           return error.status !== 401 && error.status !== 403 && error.status !== 0 && count < 3;
         }
@@ -26,46 +26,52 @@ const queryClient = new QueryClient({
   },
 });
 
+const RoutingApp: Component = () => {
+  return (
+    <Routes>
+      <Route
+        path="/"
+        component={SelectProfile}
+      />
+      <Route
+        path="/login"
+        component={Login}
+      />
+      <Route
+        path="/profile/new"
+        component={CreateProfile}
+      />
+      <Route
+        path="/profile/:profileId"
+        component={ProfileHome}
+      >
+        <Route path="/" />
+        <Route
+          path="program/new"
+          component={NewProgram}
+        />
+        <Route
+          path="program/:programId"
+          component={ProgramBuilder}
+        />
+      </Route>
+      <Route
+        path="/profile/:profileId/program/:programId/run"
+        component={ProgramRunner}
+      />
+      <Route
+        path="*"
+        component={NotFound}
+      />
+    </Routes>
+  );
+};
+
 export const App: Component = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <Routes>
-          <Route
-            path="/"
-            component={SelectProfile}
-          />
-          <Route
-            path="/login"
-            component={Login}
-          />
-          <Route
-            path="/profile/new"
-            component={CreateProfile}
-          />
-          <Route
-            path="/profile/:profileId"
-            component={ProfileHome}
-          >
-            <Route path="/" />
-            <Route
-              path="program/new"
-              component={NewProgram}
-            />
-            <Route
-              path="program/:programId"
-              component={ProgramBuilder}
-            />
-          </Route>
-          <Route
-            path="/profile/:profileId/program/:programId/run"
-            component={ProgramRunner}
-          />
-          <Route
-            path="*"
-            component={NotFound}
-          />
-        </Routes>
+        <RoutingApp />
       </Router>
     </QueryClientProvider>
   );
