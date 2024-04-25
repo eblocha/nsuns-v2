@@ -117,7 +117,7 @@ impl From<Error> for ErrorWithStatus<anyhow::Error> {
             anyhow!("")
         };
 
-        return ErrorWithStatus::new(status_code, anyhow_err);
+        ErrorWithStatus::new(status_code, anyhow_err)
     }
 }
 

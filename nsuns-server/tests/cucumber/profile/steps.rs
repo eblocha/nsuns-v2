@@ -5,7 +5,10 @@ use nsuns_server::{
     router::PROFILES_PATH,
 };
 
-use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
+use crate::{
+    util::{Auth, JsonBody},
+    world::NsunsWorld,
+};
 
 #[when(regex = r#"^I create a profile with name "(.*)""#)]
 #[given(regex = r#"^A profile with name "(.*)" exists"#)]

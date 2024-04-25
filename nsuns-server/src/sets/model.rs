@@ -74,11 +74,13 @@ impl Set {
         owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Set>, sqlx::Error> {
-        sqlx::query_as::<_, Set>(formatcp!("{SELECT} * FROM {TABLE} WHERE id = any($1) AND owner_id = $2",))
-            .bind(ids)
-            .bind(owner_id)
-            .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
-            .await
+        sqlx::query_as::<_, Set>(formatcp!(
+            "{SELECT} * FROM {TABLE} WHERE id = any($1) AND owner_id = $2",
+        ))
+        .bind(ids)
+        .bind(owner_id)
+        .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
+        .await
     }
 }
 

@@ -2,7 +2,10 @@ use cucumber::given;
 use hyper::StatusCode;
 use nsuns_server::{reps::model::CreateReps, router::REPS_PATH};
 
-use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
+use crate::{
+    util::{Auth, JsonBody},
+    world::NsunsWorld,
+};
 
 #[given(regex = r#"I have (\d+) reps? in "(.*)""#)]
 async fn create_reps(world: &mut NsunsWorld, reps: i32, movement_name: String) {

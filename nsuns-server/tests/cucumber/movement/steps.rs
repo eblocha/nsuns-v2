@@ -5,7 +5,10 @@ use nsuns_server::{
     router::MOVEMENTS_PATH,
 };
 
-use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
+use crate::{
+    util::{Auth, JsonBody},
+    world::NsunsWorld,
+};
 
 #[when(regex = r#"I create a movement with name "(.*)""#)]
 #[given(regex = r#"A movement with name "(.*)" exists"#)]

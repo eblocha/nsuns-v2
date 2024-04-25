@@ -7,7 +7,10 @@ use nsuns_server::{
     sets::model::{CreateSet, Day, Set},
 };
 
-use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
+use crate::{
+    util::{Auth, JsonBody},
+    world::NsunsWorld,
+};
 
 fn day_from_str(day: &str) -> Day {
     match day {

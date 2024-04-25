@@ -5,7 +5,10 @@ use nsuns_server::{
     router::PROGRAMS_PATH,
 };
 
-use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
+use crate::{
+    util::{Auth, JsonBody},
+    world::NsunsWorld,
+};
 
 #[when(regex = r#"^I create a program with name "(.*)""#)]
 #[given(regex = r#"A program with name "(.*)" exists"#)]

@@ -1,5 +1,6 @@
 use cucumber::World;
 
+mod auth;
 mod common;
 mod maxes;
 mod movement;
@@ -10,7 +11,6 @@ mod sets;
 mod updates;
 mod util;
 mod world;
-mod auth;
 
 #[tokio::main]
 async fn main() {

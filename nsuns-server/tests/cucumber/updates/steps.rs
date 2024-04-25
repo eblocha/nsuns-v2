@@ -1,7 +1,10 @@
 use cucumber::when;
 use nsuns_server::{router::UPDATES_PATH, updates::handler::Updates};
 
-use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
+use crate::{
+    util::{Auth, JsonBody},
+    world::NsunsWorld,
+};
 
 fn get_updates(world: &NsunsWorld) -> Updates {
     let profile_id = world.profile_world.unwrap_profile().id;

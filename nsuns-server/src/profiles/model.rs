@@ -64,21 +64,23 @@ impl Profile {
         owner_id: OwnerId,
         tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query(formatcp!("{UPDATE} {TABLE} SET name = $1 WHERE id = $2 AND owner_id = $3"))
-            .bind(&self.name)
-            .bind(self.id)
-            .bind(owner_id)
-            .execute((&mut **tx).instrument_executor(db_span!(UPDATE, TABLE)))
-            .await
-            .with_context(|| format!("failed to update profile with id={id}", id = self.id))
-            .map(|result| {
-                if result.rows_affected() == 0 {
-                    None
-                } else {
-                    Some(self)
-                }
-            })
-            .map_err(into_log_server_error!())
+        sqlx::query(formatcp!(
+            "{UPDATE} {TABLE} SET name = $1 WHERE id = $2 AND owner_id = $3"
+        ))
+        .bind(&self.name)
+        .bind(self.id)
+        .bind(owner_id)
+        .execute((&mut **tx).instrument_executor(db_span!(UPDATE, TABLE)))
+        .await
+        .with_context(|| format!("failed to update profile with id={id}", id = self.id))
+        .map(|result| {
+            if result.rows_affected() == 0 {
+                None
+            } else {
+                Some(self)
+            }
+        })
+        .map_err(into_log_server_error!())
     }
 
     pub async fn delete_one(
