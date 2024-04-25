@@ -48,11 +48,15 @@ pub async fn create_program(
     ValidatedJson(program): ValidatedJson<CreateProgram>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    program
-        .insert_one(owner_id, &mut *conn)
+    let mut tx = transaction(&mut *conn).await?;
+
+    let res = program
+        .insert_one(owner_id, &mut tx)
         .await
         .map(Json)
-        .map(created)
+        .map(created);
+
+    commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]

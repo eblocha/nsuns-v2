@@ -10,6 +10,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    assert_owner,
     auth::token::OwnerId,
     db::{
         tracing::{
@@ -88,6 +89,14 @@ impl Movement {
             }
         })
         .map_err(log_server_error!())
+    }
+
+    pub async fn assert_owner(
+        id: Uuid,
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        assert_owner!(TABLE, "movement", id, owner_id, executor)
     }
 }
 

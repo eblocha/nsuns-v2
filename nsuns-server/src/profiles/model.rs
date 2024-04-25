@@ -7,6 +7,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    assert_owner,
     auth::token::OwnerId,
     db::{
         tracing::{
@@ -97,6 +98,14 @@ impl Profile {
         .await
         .with_context(|| format!("failed to delete profile with id={id}"))
         .map_err(into_log_server_error!())
+    }
+
+    pub async fn assert_owner(
+        id: Uuid,
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        assert_owner!(TABLE, "profile", id, owner_id, executor)
     }
 }
 

@@ -5,5 +5,6 @@ pub mod router;
 pub mod settings;
 pub mod token;
 pub mod user;
+pub mod macros;
 
 pub use router::router;

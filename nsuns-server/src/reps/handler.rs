@@ -4,12 +4,16 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
+use transaction::{commit_ok, transaction};
 use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
     auth::token::OwnerId,
-    db::{transaction::acquire, Pool},
+    db::{
+        transaction::{self, acquire},
+        Pool,
+    },
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -42,10 +46,14 @@ pub async fn create_reps(
     ValidatedJson(reps): ValidatedJson<CreateReps>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    reps.insert_one(owner_id, &mut *conn)
+    let mut tx = transaction(&mut *conn).await?;
+    let res = reps
+        .insert_one(owner_id, &mut tx)
         .await
         .map(Json)
-        .map(created)
+        .map(created);
+
+    commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]

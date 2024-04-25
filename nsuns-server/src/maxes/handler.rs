@@ -4,12 +4,13 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
+use transaction::commit_ok;
 use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
     auth::token::OwnerId,
-    db::{acquire, Pool},
+    db::{acquire, transaction, Pool},
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -43,10 +44,12 @@ pub async fn create_max(
     ValidatedJson(max): ValidatedJson<CreateMax>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    max.insert_one(owner_id, &mut *conn)
+    let mut tx = transaction(&mut *conn).await?;
+    let res = max.insert_one(owner_id, &mut tx)
         .await
         .map(Json)
-        .map(created)
+        .map(created);
+    commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]

@@ -7,7 +7,7 @@ use chrono::NaiveDateTime;
 use const_format::formatcp;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
-use sqlx::Executor;
+use sqlx::{Executor, Transaction};
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -24,6 +24,8 @@ use crate::{
     db_span,
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
+    movements::model::Movement,
+    profiles::model::Profile,
 };
 
 const TABLE: &str = "maxes";
@@ -106,8 +108,10 @@ impl CreateMax {
     pub async fn insert_one(
         self,
         owner_id: OwnerId,
-        executor: impl Executor<'_, Database = DB>,
+        tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<Max> {
+        Profile::assert_owner(self.profile_id, owner_id, &mut **tx).await?;
+        Movement::assert_owner(self.movement_id, owner_id, &mut **tx).await?;
         sqlx::query_as::<_, (i64, NaiveDateTime)>(formatcp!(
             "{INSERT_INTO} {TABLE} (profile_id, movement_id, amount, owner_id) VALUES ($1, $2, $3, $4) RETURNING id, timestamp",
         ))
@@ -115,7 +119,7 @@ impl CreateMax {
         .bind(self.movement_id)
         .bind(self.amount)
         .bind(owner_id)
-        .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| {
             handle_error(e, || "failed to insert a new max")

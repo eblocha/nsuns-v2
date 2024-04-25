@@ -63,7 +63,7 @@ async fn run_updates(
                 movement_id: latest_max.movement_id,
                 profile_id: latest_max.profile_id,
             }
-            .insert_one(owner_id, &mut **tx)
+            .insert_one(owner_id, tx)
             .await?;
 
             let new_rep = CreateReps {
@@ -71,7 +71,7 @@ async fn run_updates(
                 movement_id: latest_max.movement_id,
                 profile_id: latest_max.profile_id,
             }
-            .insert_one(owner_id, &mut **tx)
+            .insert_one(owner_id, tx)
             .await?;
 
             new_maxes.push(new_max);

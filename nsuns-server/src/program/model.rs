@@ -12,19 +12,13 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    auth::token::OwnerId,
-    db::{
+    assert_owner, auth::token::OwnerId, db::{
         tracing::{
             statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
             InstrumentExecutor,
         },
         DB,
-    },
-    db_span,
-    error::{ErrorWithStatus, OperationResult},
-    into_log_server_error, log_server_error,
-    sets::model::{Day, Set},
-    vec::MoveWithin,
+    }, db_span, error::{ErrorWithStatus, OperationResult}, into_log_server_error, log_server_error, profiles::model::Profile, sets::model::{Day, Set}, vec::MoveWithin
 };
 
 const TABLE: &str = "programs";
@@ -44,7 +38,7 @@ where
 }
 
 #[derive(Debug, Clone, sqlx::FromRow)]
-struct Program {
+pub struct Program {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
@@ -74,6 +68,14 @@ impl Program {
         .await
         .with_context(|| format!("failed to fetch program with id={id}"))
         .map_err(into_log_server_error!())
+    }
+
+    pub async fn assert_owner(
+        id: Uuid,
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        assert_owner!(TABLE, "program", id, owner_id, executor)
     }
 }
 
@@ -151,8 +153,9 @@ impl CreateProgram {
     pub async fn insert_one(
         self,
         owner_id: OwnerId,
-        executor: impl Executor<'_, Database = DB>,
+        tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<ProgramMeta> {
+        Profile::assert_owner(self.owner, owner_id, &mut **tx).await?;
         sqlx::query_as::<_, ProgramMeta>(formatcp!(
             "{INSERT_INTO} {TABLE} (name, description, owner, owner_id) VALUES ($1, $2, $3, $4) RETURNING {PROGRAM_META_COLS}",
         ))
@@ -160,7 +163,7 @@ impl CreateProgram {
         .bind(self.description)
         .bind(self.owner)
         .bind(owner_id)
-        .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| handle_error(e, || "failed to create program"))
         .map_err(log_server_error!())

@@ -22,7 +22,8 @@ use crate::{
     db_span,
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
-    program::model::{get_set_ids, update_set_ids},
+    movements::model::Movement,
+    program::model::{get_set_ids, update_set_ids, Program},
 };
 
 const TABLE: &str = "program_sets";
@@ -108,6 +109,12 @@ impl CreateSet {
         owner_id: OwnerId,
         tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<Option<Set>> {
+        Program::assert_owner(self.program_id, owner_id, &mut **tx).await?;
+        Movement::assert_owner(self.movement_id, owner_id, &mut **tx).await?;
+        if let Some(percentage_of_max) = self.percentage_of_max {
+            Movement::assert_owner(percentage_of_max, owner_id, &mut **tx).await?;
+        }
+
         let set_ids = get_set_ids(self.program_id, self.day, true, owner_id, &mut **tx).await?;
 
         if let Some(mut set_ids) = set_ids {
