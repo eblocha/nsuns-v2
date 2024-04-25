@@ -5,7 +5,7 @@ use nsuns_server::{
     router::MOVEMENTS_PATH,
 };
 
-use crate::{util::JsonBody, world::NsunsWorld};
+use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
 
 #[when(regex = r#"I create a movement with name "(.*)""#)]
 #[given(regex = r#"A movement with name "(.*)" exists"#)]
@@ -19,6 +19,7 @@ async fn create_movement(world: &mut NsunsWorld, name: String) {
         .client
         .post(MOVEMENTS_PATH)
         .json_body(&create_movement)
+        .authed(world)
         .send()
         .await
         .json::<_>()
@@ -33,6 +34,7 @@ async fn fetch_movements(world: &mut NsunsWorld) {
     world.movement_world.movements = world
         .client
         .get(MOVEMENTS_PATH)
+        .authed(world)
         .send()
         .await
         .json::<_>()
@@ -63,6 +65,7 @@ async fn update_movement(world: &mut NsunsWorld, name: String) {
         .client
         .put(MOVEMENTS_PATH)
         .json_body(&update_movement)
+        .authed(world)
         .send()
         .await;
 
@@ -80,6 +83,7 @@ async fn create_fail(world: &mut NsunsWorld, name: String) {
         .client
         .post(MOVEMENTS_PATH)
         .json_body(&create_movement)
+        .authed(world)
         .send()
         .await;
 

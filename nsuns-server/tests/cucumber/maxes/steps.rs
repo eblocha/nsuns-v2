@@ -2,7 +2,7 @@ use cucumber::{given, then, when};
 use hyper::StatusCode;
 use nsuns_server::{maxes::model::CreateMax, router::MAXES_PATH};
 
-use crate::{util::JsonBody, world::NsunsWorld};
+use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
 
 #[given(regex = r#"I have a max of (\d+) in "(.*)""#)]
 async fn create_maxes(world: &mut NsunsWorld, amount: f64, movement_name: String) {
@@ -21,6 +21,7 @@ async fn create_maxes(world: &mut NsunsWorld, amount: f64, movement_name: String
             movement_id,
             amount,
         })
+        .authed(world)
         .send()
         .await;
 
@@ -34,6 +35,7 @@ async fn fetch_maxes(world: &mut NsunsWorld) {
     world.maxes_world.maxes = world
         .client
         .get(&format!("{MAXES_PATH}?profileId={profile_id}"))
+        .authed(world)
         .send()
         .await
         .json()

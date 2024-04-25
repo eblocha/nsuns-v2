@@ -7,7 +7,7 @@ use nsuns_server::{
     sets::model::{CreateSet, Day, Set},
 };
 
-use crate::{util::JsonBody, world::NsunsWorld};
+use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
 
 fn day_from_str(day: &str) -> Day {
     match day {
@@ -62,6 +62,7 @@ pub async fn create_set(world: &mut NsunsWorld, movement_name: String, day: Stri
         .client
         .post(SETS_PATH)
         .json_body(&create_set)
+        .authed(world)
         .send()
         .await;
 
@@ -98,6 +99,7 @@ pub async fn reorder_sets(world: &mut NsunsWorld, day: String, from: usize, to: 
             to,
             program_id,
         })
+        .authed(world)
         .send()
         .await;
 

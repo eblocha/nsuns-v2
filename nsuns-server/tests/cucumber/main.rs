@@ -10,6 +10,7 @@ mod sets;
 mod updates;
 mod util;
 mod world;
+mod auth;
 
 #[tokio::main]
 async fn main() {

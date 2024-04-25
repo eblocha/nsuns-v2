@@ -5,7 +5,7 @@ use nsuns_server::{
     router::PROFILES_PATH,
 };
 
-use crate::{util::JsonBody, world::NsunsWorld};
+use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
 
 #[when(regex = r#"^I create a profile with name "(.*)""#)]
 #[given(regex = r#"^A profile with name "(.*)" exists"#)]
@@ -16,6 +16,7 @@ async fn create_profile(world: &mut NsunsWorld, name: String) {
         .client
         .post(PROFILES_PATH)
         .json_body(&create_profile)
+        .authed(world)
         .send()
         .await
         .json::<_>()
@@ -35,6 +36,7 @@ async fn update_profile(world: &mut NsunsWorld, name: String) {
         .client
         .put(PROFILES_PATH)
         .json_body(&update_profile)
+        .authed(world)
         .send()
         .await;
 
@@ -46,6 +48,7 @@ async fn fetch_profiles(world: &mut NsunsWorld) {
     world.profile_world.profiles = world
         .client
         .get(PROFILES_PATH)
+        .authed(world)
         .send()
         .await
         .json::<_>()
@@ -59,6 +62,7 @@ async fn delete_profile(world: &mut NsunsWorld) {
     let res = world
         .client
         .delete(&format!("{PROFILES_PATH}/{profile_id}"))
+        .authed(world)
         .send()
         .await;
 

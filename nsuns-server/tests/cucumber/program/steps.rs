@@ -5,7 +5,7 @@ use nsuns_server::{
     router::PROGRAMS_PATH,
 };
 
-use crate::{util::JsonBody, world::NsunsWorld};
+use crate::{util::{Auth, JsonBody}, world::NsunsWorld};
 
 #[when(regex = r#"^I create a program with name "(.*)""#)]
 #[given(regex = r#"A program with name "(.*)" exists"#)]
@@ -20,6 +20,7 @@ async fn create_program(world: &mut NsunsWorld, name: String) {
         .client
         .post(PROGRAMS_PATH)
         .json_body(&create_program)
+        .authed(world)
         .send()
         .await
         .json::<_>()
@@ -35,6 +36,7 @@ async fn fetch_programs(world: &mut NsunsWorld) {
     world.program_world.programs_for_profile = world
         .client
         .get(&format!("{PROGRAMS_PATH}?profileId={profile_id}"))
+        .authed(world)
         .send()
         .await
         .json::<_>()
@@ -49,6 +51,7 @@ async fn fetch_program_summary(world: &mut NsunsWorld) {
         world
             .client
             .get(&format!("{PROGRAMS_PATH}/{program_id}"))
+            .authed(world)
             .send()
             .await
             .json::<_>()
@@ -63,6 +66,7 @@ async fn delete_program(world: &mut NsunsWorld) {
     let res = world
         .client
         .delete(&format!("{PROGRAMS_PATH}/{program_id}"))
+        .authed(world)
         .send()
         .await;
     assert_eq!(StatusCode::OK, res.status());
@@ -78,6 +82,7 @@ async fn update_program(world: &mut NsunsWorld, name: String) {
             id: world.program_world.unwrap_program_meta().id,
             name,
         })
+        .authed(world)
         .send()
         .await;
 

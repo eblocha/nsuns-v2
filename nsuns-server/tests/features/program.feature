@@ -1,12 +1,14 @@
 Feature: Programs
 
   Scenario: Create an empty program
+    Given I am an anonymous user
     Given A profile with name "test" exists
     When I create a program with name "test program"
     And I fetch my programs
     Then My program has the name "test program"
 
   Scenario: Update a program
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     When I update my program to have name "test program 2"
@@ -14,6 +16,7 @@ Feature: Programs
     Then My program has the name "test program 2"
 
   Scenario: Delete a program
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     When I delete my program
@@ -21,6 +24,7 @@ Feature: Programs
     Then My program does not exist
 
   Scenario: Adding sets
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists
@@ -32,6 +36,7 @@ Feature: Programs
     Then My program has ["bench press", "squat"] on Monday
 
   Scenario: Reordering sets
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists
