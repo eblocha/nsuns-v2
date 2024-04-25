@@ -6,6 +6,7 @@ use axum::{
 use uuid::Uuid;
 
 use crate::{
+    auth::token::OwnerId,
     db::{
         commit_ok,
         transaction::{acquire, transaction},
@@ -18,15 +19,19 @@ use crate::{
 use super::model::{CreateProfile, Profile};
 
 #[tracing::instrument(skip_all)]
-pub async fn profiles_index(State(pool): State<Pool>) -> impl IntoResponse {
+pub async fn profiles_index(State(pool): State<Pool>, owner_id: OwnerId) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    Profile::select_all(&mut *conn).await.map(Json)
+    Profile::select_all(owner_id, &mut *conn).await.map(Json)
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn get_profile(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
+pub async fn get_profile(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+    owner_id: OwnerId,
+) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    Profile::select_one(&mut *conn, &id)
+    Profile::select_one(id, owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)
 }
@@ -34,29 +39,39 @@ pub async fn get_profile(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl
 #[tracing::instrument(skip_all)]
 pub async fn create_profile(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(profile): ValidatedJson<CreateProfile>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = profile.create_one(&mut tx).await.map(Json).map(created);
+    let res = profile
+        .create_one(owner_id, &mut tx)
+        .await
+        .map(Json)
+        .map(created);
     commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]
 pub async fn update_profile(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(profile): ValidatedJson<Profile>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = profile.update_one(&mut tx).await.map(Json);
+    let res = profile.update_one(owner_id, &mut tx).await.map(Json);
     commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn delete_profile(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
+pub async fn delete_profile(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+    owner_id: OwnerId,
+) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    Profile::delete_one(&mut *conn, &id)
+    Profile::delete_one(id, owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)
 }

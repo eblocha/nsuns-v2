@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod db;
 pub mod error;
 pub mod feature;
@@ -19,4 +20,3 @@ pub mod shutdown;
 pub mod updates;
 pub mod validation;
 mod vec;
-pub mod auth;

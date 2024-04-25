@@ -1,11 +1,13 @@
 import { Component, Match, Show, Switch, createRenderEffect, createSignal } from "solid-js";
-import { Profile, getProfile } from "../api";
+import { Profile, getProfile, isNotFound } from "../api";
 import { createQuery } from "@tanstack/solid-query";
 import { Input } from "../forms/Input";
 import { createControl, required } from "../hooks/forms";
 import { createUpdateProfileMutation } from "../hooks/queries/profiles";
 import { Trash } from "../icons/Trash";
 import { DeleteProfile } from "./DeleteProfile";
+import { A } from "@solidjs/router";
+import { Warning } from "../icons/Warning";
 
 const EditProfileName: Component<{ profile: Profile }> = (props) => {
   const name = createControl(props.profile.name, { validators: [required()] });
@@ -89,6 +91,18 @@ export const ProfileGreeting: Component<{ id: string }> = (props) => {
           close={() => setShowDeleteModal(false)}
           profile={query.data!}
         />
+      </Match>
+      <Match when={query.isError && isNotFound(query.error)}>
+        <div class="flex flex-row items-center gap-4">
+          <Warning class="text-red-500" />
+          <h2 class="text-lg">Profile Not Found</h2>
+          <A
+            href="/"
+            class="secondary-button"
+          >
+            Switch Profile
+          </A>
+        </div>
       </Match>
     </Switch>
   );

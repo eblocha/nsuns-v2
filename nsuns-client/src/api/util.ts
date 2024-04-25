@@ -38,7 +38,7 @@ const getErrorMessage = async (res: Response): Promise<string> => {
 };
 
 export const processResponse = async (res: Response): Promise<Response> => {
-  if (res.type === 'opaqueredirect') {
+  if (res.type === "opaqueredirect") {
     window.location.href = res.url;
   }
 

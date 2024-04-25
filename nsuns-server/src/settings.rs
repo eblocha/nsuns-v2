@@ -8,7 +8,10 @@ use config::{
 use serde::Deserialize;
 
 use crate::{
-    auth::settings::AuthSettings, db::settings::DatabaseSettings, observability::{metrics::settings::MetricsFeature, tracing::settings::LogSettings}, openapi::settings::OpenApiFeature
+    auth::settings::AuthSettings,
+    db::settings::DatabaseSettings,
+    observability::{metrics::settings::MetricsFeature, tracing::settings::LogSettings},
+    openapi::settings::OpenApiFeature,
 };
 
 fn default_server_port() -> u16 {
@@ -51,7 +54,7 @@ pub struct Settings {
     pub openapi: OpenApiFeature,
     #[serde(default)]
     pub logging: LogSettings,
-    pub auth: AuthSettings
+    pub auth: AuthSettings,
 }
 
 pub trait SetEnvOverride {

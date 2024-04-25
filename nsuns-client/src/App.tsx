@@ -18,7 +18,11 @@ const queryClient = new QueryClient({
       staleTime: 200,
       retry: (count, error) => {
         if (error instanceof ApiError) {
-          return error.status !== 401 && error.status !== 403 && error.status !== 0 && count < 3;
+          if (error.status < 500 && error.status >= 400) {
+            return false;
+          }
+
+          return count > 3;
         }
         return count < 3;
       },

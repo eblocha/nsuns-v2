@@ -19,6 +19,8 @@ use crate::{
     db_span,
 };
 
+use super::token::OwnerId;
+
 const TABLE: &str = "users";
 
 #[derive(Debug, Clone, Deserialize)]
@@ -86,8 +88,8 @@ pub async fn authenticate(
 pub async fn create_anonymous_user(
     executor: impl Executor<'_, Database = DB>,
     expiry_date: DateTime<Utc>,
-) -> Result<Uuid, Error> {
-    let id = sqlx::query_as::<_, (Uuid,)>(formatcp!(
+) -> Result<OwnerId, Error> {
+    let id = sqlx::query_as::<_, (OwnerId,)>(formatcp!(
         "{INSERT_INTO} owners (expiry_date) VALUES ($1) RETURNING id"
     ))
     .bind(expiry_date)
@@ -100,7 +102,7 @@ pub async fn create_anonymous_user(
 
 pub async fn delete_owner(
     executor: impl Executor<'_, Database = DB>,
-    id: Uuid,
+    id: OwnerId,
 ) -> Result<(), Error> {
     sqlx::query(formatcp!("{DELETE_FROM} owners WHERE id = $1"))
         .bind(id)

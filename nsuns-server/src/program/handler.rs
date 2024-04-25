@@ -8,6 +8,7 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
+    auth::token::OwnerId,
     db::{
         commit_ok,
         transaction::{acquire, transaction},
@@ -30,11 +31,12 @@ pub struct ProgramQuery {
 
 #[tracing::instrument(skip_all)]
 pub async fn profile_programs(
-    Query(params): Query<ProgramQuery>,
     State(pool): State<Pool>,
+    Query(params): Query<ProgramQuery>,
+    owner_id: OwnerId,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    ProgramMeta::select_all_for_profile(&mut *conn, &params.profile_id)
+    ProgramMeta::select_all_for_profile(params.profile_id, owner_id, &mut *conn)
         .await
         .map(Json)
 }
@@ -42,20 +44,26 @@ pub async fn profile_programs(
 #[tracing::instrument(skip_all)]
 pub async fn create_program(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(program): ValidatedJson<CreateProgram>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    program.insert_one(&mut *conn).await.map(Json).map(created)
+    program
+        .insert_one(owner_id, &mut *conn)
+        .await
+        .map(Json)
+        .map(created)
 }
 
 #[tracing::instrument(skip_all)]
 pub async fn update_program(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(program): ValidatedJson<UpdateProgram>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     program
-        .update_one(&mut *conn)
+        .update_one(owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)
 }
@@ -63,25 +71,39 @@ pub async fn update_program(
 #[tracing::instrument(skip_all)]
 pub async fn reorder_sets(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(reorder): ValidatedJson<ReorderSets>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = reorder.reorder(&mut tx).await.map(or_404::<_, Json<_>>);
+    let res = reorder
+        .reorder(owner_id, &mut tx)
+        .await
+        .map(or_404::<_, Json<_>>);
     commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn delete_program(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
+pub async fn delete_program(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+    owner_id: OwnerId,
+) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    delete_one(id, &mut *conn).await.map(or_404::<_, Json<_>>)
+    delete_one(id, owner_id, &mut *conn)
+        .await
+        .map(or_404::<_, Json<_>>)
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn program_summary(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
+pub async fn program_summary(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+    owner_id: OwnerId,
+) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = gather_program_summary(id, &mut tx)
+    let res = gather_program_summary(id, owner_id, &mut tx)
         .await
         .map(or_404::<_, Json<_>>);
     commit_ok(res, tx).await

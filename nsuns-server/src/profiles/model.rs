@@ -7,6 +7,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    auth::token::OwnerId,
     db::{
         tracing::{
             statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
@@ -31,31 +32,42 @@ pub struct Profile {
 
 impl Profile {
     pub async fn select_one(
+        id: Uuid,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
-        id: &Uuid,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * from {TABLE} WHERE id = $1"))
-            .bind(id)
-            .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
-            .await
-            .with_context(|| format!("failed to fetch profile with id={id}"))
-            .map_err(into_log_server_error!())
+        sqlx::query_as::<_, Self>(formatcp!(
+            "{SELECT} * from {TABLE} WHERE id = $1 AND owner_id = $2"
+        ))
+        .bind(id)
+        .bind(owner_id)
+        .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
+        .await
+        .with_context(|| format!("failed to fetch profile with id={id}"))
+        .map_err(into_log_server_error!())
     }
 
     pub async fn select_all(
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Profile>> {
-        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * FROM {TABLE}"))
+        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * FROM {TABLE} WHERE owner_id = $1"))
+            .bind(owner_id)
             .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
             .context("failed to select all profiles")
             .map_err(into_log_server_error!())
     }
 
-    pub async fn update_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Self>> {
-        sqlx::query(formatcp!("{UPDATE} {TABLE} SET name = $1 WHERE id = $2"))
+    pub async fn update_one(
+        self,
+        owner_id: OwnerId,
+        tx: &mut Transaction<'_, DB>,
+    ) -> OperationResult<Option<Self>> {
+        sqlx::query(formatcp!("{UPDATE} {TABLE} SET name = $1 WHERE id = $2 AND owner_id = $3"))
             .bind(&self.name)
             .bind(self.id)
+            .bind(owner_id)
             .execute((&mut **tx).instrument_executor(db_span!(UPDATE, TABLE)))
             .await
             .with_context(|| format!("failed to update profile with id={id}", id = self.id))
@@ -70,15 +82,19 @@ impl Profile {
     }
 
     pub async fn delete_one(
+        id: Uuid,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
-        id: &Uuid,
     ) -> OperationResult<Option<Profile>> {
-        sqlx::query_as::<_, Profile>(formatcp!("{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING *"))
-            .bind(id)
-            .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
-            .await
-            .with_context(|| format!("failed to delete profile with id={id}"))
-            .map_err(into_log_server_error!())
+        sqlx::query_as::<_, Profile>(formatcp!(
+            "{DELETE_FROM} {TABLE} WHERE id = $1 AND owner_id = $2 RETURNING *"
+        ))
+        .bind(id)
+        .bind(owner_id)
+        .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
+        .await
+        .with_context(|| format!("failed to delete profile with id={id}"))
+        .map_err(into_log_server_error!())
     }
 }
 
@@ -90,11 +106,16 @@ pub struct CreateProfile {
 }
 
 impl CreateProfile {
-    pub async fn create_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Profile> {
+    pub async fn create_one(
+        self,
+        owner_id: OwnerId,
+        tx: &mut Transaction<'_, DB>,
+    ) -> OperationResult<Profile> {
         sqlx::query_as::<_, Profile>(formatcp!(
-            "{INSERT_INTO} {TABLE} (name) VALUES ($1) RETURNING *"
+            "{INSERT_INTO} {TABLE} (name, owner_id) VALUES ($1, $2) RETURNING *"
         ))
         .bind(self.name)
+        .bind(owner_id)
         .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .context("failed to create profile")

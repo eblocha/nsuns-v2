@@ -6,14 +6,16 @@ export class ApiError {
   ) {}
 
   toString() {
-    return `HTTP Status ${this.status} (${this.statusText}) ${this.cause}`
+    return `HTTP Status ${this.status} (${this.statusText}) ${this.cause}`;
   }
 
   get [Symbol.toStringTag]() {
-    return 'ApiError';
+    return "ApiError";
   }
 }
 
 export class RedirectError {
   constructor(readonly url: string) {}
 }
+
+export const isNotFound = (error: unknown): boolean => error instanceof ApiError && error.status === 404;

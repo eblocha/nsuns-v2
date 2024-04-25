@@ -6,6 +6,7 @@ use axum::{
 use uuid::Uuid;
 
 use crate::{
+    auth::token::OwnerId,
     db::{
         commit_ok,
         transaction::{acquire, transaction},
@@ -20,11 +21,16 @@ use super::model::{delete_one, CreateSet, UpdateSet};
 #[tracing::instrument(skip_all)]
 pub async fn create_set(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(set): ValidatedJson<CreateSet>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = set.insert_one(&mut tx).await.map(Json).map(created);
+    let res = set
+        .insert_one(owner_id, &mut tx)
+        .await
+        .map(Json)
+        .map(created);
 
     commit_ok(res, tx).await
 }
@@ -32,17 +38,26 @@ pub async fn create_set(
 #[tracing::instrument(skip_all)]
 pub async fn update_set(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(set): ValidatedJson<UpdateSet>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    set.update_one(&mut *conn).await.map(or_404::<_, Json<_>>)
+    set.update_one(owner_id, &mut *conn)
+        .await
+        .map(or_404::<_, Json<_>>)
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn delete_set(State(pool): State<Pool>, Path(id): Path<Uuid>) -> impl IntoResponse {
+pub async fn delete_set(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+    owner_id: OwnerId,
+) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = delete_one(id, &mut tx).await.map(no_content_or_404);
+    let res = delete_one(id, owner_id, &mut tx)
+        .await
+        .map(no_content_or_404);
 
     commit_ok(res, tx).await
 }

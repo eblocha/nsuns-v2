@@ -11,6 +11,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    auth::token::OwnerId,
     db::{
         tracing::{
             statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
@@ -70,10 +71,12 @@ pub struct Set {
 impl Set {
     pub async fn select_where_id_in(
         ids: &[Uuid],
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> Result<Vec<Set>, sqlx::Error> {
-        sqlx::query_as::<_, Set>(formatcp!("{SELECT} * FROM {TABLE} WHERE id = any($1)",))
+        sqlx::query_as::<_, Set>(formatcp!("{SELECT} * FROM {TABLE} WHERE id = any($1) AND owner_id = $2",))
             .bind(ids)
+            .bind(owner_id)
             .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
     }
@@ -98,14 +101,18 @@ pub struct CreateSet {
 }
 
 impl CreateSet {
-    pub async fn insert_one(self, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<Set>> {
-        let set_ids = get_set_ids(self.program_id, self.day, true, &mut **tx).await?;
+    pub async fn insert_one(
+        self,
+        owner_id: OwnerId,
+        tx: &mut Transaction<'_, DB>,
+    ) -> OperationResult<Option<Set>> {
+        let set_ids = get_set_ids(self.program_id, self.day, true, owner_id, &mut **tx).await?;
 
         if let Some(mut set_ids) = set_ids {
             let id = sqlx::query_as::<_, (Uuid,)>(formatcp!(
                 "{INSERT_INTO} {TABLE} (
-                    movement_id, reps, reps_is_minimum, description, amount, percentage_of_max, program_id, day
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
+                    movement_id, reps, reps_is_minimum, description, amount, percentage_of_max, program_id, day, owner_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
             ))
             .bind(self.movement_id)
             .bind(self.reps)
@@ -115,6 +122,7 @@ impl CreateSet {
             .bind(self.percentage_of_max)
             .bind(self.program_id)
             .bind(self.day)
+            .bind(owner_id)
             .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
             .await
             .map_err(|e| handle_error(e, || "failed to insert new set"))
@@ -123,7 +131,7 @@ impl CreateSet {
 
             set_ids.push(id);
 
-            update_set_ids(self.program_id, self.day, &set_ids, &mut **tx).await?;
+            update_set_ids(self.program_id, self.day, &set_ids, owner_id, &mut **tx).await?;
 
             Ok(Some(Set {
                 id,
@@ -142,22 +150,27 @@ impl CreateSet {
     }
 }
 
-pub async fn delete_one(id: Uuid, tx: &mut Transaction<'_, DB>) -> OperationResult<Option<()>> {
+pub async fn delete_one(
+    id: Uuid,
+    owner_id: OwnerId,
+    tx: &mut Transaction<'_, DB>,
+) -> OperationResult<Option<()>> {
     let res = sqlx::query_as::<_, (Uuid, Day)>(formatcp!(
-        "{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING program_id, day",
+        "{DELETE_FROM} {TABLE} WHERE id = $1 AND owner_id = $2 RETURNING program_id, day",
     ))
     .bind(id)
+    .bind(owner_id)
     .fetch_optional((&mut **tx).instrument_executor(db_span!(DELETE_FROM, TABLE)))
     .await
     .with_context(|| format!("failed to delete set with id={id}"))
     .map_err(into_log_server_error!())?;
 
     if let Some((program_id, day)) = res {
-        let set_ids = get_set_ids(program_id, day, true, &mut **tx).await?;
+        let set_ids = get_set_ids(program_id, day, true, owner_id, &mut **tx).await?;
 
         if let Some(set_ids) = set_ids {
             let set_ids = set_ids.into_iter().filter(|set_id| *set_id != id).collect();
-            update_set_ids(program_id, day, &set_ids, &mut **tx).await?;
+            update_set_ids(program_id, day, &set_ids, owner_id, &mut **tx).await?;
         }
         Ok(Some(()))
     } else {
@@ -184,6 +197,7 @@ pub struct UpdateSet {
 impl UpdateSet {
     pub async fn update_one(
         self,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Set>> {
         let res = sqlx::query_as::<_, (Uuid, Day)>(formatcp!(
@@ -194,7 +208,7 @@ impl UpdateSet {
             description = $4,
             amount = $5,
             percentage_of_max = $6
-            WHERE id = $7
+            WHERE id = $7 AND owner_id = $8
             RETURNING program_id, day
         ",
         ))
@@ -205,6 +219,7 @@ impl UpdateSet {
         .bind(self.amount)
         .bind(self.percentage_of_max)
         .bind(self.id)
+        .bind(owner_id)
         .fetch_optional(executor.instrument_executor(db_span!(UPDATE, TABLE)))
         .await
         .map_err(|e| {
