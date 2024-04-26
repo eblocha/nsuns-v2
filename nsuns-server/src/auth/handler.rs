@@ -5,9 +5,9 @@ use axum::{
     TypedHeader,
 };
 use http::StatusCode;
-use sqlx::Transaction;
+use sqlx::{Executor, Transaction};
 use tower_cookies::Cookies;
-use transaction::{acquire, commit_ok};
+use transaction::commit_ok;
 
 use crate::{
     db::{transaction, Pool, DB},
@@ -74,6 +74,8 @@ async fn login_anonymous(
     keys: &JwtKeys,
     cookies: Cookies,
 ) -> OperationResult<()> {
+    delete_owner_if_anonymous(&keys, &cookies, &mut **tx).await?;
+
     let exp = create_new_expiry_date();
 
     let owner_id = create_anonymous_user(&mut **tx, exp)
@@ -109,25 +111,33 @@ pub async fn anonymous(
     Ok(StatusCode::NO_CONTENT)
 }
 
+async fn delete_owner_if_anonymous(
+    keys: &JwtKeys,
+    cookies: &Cookies,
+    executor: impl Executor<'_, Database = DB>,
+) -> OperationResult<()> {
+    if let Some(claims) = cookies
+        .get(COOKIE_NAME)
+        .and_then(|cookie| keys.decode(cookie.value()).ok())
+    {
+        if claims.user_id.is_none() {
+            delete_owner(executor, claims.owner_id)
+                .await
+                .context("failed to delete anonymous owner")
+                .map_err(into_log_server_error!())?;
+        }
+    }
+
+    Ok(())
+}
+
 #[tracing::instrument(skip_all)]
 pub async fn logout(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
     cookies: Cookies,
 ) -> OperationResult<StatusCode> {
-    if let Some(claims) = cookies
-        .get(COOKIE_NAME)
-        .and_then(|cookie| keys.decode(cookie.value()).ok())
-    {
-        // delete owner from db if it is anonymous
-        if claims.user_id.is_none() {
-            let mut conn = acquire(&pool).await?;
-            delete_owner(&mut *conn, claims.owner_id)
-                .await
-                .context("failed to delete anonymous owner")
-                .map_err(into_log_server_error!())?;
-        }
-    }
+    delete_owner_if_anonymous(&keys, &cookies, &pool).await?;
 
     cookies.remove(create_empty_cookie());
 
