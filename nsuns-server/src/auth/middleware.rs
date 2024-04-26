@@ -34,8 +34,17 @@ pub async fn manage_tokens<B>(
     next: Next<B>,
 ) -> OperationResult<Response> {
     if let Some(cookie) = cookies.get(COOKIE_NAME) {
-        // TODO determine if we should remove the cookie
-        let claims = keys.decode(cookie.value())?;
+        let claims = match keys.decode(cookie.value()) {
+            Ok(claims) => claims,
+            Err(err) => {
+                // remove the cookie if it failed authentication or is invalid
+                let err: ErrorWithStatus<anyhow::Error> = err.into();
+                if err.status.is_client_error() {
+                    cookies.remove(create_empty_cookie());
+                }
+                return Err(err);
+            }
+        };
 
         if Utc::now().gt(&claims.exp) {
             cookies.remove(create_empty_cookie());
