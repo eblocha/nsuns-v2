@@ -130,6 +130,14 @@ pub fn create_token_cookie<'c>(token: String) -> Cookie<'c> {
         .finish()
 }
 
+pub fn create_empty_cookie<'c>() -> Cookie<'c> {
+    Cookie::build(COOKIE_NAME, "")
+        .path("/")
+        .http_only(true)
+        .same_site(SameSite::Strict)
+        .finish()
+}
+
 pub fn create_new_expiry_date() -> DateTime<Utc> {
     Utc::now()
         .checked_add_days(Days::new(2))

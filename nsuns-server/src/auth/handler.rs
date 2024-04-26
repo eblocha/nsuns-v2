@@ -6,7 +6,7 @@ use axum::{
 };
 use http::StatusCode;
 use sqlx::Transaction;
-use tower_cookies::{Cookie, Cookies};
+use tower_cookies::Cookies;
 use transaction::{acquire, commit_ok};
 
 use crate::{
@@ -16,7 +16,10 @@ use crate::{
 };
 
 use super::{
-    token::{create_new_expiry_date, create_token_cookie, Claims, JwtKeys, COOKIE_NAME},
+    token::{
+        create_empty_cookie, create_new_expiry_date, create_token_cookie, Claims, JwtKeys,
+        COOKIE_NAME,
+    },
     user::{authenticate, create_anonymous_user, delete_owner},
 };
 
@@ -112,12 +115,9 @@ pub async fn logout(
     State(keys): State<JwtKeys>,
     cookies: Cookies,
 ) -> OperationResult<StatusCode> {
-    cookies.remove(Cookie::named(COOKIE_NAME));
-
     if let Some(claims) = cookies
         .get(COOKIE_NAME)
-        .and_then(|cookie| cookie.value_raw())
-        .and_then(|token| keys.decode(token).ok())
+        .and_then(|cookie| keys.decode(cookie.value()).ok())
     {
         // delete owner from db if it is anonymous
         if claims.user_id.is_none() {
@@ -128,6 +128,8 @@ pub async fn logout(
                 .map_err(into_log_server_error!())?;
         }
     }
+
+    cookies.remove(create_empty_cookie());
 
     Ok(StatusCode::NO_CONTENT)
 }

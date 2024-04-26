@@ -6,11 +6,11 @@ use axum::{
 };
 use chrono::Utc;
 use http::{Request, StatusCode, Uri};
-use tower_cookies::{Cookie, Cookies};
+use tower_cookies::Cookies;
 
 use crate::error::{ErrorWithStatus, OperationResult};
 
-use super::token::{JwtKeys, COOKIE_NAME};
+use super::token::{create_empty_cookie, JwtKeys, COOKIE_NAME};
 
 pub async fn redirect_on_missing_auth_cookie<B>(
     cookies: Cookies,
@@ -33,15 +33,12 @@ pub async fn manage_tokens<B>(
     mut request: Request<B>,
     next: Next<B>,
 ) -> OperationResult<Response> {
-    if let Some(token) = cookies
-        .get(COOKIE_NAME)
-        .map(|cookie| cookie.value().to_owned())
-    {
+    if let Some(cookie) = cookies.get(COOKIE_NAME) {
         // TODO determine if we should remove the cookie
-        let claims = keys.decode(&token)?;
+        let claims = keys.decode(cookie.value())?;
 
         if Utc::now().gt(&claims.exp) {
-            cookies.remove(Cookie::named(COOKIE_NAME));
+            cookies.remove(create_empty_cookie());
             return Err(ErrorWithStatus::new(StatusCode::UNAUTHORIZED, anyhow!("")));
         }
 

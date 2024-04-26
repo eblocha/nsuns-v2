@@ -5,7 +5,7 @@ use utoipa::{
 };
 
 use crate::{
-    maxes::openapi::MaxesModule, movements::openapi::MovementsModule,
+    auth::openapi::AuthModule, maxes::openapi::MaxesModule, movements::openapi::MovementsModule,
     profiles::openapi::ProfilesModule, program::openapi::ProgramModule, reps::openapi::RepsModule,
     sets::openapi::SetsModule, updates::openapi::UpdatesModule,
 };
@@ -34,6 +34,7 @@ impl<B> WithModule<B> for B {
 impl OpenApi for ApiDoc {
     fn openapi() -> utoipa::openapi::OpenApi {
         let paths = PathsBuilder::new()
+            .with_module::<AuthModule>()
             .with_module::<MaxesModule>()
             .with_module::<MovementsModule>()
             .with_module::<ProfilesModule>()
@@ -44,6 +45,7 @@ impl OpenApi for ApiDoc {
             .build();
 
         let components = ComponentsBuilder::new()
+            .with_module::<AuthModule>()
             .with_module::<MaxesModule>()
             .with_module::<MovementsModule>()
             .with_module::<ProfilesModule>()
