@@ -1,7 +1,8 @@
 use const_format::formatcp;
 use utoipa::openapi::{
     path::{OperationBuilder, PathItemBuilder},
-    ComponentsBuilder, PathItem, PathItemType, PathsBuilder, ResponseBuilder,
+    security::{Http, HttpAuthScheme, SecurityScheme},
+    ComponentsBuilder, PathItem, PathItemType, PathsBuilder, ResponseBuilder, SecurityRequirement,
 };
 
 use crate::{
@@ -11,18 +12,22 @@ use crate::{
 
 pub struct AuthModule;
 
-pub const COOKIE_AUTH: &str = "cookie_auth";
+pub const BASIC_AUTH: &str = "basic_auth";
 
 const TAG: &str = "Auth";
 
 impl Customizer<ComponentsBuilder> for AuthModule {
     fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
-        builder
+        builder.security_scheme(
+            BASIC_AUTH,
+            SecurityScheme::Http(Http::new(HttpAuthScheme::Basic)),
+        )
     }
 }
 
-fn create_auth_path() -> PathItem {
+fn create_auth_path(description: &str) -> PathItem {
     let post_op = OperationBuilder::new()
+        .description(Some(description))
         .response(no_content(), ResponseBuilder::new().build())
         .tag(TAG)
         .build();
@@ -34,9 +39,27 @@ fn create_auth_path() -> PathItem {
 
 impl Customizer<PathsBuilder> for AuthModule {
     fn customize(builder: PathsBuilder) -> PathsBuilder {
+        let login_op = OperationBuilder::new()
+            .description(Some("Log in as a persistent user"))
+            .response(no_content(), ResponseBuilder::new().build())
+            .security(SecurityRequirement::new::<_, _, &str>(BASIC_AUTH, []))
+            .tag(TAG)
+            .build();
+
         builder
-            .path(formatcp!("{AUTH_PATH}/login"), create_auth_path())
-            .path(formatcp!("{AUTH_PATH}/anonymous"), create_auth_path())
-            .path(formatcp!("{AUTH_PATH}/logout"), create_auth_path())
+            .path(
+                formatcp!("{AUTH_PATH}/login"),
+                PathItemBuilder::new()
+                    .operation(PathItemType::Post, login_op)
+                    .build(),
+            )
+            .path(
+                formatcp!("{AUTH_PATH}/anonymous"),
+                create_auth_path("Log in as a temporary, anonymous user"),
+            )
+            .path(
+                formatcp!("{AUTH_PATH}/logout"),
+                create_auth_path("Log out. This will delete data if the login is anonymous"),
+            )
     }
 }
