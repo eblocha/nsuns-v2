@@ -1,5 +1,10 @@
 import { useNavigate, useParams } from "@solidjs/router";
 
+export const useNavigateToLogin = () => {
+  const navigate = useNavigate();
+  return () => navigate("/login");
+};
+
 export const useNavigateToProfileHome = () => {
   const params = useParams<{ profileId?: string }>();
   const navigate = useNavigate();

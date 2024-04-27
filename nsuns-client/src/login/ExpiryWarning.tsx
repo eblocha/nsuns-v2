@@ -16,7 +16,7 @@ export const ExpiryWarning: Component = () => {
     return dt.toDateString() + " at " + dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   };
 
-  const isAnonymous = () => userInfo.isSuccess && userInfo.data.type === "anonymous";
+  const isAnonymous = () => userInfo.isSuccess && userInfo.data?.type === "anonymous";
 
   createEffect(() => {
     if (isAnonymous()) {

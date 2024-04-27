@@ -1,3 +1,4 @@
+import { ApiError } from "./error";
 import { get, json, noContent, post } from "./util";
 
 export type Credentials = {
@@ -25,5 +26,13 @@ export const loginAnonymous = async (): Promise<void> => post("/api/auth/anonymo
 
 export const logout = async (): Promise<void> => post("/api/auth/logout").then(noContent);
 
-export const userInfo = async (): Promise<UserInfo | TemporaryInfo> =>
-  get("/api/auth/user-info").then(json<UserInfo | TemporaryInfo>());
+export const userInfo = async (): Promise<UserInfo | TemporaryInfo | null> =>
+  get("/api/auth/user-info")
+    .then(json<UserInfo | TemporaryInfo>())
+    .catch((err) => {
+      if (err instanceof ApiError && err.status === 401) {
+        return null;
+      }
+
+      throw err;
+    });

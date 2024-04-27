@@ -8,7 +8,6 @@ import { Trash } from "../icons/Trash";
 import { DeleteProfile } from "./DeleteProfile";
 import { A } from "@solidjs/router";
 import { Warning } from "../icons/Warning";
-import { LogoutButton } from "../login/LogoutButton";
 
 const EditProfileName: Component<{ profile: Profile }> = (props) => {
   const name = createControl(props.profile.name, { validators: [required()] });
@@ -86,7 +85,6 @@ export const ProfileGreeting: Component<{ id: string }> = (props) => {
           >
             <Trash />
           </button>
-          <LogoutButton />
         </h2>
         <DeleteProfile
           show={showDeleteModal()}
@@ -106,7 +104,6 @@ export const ProfileGreeting: Component<{ id: string }> = (props) => {
           >
             Switch Profile
           </A>
-          <LogoutButton />
         </div>
       </Match>
     </Switch>

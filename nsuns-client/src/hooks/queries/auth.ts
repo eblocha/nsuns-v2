@@ -1,8 +1,7 @@
 import { createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
 import { QueryKeys } from "./keys";
-import { logout, userInfo } from "../../api/auth";
-import { useNavigate } from "@solidjs/router";
-import { ApiError } from "../../api";
+import { login, loginAnonymous, logout, userInfo } from "../../api/auth";
+import { useNavigateToLogin, useNavigateToProfileHome } from "../navigation";
 
 export const useUserInfoQuery = () => {
   return createQuery({
@@ -12,24 +11,45 @@ export const useUserInfoQuery = () => {
 };
 
 export const useLogoutMutation = () => {
+  const navigate = useNavigateToLogin();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const mutation = createMutation({
     mutationFn: logout,
     onSuccess: () => {
-      navigate("/login");
-
-      const cache = queryClient.getQueryCache();
-
-      // we manually set invalidated and error states so we don't attempt to fetch data again without auth
-      cache.find(QueryKeys.auth())?.setState({
-        error: new ApiError(401, "Unauthorized", ""),
-        status: "error",
-      });
+      navigate();
+      queryClient.setQueryData(QueryKeys.auth(), null);
       // important to clear cache _after_ setting state for auth, so the trial message disappears
       queryClient.clear();
     },
   });
 
   return mutation;
+};
+
+const useInvalidateAfterLogin = () => {
+  const navigate = useNavigateToProfileHome();
+  const queryClient = useQueryClient();
+
+  return async () => {
+    await queryClient.invalidateQueries({
+      exact: true,
+      queryKey: QueryKeys.auth(),
+    });
+    // important to navigate after invalidating so we don't get auto-routed back to login
+    navigate();
+  };
+};
+
+export const useLoginMutation = () => {
+  return createMutation({
+    mutationFn: login,
+    onSuccess: useInvalidateAfterLogin(),
+  });
+};
+
+export const useLoginAnonymousMutation = () => {
+  return createMutation({
+    mutationFn: loginAnonymous,
+    onSuccess: useInvalidateAfterLogin(),
+  });
 };

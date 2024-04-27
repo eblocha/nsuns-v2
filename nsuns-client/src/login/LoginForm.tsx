@@ -7,24 +7,15 @@ import { A } from "@solidjs/router";
 import { ErrorMessages } from "../forms/ErrorMessages";
 import { Input } from "../forms/Input";
 import styles from "./LoginForm.module.css";
-import { createMutation } from "@tanstack/solid-query";
-import { login } from "../api/auth";
-import { useNavigateToProfileHome } from "../hooks/navigation";
+import { useLoginMutation } from "../hooks/queries/auth";
 
 export const LoginForm: Component = () => {
-  const navigate = useNavigateToProfileHome();
-
   const form = createControlGroup({
     username: createControl<string>("", { validators: [required()] }),
     password: createControl<string>("", { validators: [required()] }),
   });
 
-  const mutation = createMutation({
-    mutationFn: login,
-    onSuccess: () => {
-      navigate();
-    },
-  });
+  const mutation = useLoginMutation();
 
   return (
     <form
@@ -39,7 +30,7 @@ export const LoginForm: Component = () => {
           password: form.value().password,
         });
       }}
-      class="grid gap-4 w-80"
+      class="grid gap-4"
     >
       <h2 class="text-lg">Log In</h2>
       <div class={`grid grid-cols-2 gap-2 ${styles.controls}`}>

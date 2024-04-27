@@ -1,6 +1,6 @@
-import { Route, Router, Routes } from "@solidjs/router";
+import { Route, Router, Routes, useLocation } from "@solidjs/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
-import { Component } from "solid-js";
+import { Component, Show, createEffect } from "solid-js";
 import { SelectProfile } from "./profile/entry/SelectProfile";
 import { CreateProfile } from "./profile/entry/CreateProfile";
 import { ProfileHome } from "./profile/ProfileHome";
@@ -11,6 +11,10 @@ import { NotFound } from "./NotFound";
 import { ApiError } from "./api";
 import { Login } from "./login/Login";
 import { ExpiryWarning } from "./login/ExpiryWarning";
+import { useUserInfoQuery } from "./hooks/queries/auth";
+import { Spinner } from "./icons/Spinner";
+import { createDelayedLatch } from "./hooks/createDelayedLatch";
+import { useNavigateToLogin } from "./hooks/navigation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,43 +36,64 @@ const queryClient = new QueryClient({
 });
 
 const RoutingApp: Component = () => {
+  const userInfo = useUserInfoQuery();
+  const navigateToLogin = useNavigateToLogin();
+  const location = useLocation();
+
+  createEffect(() => {
+    if (userInfo.isSuccess && userInfo.data === null && location.pathname !== "/login") {
+      navigateToLogin();
+    }
+  });
+
+  const isUserFetching = createDelayedLatch(() => userInfo.isLoading, 200);
+
   return (
-    <Routes>
-      <Route
-        path="/"
-        component={SelectProfile}
-      />
-      <Route
-        path="/login"
-        component={Login}
-      />
-      <Route
-        path="/profile/new"
-        component={CreateProfile}
-      />
-      <Route
-        path="/profile/:profileId"
-        component={ProfileHome}
-      >
-        <Route path="/" />
+    <Show
+      when={!isUserFetching()}
+      fallback={
+        <div class="w-full h-full flex items-center justify-center gap-4">
+          <Spinner class="animate-spin text-2xl" />
+        </div>
+      }
+    >
+      <Routes>
         <Route
-          path="program/new"
-          component={NewProgram}
+          path="/"
+          component={SelectProfile}
         />
         <Route
-          path="program/:programId"
-          component={ProgramBuilder}
+          path="/login"
+          component={Login}
         />
-      </Route>
-      <Route
-        path="/profile/:profileId/program/:programId/run"
-        component={ProgramRunner}
-      />
-      <Route
-        path="*"
-        component={NotFound}
-      />
-    </Routes>
+        <Route
+          path="/profile/new"
+          component={CreateProfile}
+        />
+        <Route
+          path="/profile/:profileId"
+          component={ProfileHome}
+        >
+          <Route path="/" />
+          <Route
+            path="program/new"
+            component={NewProgram}
+          />
+          <Route
+            path="program/:programId"
+            component={ProgramBuilder}
+          />
+        </Route>
+        <Route
+          path="/profile/:profileId/program/:programId/run"
+          component={ProgramRunner}
+        />
+        <Route
+          path="*"
+          component={NotFound}
+        />
+      </Routes>
+    </Show>
   );
 };
 

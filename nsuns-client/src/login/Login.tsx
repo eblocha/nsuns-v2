@@ -1,25 +1,29 @@
 import { Component, Show } from "solid-js";
 import { LoginForm } from "./LoginForm";
-import { loginAnonymous } from "../api/auth";
-import { createMutation } from "@tanstack/solid-query";
-import { useNavigateToProfileHome } from "../hooks/navigation";
 import { displayError } from "../util/errors";
 import { Warning } from "../icons/Warning";
 import { Spinner } from "../icons/Spinner";
+import { useLoginAnonymousMutation, useUserInfoQuery } from "../hooks/queries/auth";
 
 export const Login: Component = () => {
   // TODO add warning about logging in if user is currently anonymous, since that would delete their data
-  const navigate = useNavigateToProfileHome();
 
-  const loginAnonymousMutation = createMutation({
-    mutationFn: loginAnonymous,
-    onSuccess: () => {
-      navigate();
-    },
-  });
+  const userInfo = useUserInfoQuery();
+  const loginAnonymousMutation = useLoginAnonymousMutation();
+
+  const name = () => {
+    switch (userInfo.data?.type) {
+      case 'anonymous': return 'a temporary user';
+      case 'user': return userInfo.data.username;
+      default: 'no-one'
+    }
+  }
 
   return (
-    <div class="w-full h-full flex flex-col justify-center items-stretch p-80">
+    <div class="w-full h-full flex flex-col justify-center items-stretch p-80 gap-8">
+      <Show when={userInfo.isSuccess && userInfo.data}>
+        <p class="text-center">You are currently loggged-in as {name()}.</p>
+      </Show>
       <div class="grid grid-cols-2 w-full">
         <div class="border-r border-gray-500 p-5 flex flex-row justify-end">
           <LoginForm />
