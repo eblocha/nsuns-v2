@@ -42,12 +42,12 @@ export const LoginForm: Component = () => {
       class="grid gap-4 w-80"
     >
       <h2 class="text-lg">Log In</h2>
-      <div class={`grid grid-cols-2 grid-rows-2 gap-4 ${styles.controls}`}>
+      <div class={`grid grid-cols-2 gap-2 ${styles.controls}`}>
         <label
           for="name"
-          class="flex flex-row items-center gap-2"
+          class="flex flex-row items-center"
         >
-          <span class="text-red-500">*</span>Username:
+          <span class="text-red-500">*</span>Username
         </label>
         <div class="flex flex-col items-end flex-grow">
           <Input
@@ -56,13 +56,15 @@ export const LoginForm: Component = () => {
             name="name"
             required={true}
           />
+        </div>
+        <div class="col-span-2 flex flex-row justify-end">
           <ErrorMessages control={form.controls.username} />
         </div>
         <label
           for="password"
-          class="flex flex-row items-center gap-2"
+          class="flex flex-row items-center"
         >
-          <span class="text-red-500">*</span>Password:
+          <span class="text-red-500">*</span>Password
         </label>
         <div class="flex flex-col items-end flex-grow">
           <Input
@@ -72,6 +74,8 @@ export const LoginForm: Component = () => {
             type="password"
             required={true}
           />
+        </div>
+        <div class="col-span-2 flex flex-row justify-end">
           <ErrorMessages control={form.controls.password} />
         </div>
       </div>

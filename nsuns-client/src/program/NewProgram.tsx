@@ -41,23 +41,26 @@ export const NewProgram: Component = () => {
         }}
         class="flex flex-col w-80 gap-4"
       >
-        <label
-          for="program-name"
-          class="flex flex-row items-center gap-2"
-        >
-          <div>
-            <span class="text-red-500">*</span>Title
-          </div>
-          <div class="flex flex-col items-end flex-grow">
-            <Input
-              control={name}
-              class="input w-full"
-              name="program-name"
-              required={true}
-            />
-            <ErrorMessages control={name} />
-          </div>
-        </label>
+        <div class="flex flex-col items-end">
+          <label
+            for="program-name"
+            class="flex flex-row items-center gap-2"
+          >
+            <div>
+              <span class="text-red-500">*</span>Title
+            </div>
+            <div class="flex-grow">
+              <Input
+                control={name}
+                class="input w-full"
+                name="program-name"
+                required={true}
+                autofocus={true}
+              />
+            </div>
+          </label>
+          <ErrorMessages control={name} />
+        </div>
 
         <div class="flex flex-row items-center justify-end">
           <A

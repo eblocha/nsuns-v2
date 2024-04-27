@@ -35,24 +35,30 @@ export const CreateProfile: Component = () => {
           e.preventDefault();
           onSubmit();
         }}
-        class="flex flex-col w-80 gap-4"
+        class="flex flex-col w-80 gap-4 justify-end"
       >
         <h2 class="text-lg">Create Profile</h2>
-        <label
-          for="name"
-          class="flex flex-row items-center gap-2"
-        >
-          <span class="text-red-500">*</span>Name
-          <div class="flex flex-col items-end flex-grow">
-            <Input
-              control={name}
-              class="ml-3 input w-full"
-              name="name"
-              required={true}
-            />
-            <ErrorMessages control={name} />
-          </div>
-        </label>
+        <div class="flex flex-col items-end">
+          <label
+            for="name"
+            class="flex flex-row items-center gap-2"
+          >
+            <div>
+              <span class="text-red-500">*</span>Name
+            </div>
+            <div class="flex-grow">
+              <Input
+                control={name}
+                class="input w-full"
+                name="name"
+                required={true}
+                autofocus={true}
+              />
+            </div>
+          </label>
+
+          <ErrorMessages control={name} />
+        </div>
 
         <div class="float-right flex flex-row items-center justify-end w-full gap-2">
           <A

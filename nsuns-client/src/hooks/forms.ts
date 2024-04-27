@@ -114,9 +114,9 @@ export type ControlGroup<R extends Record<string, Control<any>>> = {
 };
 
 export const createControlGroup = <R extends Record<string, Control<any>>>(controls: R): ControlGroup<R> => {
-  const dirty = createMemo(() => !Object.values(controls).every((control) => !control.dirty()));
-  const touched = createMemo(() => !Object.values(controls).every((control) => !control.touched()));
-  const changed = createMemo(() => !Object.values(controls).every((control) => !control.isChanged()));
+  const dirty = createMemo(() => Object.values(controls).some((control) => control.dirty()));
+  const touched = createMemo(() => Object.values(controls).some((control) => control.touched()));
+  const changed = createMemo(() => Object.values(controls).some((control) => control.isChanged()));
 
   const errors = createMemo(() => {
     const errMap: Record<string, ErrorInfo> = {};
@@ -125,9 +125,9 @@ export const createControlGroup = <R extends Record<string, Control<any>>>(contr
     }
   });
 
-  const hasErrors = createMemo(() => !Object.values(controls).every((control) => !control.hasErrors()));
+  const hasErrors = createMemo(() => Object.values(controls).some((control) => control.hasErrors()));
 
-  const showErrors = createMemo(() => !Object.values(controls).every((control) => control.showErrors()));
+  const showErrors = createMemo(() => Object.values(controls).some((control) => control.showErrors()));
 
   const value = () => {
     const value: ControlValues<R> = {} as ControlValues<R>;
