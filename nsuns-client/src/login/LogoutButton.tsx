@@ -49,7 +49,8 @@ export const LogoutButton: Component<{ children?: JSX.Element }> = (props) => {
             when={isKnownAnonymous()}
             fallback={
               <p class="mb-2">
-                We could not determine if you are a temporary user. Temporary users will lose data on log out.
+                We could not determine if you are a temporary user. Temporary users will lose <em>all</em> data after
+                logging out.
               </p>
             }
           >
