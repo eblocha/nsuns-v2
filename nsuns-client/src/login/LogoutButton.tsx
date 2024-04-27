@@ -1,10 +1,10 @@
-import { Component, Show, createSignal } from "solid-js";
+import { Component, JSX, Show, createSignal } from "solid-js";
 import { Logout } from "../icons/Logout";
 import { Modal } from "../modal/Modal";
 import { Spinner } from "../icons/Spinner";
 import { useLogoutMutation, useUserInfoQuery } from "../hooks/queries/auth";
 
-export const LogoutButton: Component = () => {
+export const LogoutButton: Component<{ children?: JSX.Element }> = (props) => {
   const [modalOpen, setModalOpen] = createSignal(false);
   const userInfo = useUserInfoQuery();
   const mutation = useLogoutMutation();
@@ -34,6 +34,7 @@ export const LogoutButton: Component = () => {
         >
           <Logout class="text-white" />
         </Show>
+        {props.children}
       </button>
       <Modal
         open={modalOpen()}
@@ -48,11 +49,13 @@ export const LogoutButton: Component = () => {
             when={isKnownAnonymous()}
             fallback={
               <p class="mb-2">
-                We could not determine if you are an anonymous user. Anonymous users will lose data on log out.
+                We could not determine if you are a temporary user. Temporary users will lose data on log out.
               </p>
             }
           >
-            <p class="mb-2">You are an anonymous user. If you log out, <em>all</em> of your data will be deleted.</p>
+            <p class="mb-2">
+              You are an temporary user. If you log out, <em>all</em> of your data will be deleted.
+            </p>
           </Show>
           <p>Are you sure you want to log out?</p>
           <div class="grid grid-cols-2 mt-4 ml-auto">

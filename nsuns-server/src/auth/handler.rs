@@ -49,6 +49,8 @@ async fn login_user(
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
     let cookie = create_token_cookie(token);
 
+    delete_owner_if_anonymous(&keys, &cookies, &mut **tx).await?;
+
     cookies.add(cookie);
 
     Ok(())
@@ -138,6 +140,7 @@ pub async fn logout(
     State(keys): State<JwtKeys>,
     cookies: Cookies,
 ) -> OperationResult<StatusCode> {
+    // the acquire phase is not spanned here, but this avoids waiting for a connection if the user is non-anonymous
     delete_owner_if_anonymous(&keys, &cookies, &pool).await?;
 
     cookies.remove(create_empty_cookie());

@@ -8,6 +8,7 @@ import { Warning } from "../icons/Warning";
 import { Spinner } from "../icons/Spinner";
 
 export const Login: Component = () => {
+  // TODO add warning about logging in if user is currently anonymous, since that would delete their data
   const navigate = useNavigateToProfileHome();
 
   const loginAnonymousMutation = createMutation({
