@@ -10,6 +10,7 @@ import { ProgramRunner } from "./program/runner/ProgramRunner";
 import { NotFound } from "./NotFound";
 import { ApiError } from "./api";
 import { Login } from "./login/Login";
+import { ExpiryWarning } from "./login/ExpiryWarning";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,7 @@ export const App: Component = () => {
     <QueryClientProvider client={queryClient}>
       <Router>
         <RoutingApp />
+        <ExpiryWarning />
       </Router>
     </QueryClientProvider>
   );
