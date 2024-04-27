@@ -11,13 +11,16 @@ export const Login: Component = () => {
 
   const name = () => {
     switch (userInfo.data?.type) {
-      case 'anonymous': return 'a temporary user';
-      case 'user': return userInfo.data.username;
-      default: 'no-one'
+      case "anonymous":
+        return "a temporary user";
+      case "user":
+        return userInfo.data.username;
+      default:
+        "no-one";
     }
-  }
+  };
 
-  const isAuthed = () => !!(userInfo.isSuccess && userInfo.data)
+  const isAuthed = () => !!(userInfo.isSuccess && userInfo.data);
 
   return (
     <div class="w-full h-full flex flex-col justify-center items-stretch p-80 gap-8">

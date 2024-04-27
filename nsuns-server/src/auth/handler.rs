@@ -52,7 +52,7 @@ async fn login_user(
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
     let cookie = create_token_cookie(token);
 
-    delete_owner_if_anonymous(&keys, &cookies, &mut **tx).await?;
+    delete_owner_if_anonymous(keys, &cookies, &mut **tx).await?;
 
     cookies.add(cookie);
 
@@ -80,7 +80,7 @@ async fn login_anonymous(
     keys: &JwtKeys,
     cookies: Cookies,
 ) -> OperationResult<()> {
-    delete_owner_if_anonymous(&keys, &cookies, &mut **tx).await?;
+    delete_owner_if_anonymous(keys, &cookies, &mut **tx).await?;
 
     let exp = create_new_expiry_date();
 

@@ -91,7 +91,7 @@ const StatRow: Component<StatsProps> = (props) => {
           data={points()}
           weight={4}
           fillOpacity="10%"
-          softYMinimum={props.type === 'reps' ? 0 : undefined}
+          softYMinimum={props.type === "reps" ? 0 : undefined}
         />
       </div>
     </div>

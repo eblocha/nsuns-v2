@@ -7,7 +7,7 @@ use axum::{
 use crate::{db::Pool, router::State};
 
 use super::{
-    handler::{anonymous, login, logout, agent_info},
+    handler::{agent_info, anonymous, login, logout},
     token::JwtKeys,
 };
 

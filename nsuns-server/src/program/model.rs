@@ -12,13 +12,21 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    assert_owner, auth::token::OwnerId, db::{
+    assert_owner,
+    auth::token::OwnerId,
+    db::{
         tracing::{
             statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
             InstrumentExecutor,
         },
         DB,
-    }, db_span, error::{ErrorWithStatus, OperationResult}, into_log_server_error, log_server_error, profiles::model::Profile, sets::model::{Day, Set}, vec::MoveWithin
+    },
+    db_span,
+    error::{ErrorWithStatus, OperationResult},
+    into_log_server_error, log_server_error,
+    profiles::model::Profile,
+    sets::model::{Day, Set},
+    vec::MoveWithin,
 };
 
 const TABLE: &str = "programs";

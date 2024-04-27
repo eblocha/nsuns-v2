@@ -7,7 +7,7 @@ export const useUserInfoQuery = () => {
     queryKey: QueryKeys.auth,
     queryFn: userInfo,
     cacheTime: Infinity,
-    staleTime: Infinity
+    staleTime: Infinity,
   });
 };
 

@@ -45,7 +45,8 @@ pub async fn create_max(
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = max.insert_one(owner_id, &mut tx)
+    let res = max
+        .insert_one(owner_id, &mut tx)
         .await
         .map(Json)
         .map(created);
