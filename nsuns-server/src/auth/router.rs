@@ -7,7 +7,7 @@ use axum::{
 use crate::{db::Pool, router::State};
 
 use super::{
-    handler::{anonymous, login, logout, user_info},
+    handler::{anonymous, login, logout, agent_info},
     token::JwtKeys,
 };
 
@@ -20,5 +20,5 @@ where
         .route("/login", post(login))
         .route("/anonymous", post(anonymous))
         .route("/logout", post(logout))
-        .route("/user-info", get(user_info))
+        .route("/user-info", get(agent_info))
 }

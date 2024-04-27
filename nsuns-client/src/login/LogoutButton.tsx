@@ -9,12 +9,14 @@ export const LogoutButton: Component<{ children?: JSX.Element }> = (props) => {
   const userInfo = useUserInfoQuery();
   const mutation = useLogoutMutation();
 
-  const isKnownAnonymous = () => userInfo.data === null;
+  const isKnownAnonymous = () => userInfo.data?.type === "anonymous";
 
   const onClick = () => {
+    // Safeguard against errors when checking whether the user is anonymous.
+    // If we're not sure, open the modal.
     if (isKnownAnonymous() || userInfo.isError) {
       setModalOpen(true);
-    } else if (userInfo.data?.id) {
+    } else if (userInfo.data?.type === "user") {
       mutation.mutate();
     }
   };

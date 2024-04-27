@@ -6,8 +6,14 @@ export type Credentials = {
 };
 
 export type UserInfo = {
+  type: "user";
   id: string;
   username: string;
+};
+
+export type TemporaryInfo = {
+  type: "anonymous";
+  expiryDate: number;
 };
 
 export const login = async (credentials: Credentials): Promise<void> =>
@@ -19,4 +25,5 @@ export const loginAnonymous = async (): Promise<void> => post("/api/auth/anonymo
 
 export const logout = async (): Promise<void> => post("/api/auth/logout").then(noContent);
 
-export const userInfo = async (): Promise<UserInfo | null> => get("/api/auth/user-info").then(json<UserInfo | null>());
+export const userInfo = async (): Promise<UserInfo | TemporaryInfo> =>
+  get("/api/auth/user-info").then(json<UserInfo | TemporaryInfo>());

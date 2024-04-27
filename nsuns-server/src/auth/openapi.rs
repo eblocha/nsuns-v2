@@ -17,7 +17,7 @@ use crate::{
     router::AUTH_PATH,
 };
 
-use super::user::UserInfo;
+use super::user::{AgentInfo, AnonymousInfo, UserInfo};
 
 pub struct AuthModule;
 
@@ -27,10 +27,14 @@ const TAG: &str = "Auth";
 
 impl Customizer<ComponentsBuilder> for AuthModule {
     fn customize(builder: ComponentsBuilder) -> ComponentsBuilder {
-        builder.security_scheme(
-            BASIC_AUTH,
-            SecurityScheme::Http(Http::new(HttpAuthScheme::Basic)),
-        )
+        builder
+            .security_scheme(
+                BASIC_AUTH,
+                SecurityScheme::Http(Http::new(HttpAuthScheme::Basic)),
+            )
+            .schema_from::<UserInfo>()
+            .schema_from::<AnonymousInfo>()
+            .schema_from::<AgentInfo>()
     }
 }
 
@@ -82,10 +86,8 @@ impl Customizer<PathsBuilder> for AuthModule {
                             .response(
                                 ok(),
                                 ResponseBuilder::new()
-                                    .description(
-                                        "Information about your user, or null of anonymous",
-                                    )
-                                    .json_content(UserInfo::schema().1),
+                                    .description("Information about your user or temporary session")
+                                    .json_content(AgentInfo::schema().1),
                             )
                             .tag(TAG)
                             .build(),

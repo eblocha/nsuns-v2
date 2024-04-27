@@ -1,5 +1,5 @@
 use axum::headers::authorization::Basic;
-use chrono::{DateTime, Utc};
+use chrono::{serde::ts_milliseconds, DateTime, Utc};
 use const_format::formatcp;
 use password_auth::{verify_password, ParseError, VerifyError};
 use secrecy::{ExposeSecret, SecretString};
@@ -40,11 +40,27 @@ struct UserRow {
     password_hash: String,
 }
 
-/// Non-sensitive user info that can be sent to the client
 #[derive(Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct UserInfo {
-    id: Uuid,
-    username: String,
+    pub id: Uuid,
+    pub username: String,
+}
+
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AnonymousInfo {
+    #[schema(format = Int64)]
+    #[serde(with = "ts_milliseconds")]
+    pub expiry_date: DateTime<Utc>,
+}
+
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+#[serde(tag = "type")]
+pub enum AgentInfo {
+    #[serde(rename = "user")]
+    User(UserInfo),
+    #[serde(rename = "anonymous")]
+    Anonymous(AnonymousInfo),
 }
 
 impl From<UserRow> for User {
@@ -103,6 +119,20 @@ pub async fn select_user_info_by_owner_id(
     .bind(owner_id)
     .fetch_optional(executor.instrument_executor(db_span!(SELECT, "users")))
     .await
+    .map_err(Into::into)
+}
+
+pub async fn select_owner_expiry(
+    owner_id: OwnerId,
+    executor: impl Executor<'_, Database = DB>,
+) -> Result<Option<DateTime<Utc>>, Error> {
+    sqlx::query_as::<_, (DateTime<Utc>,)>(formatcp!(
+        "{SELECT} expiry_date FROM owners WHERE id = $1"
+    ))
+    .bind(owner_id)
+    .fetch_optional(executor.instrument_executor(db_span!(SELECT, "owners")))
+    .await
+    .map(|opt| opt.map(|exp| exp.0))
     .map_err(Into::into)
 }
 

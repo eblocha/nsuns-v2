@@ -21,7 +21,10 @@ use super::{
         create_empty_cookie, create_new_expiry_date, create_token_cookie, Claims, JwtKeys, OwnerId,
         COOKIE_NAME,
     },
-    user::{authenticate, create_anonymous_user, delete_owner, select_user_info_by_owner_id},
+    user::{
+        authenticate, create_anonymous_user, delete_owner, select_owner_expiry,
+        select_user_info_by_owner_id, AgentInfo, AnonymousInfo,
+    },
 };
 
 async fn login_user(
@@ -148,12 +151,26 @@ pub async fn logout(
     Ok(StatusCode::NO_CONTENT)
 }
 
-pub async fn user_info(State(pool): State<Pool>, owner_id: OwnerId) -> impl IntoResponse {
+#[tracing::instrument(skip_all)]
+pub async fn agent_info(State(pool): State<Pool>, owner_id: OwnerId) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
+    let mut tx = transaction(&mut *conn).await?;
 
-    select_user_info_by_owner_id(owner_id, &mut *conn)
+    let user_option = select_user_info_by_owner_id(owner_id, &mut *tx)
         .await
-        .map(Json)
         .context("failed to fetch user info")
-        .map_err(into_log_server_error!())
+        .map_err(into_log_server_error!())?;
+
+    if let Some(user) = user_option {
+        Ok(Json(AgentInfo::User(user)))
+    } else if let Some(expiry_date) = select_owner_expiry(owner_id, &mut *tx)
+        .await
+        .context("failed to fetch anonymous owner info")
+        .map_err(into_log_server_error!())?
+    {
+        Ok(Json(AgentInfo::Anonymous(AnonymousInfo { expiry_date })))
+    } else {
+        let e = ErrorWithStatus::new(StatusCode::NOT_FOUND, anyhow!("No user info found"));
+        Err(e)
+    }
 }
