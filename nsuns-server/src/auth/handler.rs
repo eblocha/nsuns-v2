@@ -2,12 +2,13 @@ use anyhow::{anyhow, Context};
 use axum::{
     extract::State,
     headers::{authorization::Basic, Authorization},
-    TypedHeader,
+    response::IntoResponse,
+    Json, TypedHeader,
 };
 use http::StatusCode;
 use sqlx::{Executor, Transaction};
 use tower_cookies::Cookies;
-use transaction::commit_ok;
+use transaction::{acquire, commit_ok};
 
 use crate::{
     db::{transaction, Pool, DB},
@@ -17,10 +18,10 @@ use crate::{
 
 use super::{
     token::{
-        create_empty_cookie, create_new_expiry_date, create_token_cookie, Claims, JwtKeys,
+        create_empty_cookie, create_new_expiry_date, create_token_cookie, Claims, JwtKeys, OwnerId,
         COOKIE_NAME,
     },
-    user::{authenticate, create_anonymous_user, delete_owner},
+    user::{authenticate, create_anonymous_user, delete_owner, select_user_info_by_owner_id},
 };
 
 async fn login_user(
@@ -142,4 +143,14 @@ pub async fn logout(
     cookies.remove(create_empty_cookie());
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn user_info(State(pool): State<Pool>, owner_id: OwnerId) -> impl IntoResponse {
+    let mut conn = acquire(&pool).await?;
+
+    select_user_info_by_owner_id(owner_id, &mut *conn)
+        .await
+        .map(Json)
+        .context("failed to fetch user info")
+        .map_err(into_log_server_error!())
 }

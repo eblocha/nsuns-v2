@@ -1,8 +1,13 @@
-import { noContent, post } from "./util";
+import { get, json, noContent, post } from "./util";
 
 export type Credentials = {
   username: string;
   password: string;
+};
+
+export type UserInfo = {
+  id: string;
+  username: string;
 };
 
 export const login = async (credentials: Credentials): Promise<void> =>
@@ -13,3 +18,5 @@ export const login = async (credentials: Credentials): Promise<void> =>
 export const loginAnonymous = async (): Promise<void> => post("/api/auth/anonymous").then(noContent);
 
 export const logout = async (): Promise<void> => post("/api/auth/logout").then(noContent);
+
+export const userInfo = async (): Promise<UserInfo | null> => get("/api/auth/user-info").then(json<UserInfo | null>());

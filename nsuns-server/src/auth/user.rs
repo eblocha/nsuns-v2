@@ -6,6 +6,7 @@ use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, FromRow};
 use thiserror::Error;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -37,6 +38,13 @@ struct UserRow {
     owner_id: Uuid,
     username: String,
     password_hash: String,
+}
+
+/// Non-sensitive user info that can be sent to the client
+#[derive(Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct UserInfo {
+    id: Uuid,
+    username: String,
 }
 
 impl From<UserRow> for User {
@@ -83,6 +91,19 @@ pub async fn authenticate(
     } else {
         Ok(None)
     }
+}
+
+pub async fn select_user_info_by_owner_id(
+    owner_id: OwnerId,
+    executor: impl Executor<'_, Database = DB>,
+) -> Result<Option<UserInfo>, Error> {
+    sqlx::query_as::<_, UserInfo>(formatcp!(
+        "{SELECT} id, username FROM users WHERE owner_id = $1"
+    ))
+    .bind(owner_id)
+    .fetch_optional(executor.instrument_executor(db_span!(SELECT, "users")))
+    .await
+    .map_err(Into::into)
 }
 
 pub async fn create_anonymous_user(

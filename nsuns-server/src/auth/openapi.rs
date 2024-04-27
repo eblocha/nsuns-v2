@@ -1,14 +1,23 @@
 use const_format::formatcp;
-use utoipa::openapi::{
-    path::{OperationBuilder, PathItemBuilder},
-    security::{Http, HttpAuthScheme, SecurityScheme},
-    ComponentsBuilder, PathItem, PathItemType, PathsBuilder, ResponseBuilder, SecurityRequirement,
+use utoipa::{
+    openapi::{
+        path::{OperationBuilder, PathItemBuilder},
+        security::{Http, HttpAuthScheme, SecurityScheme},
+        ComponentsBuilder, PathItem, PathItemType, PathsBuilder, ResponseBuilder,
+        SecurityRequirement,
+    },
+    ToSchema,
 };
 
 use crate::{
-    openapi::{extensions::no_content, Customizer},
+    openapi::{
+        extensions::{no_content, ok, JsonContent},
+        Customizer,
+    },
     router::AUTH_PATH,
 };
+
+use super::user::UserInfo;
 
 pub struct AuthModule;
 
@@ -60,6 +69,28 @@ impl Customizer<PathsBuilder> for AuthModule {
             .path(
                 formatcp!("{AUTH_PATH}/logout"),
                 create_auth_path("Log out. This will delete data if the login is anonymous"),
+            )
+            .path(
+                formatcp!("{AUTH_PATH}/user-info"),
+                PathItemBuilder::new()
+                    .operation(
+                        PathItemType::Get,
+                        OperationBuilder::new()
+                            .description(Some(
+                                "Get information about the user you are logged-in as",
+                            ))
+                            .response(
+                                ok(),
+                                ResponseBuilder::new()
+                                    .description(
+                                        "Information about your user, or null of anonymous",
+                                    )
+                                    .json_content(UserInfo::schema().1),
+                            )
+                            .tag(TAG)
+                            .build(),
+                    )
+                    .build(),
             )
     }
 }

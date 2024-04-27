@@ -15,7 +15,7 @@ export const SelectProfile: Component = () => {
       <Switch>
         <Match when={query.isLoading}>
           <ul class="my-8 flex flex-row items-center gap-4">
-            <For each={[1, 2, 3]}>
+            <For each={[1, 2]}>
               {() => (
                 <li>
                   <LoadingProfileCard />
