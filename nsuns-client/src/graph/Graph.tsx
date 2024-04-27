@@ -14,7 +14,7 @@ type Bounds = {
 
 export type GraphStyle = "scatter" | "line";
 
-const getBounds = (data: Point[]): Bounds => {
+const getBounds = (data: Point[], softYMinimum?: number): Bounds => {
   const minX = data.length ? data.reduce((minX, point) => Math.min(point.x, minX), Infinity) : 0;
   const maxX = data.length ? data.reduce((maxX, point) => Math.max(point.x, maxX), -Infinity) : 0;
 
@@ -24,13 +24,14 @@ const getBounds = (data: Point[]): Bounds => {
   return {
     minX,
     maxX,
-    minY,
+    minY: softYMinimum !== undefined ? Math.min(minY, softYMinimum) : minY,
     maxY,
   };
 };
 
 export const Graph: Component<{
   data?: Point[];
+  softYMinimum?: number;
   svgProps?: JSX.SvgSVGAttributes<SVGSVGElement>;
   weight?: number;
   width?: string;
@@ -47,7 +48,7 @@ export const Graph: Component<{
     props
   );
 
-  const bounds = createMemo(() => getBounds(mergedProps.data));
+  const bounds = createMemo(() => getBounds(mergedProps.data, props.softYMinimum));
 
   const shifted = createMemo(() => {
     const { minX, maxX, minY, maxY } = bounds();
@@ -83,6 +84,7 @@ export const Graph: Component<{
           data={shifted()}
           weight={mergedProps.weight}
           fillOpacity={props.fillOpacity}
+          softYMaximum={100}
         />
       </Show>
     </svg>
@@ -104,6 +106,7 @@ const Line: Component<{
   data: Point[];
   weight: number;
   fillOpacity?: string | number;
+  softYMaximum?: number;
 }> = (props) => {
   const instructions = createMemo(() => {
     let path = "";
@@ -125,7 +128,7 @@ const Line: Component<{
 
     const maxX = props.data.reduce((maxX, point) => Math.max(point.x, maxX), -Infinity);
     const minX = props.data.reduce((x, point) => Math.min(point.x, x), Infinity);
-    const maxY = props.data.reduce((maxY, point) => Math.max(point.y, maxY), -Infinity);
+    const maxY = props.data.reduce((maxY, point) => Math.max(point.y, maxY), props.softYMaximum ?? -Infinity);
 
     path += ` L ${maxX} ${maxY} L ${minX} ${maxY}`;
     return path;
