@@ -1,4 +1,4 @@
-import { createRenderEffect } from "solid-js";
+import { createEffect, createRenderEffect, on } from "solid-js";
 import { Movement } from "../api";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
@@ -32,6 +32,13 @@ export const useEditStat = (props: EditableStatProps) => {
   };
 
   createRenderEffect(reset);
+
+  createEffect(
+    on(
+      () => props.stat?.amount,
+      () => reset()
+    )
+  );
 
   const options = {
     onError: reset,

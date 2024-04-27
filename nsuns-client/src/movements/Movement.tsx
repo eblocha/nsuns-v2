@@ -15,6 +15,7 @@ export const MovementItem: Component<{
   profileId: string;
   maxes?: Max[];
   reps?: Reps[];
+  isFetching?: boolean;
 }> = (props) => {
   const mergedProps = mergeProps({ maxes: [] as Max[], reps: [] as Reps[] }, props);
 
@@ -22,7 +23,10 @@ export const MovementItem: Component<{
   const [isExpanded, setIsExpanded] = createSignal(false);
 
   return (
-    <li class="border rounded border-gray-400 p-2 my-1 flex flex-col gap-4">
+    <li
+      class="border rounded border-gray-400 p-2 my-1 flex flex-col gap-4"
+      classList={{ shimmer: props.isFetching }}
+    >
       <Show
         when={!showForm()}
         fallback={

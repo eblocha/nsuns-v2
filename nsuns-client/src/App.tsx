@@ -49,7 +49,7 @@ const RoutingApp: Component = () => {
     }
   });
 
-  const isUserFetching = createDelayedLatch(() => userInfo.isLoading, 200);
+  const isUserFetching = createDelayedLatch(() => userInfo.isLoading, 100);
 
   return (
     <Show
