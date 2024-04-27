@@ -126,7 +126,7 @@ pub fn create_token_cookie<'c>(token: String) -> Cookie<'c> {
         .path("/")
         .max_age(Duration::days(2))
         .http_only(true)
-        .same_site(SameSite::Strict)
+        .same_site(SameSite::Lax)
         .finish()
 }
 
@@ -134,7 +134,7 @@ pub fn create_empty_cookie<'c>() -> Cookie<'c> {
     Cookie::build(COOKIE_NAME, "")
         .path("/")
         .http_only(true)
-        .same_site(SameSite::Strict)
+        .same_site(SameSite::Lax)
         .finish()
 }
 
