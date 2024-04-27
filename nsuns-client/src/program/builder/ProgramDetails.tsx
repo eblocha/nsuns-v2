@@ -2,7 +2,7 @@ import { Component, Show, createRenderEffect } from "solid-js";
 import { Input } from "../../forms/Input";
 import { Program } from "../../api";
 import { Spinner } from "../../icons/Spinner";
-import { SHIMMER_DELAY_MS, createDelayedLatch } from "../../hooks/createDelayedLatch";
+import { createSmartAsyncDelay } from "../../hooks/asymmetricDelay";
 import { useUpdateProgram } from "../../hooks/queries/programs";
 import { createControl, required } from "../../hooks/forms";
 import { Warning } from "../../icons/Warning";
@@ -33,7 +33,7 @@ export const ProgramDetails: Component<{
 
   createRenderEffect(reset);
 
-  const isLoading = createDelayedLatch(() => mutation.isLoading, SHIMMER_DELAY_MS);
+  const isLoading = createSmartAsyncDelay(() => mutation.isLoading);
 
   return (
     <form

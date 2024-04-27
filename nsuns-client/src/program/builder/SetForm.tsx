@@ -11,6 +11,7 @@ import { Warning } from "../../icons/Warning";
 import { displayError } from "../../util/errors";
 import { Day } from "../../util/days";
 import { DeleteSetMeta } from "../../hooks/queries/sets";
+import { createSmartAsyncDelay } from "../../hooks/asymmetricDelay";
 
 export type SetFormControls = ControlGroup<{
   movementId: Control<string>;
@@ -34,9 +35,9 @@ export const SetForm: Component<{
   dayIndex: Day;
   movements?: Movement[];
 }> = (props) => {
-  const isLoading = () => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
+  const isLoading = createSmartAsyncDelay(() => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading);
 
-  const isDeleting = () => !!props.mutationDelete?.isLoading;
+  const isDeleting = createSmartAsyncDelay(() => !!props.mutationDelete?.isLoading);
 
   const isError = () => props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
 

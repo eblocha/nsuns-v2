@@ -13,7 +13,7 @@ import { Login } from "./login/Login";
 import { ExpiryWarning } from "./login/ExpiryWarning";
 import { useUserInfoQuery } from "./hooks/queries/auth";
 import { Spinner } from "./icons/Spinner";
-import { createDelayedLatch } from "./hooks/createDelayedLatch";
+import { DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS, createSmartAsyncDelay } from "./hooks/asymmetricDelay";
 import { useNavigateToLogin, useNavigateToProfileHome } from "./hooks/navigation";
 
 const queryClient = new QueryClient({
@@ -49,7 +49,7 @@ const RoutingApp: Component = () => {
     }
   });
 
-  const isUserFetching = createDelayedLatch(() => userInfo.isLoading, 100);
+  const isUserFetching = createSmartAsyncDelay(() => userInfo.isLoading, DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS);
 
   return (
     <Show

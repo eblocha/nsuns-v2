@@ -4,7 +4,7 @@ import { Plus } from "../icons/Plus";
 import { MovementItem } from "./Movement";
 import { useStats } from "../stats/StatsProvider";
 import { displayError } from "../util/errors";
-import { SHIMMER_DELAY_MS, createDelayedLatch } from "../hooks/createDelayedLatch";
+import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
 
 const Loading: Component = () => {
   return (
@@ -23,7 +23,7 @@ export const MovementList: Component = () => {
   const { profileId, movementMap, movementsToMaxesMap, movementsToRepsMap, queryState } = useStats();
   const [showForm, setShowForm] = createSignal(false);
 
-  const fetching = createDelayedLatch(queryState.isFetching, SHIMMER_DELAY_MS);
+  const fetching = createSmartAsyncDelay(queryState.isFetching);
 
   return (
     <div class="w-full flex flex-col">

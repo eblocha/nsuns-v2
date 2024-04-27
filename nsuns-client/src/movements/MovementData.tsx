@@ -1,4 +1,4 @@
-import { Component, Match, Show, Switch, createEffect, createSignal, onCleanup } from "solid-js";
+import { Component, Match, Switch, createEffect, createSignal, onCleanup } from "solid-js";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
 import { Movement } from "../api";
@@ -12,13 +12,18 @@ import { EditableStatProps, useEditStat } from "../hooks/useEditStat";
 import { Input } from "../forms/Input";
 import { Check } from "../icons/Check";
 import styles from "./MovementData.module.css";
+import { DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS, createSmartAsyncDelay } from "../hooks/asymmetricDelay";
+import { Spinner } from "../icons/Spinner";
 
 const EditableStat: Component<EditableStatProps> = (props) => {
   const { amount, onSubmit, mutation, reset } = useEditStat(props);
+  const isLoading = createSmartAsyncDelay(() => mutation.isLoading, DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS);
+
+  const isSuccess = () => !isLoading() && mutation.isSuccess;
 
   createEffect(() => {
-    if (mutation.isSuccess) {
-      const timeout = setTimeout(mutation.reset, 2000);
+    if (isSuccess()) {
+      const timeout = setTimeout(mutation.reset, 1950);
       onCleanup(() => clearTimeout(timeout));
     }
   });
@@ -39,19 +44,24 @@ const EditableStat: Component<EditableStatProps> = (props) => {
           min={0}
           class="w-full h-full ghost-input"
           placeholder="Edit"
-          disabled={mutation.isLoading}
+          disabled={isLoading()}
           required={props.type === "max"}
           onBlur={reset}
         />
       </div>
-      <Show when={mutation.isSuccess}>
-        <Check
-          class="text-green-500 flex-shrink-0 ml-2"
-          classList={{
-            [styles["fade-out"]!]: true,
-          }}
-        />
-      </Show>
+      <Switch>
+        <Match when={isLoading()}>
+          <Spinner class="animate-spin flex-shrink-0 ml-2" />
+        </Match>
+        <Match when={isSuccess()}>
+          <Check
+            class="text-green-500 flex-shrink-0 ml-2"
+            classList={{
+              [styles["fade-out"]!]: true,
+            }}
+          />
+        </Match>
+      </Switch>
     </form>
   );
 };

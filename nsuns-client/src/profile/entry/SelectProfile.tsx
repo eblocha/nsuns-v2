@@ -1,6 +1,6 @@
 import { Component, For, Match, Switch } from "solid-js";
 import { AddProfileCard, LoadingProfileCard, ProfileCard } from "./ProfileCard";
-import { SHIMMER_DELAY_MS, createDelayedLatch } from "../../hooks/createDelayedLatch";
+import { createMinimumAsyncDelay } from "../../hooks/asymmetricDelay";
 import { RefreshButton } from "../../components/RefreshButton";
 import { createProfileQuery } from "../../hooks/queries/profiles";
 import { LogoutButton } from "../../login/LogoutButton";
@@ -8,7 +8,7 @@ import { LogoutButton } from "../../login/LogoutButton";
 export const SelectProfile: Component = () => {
   const query = createProfileQuery();
 
-  const isFetching = createDelayedLatch(() => query.isFetching, SHIMMER_DELAY_MS);
+  const isFetching = createMinimumAsyncDelay(() => query.isFetching);
 
   return (
     <div class="h-full w-full overflow-hidden p-10 flex flex-col items-center justify-center gap-8">

@@ -1,11 +1,12 @@
-import { Component, For, Match, Switch, createMemo } from "solid-js";
+import { Component, For, Match, Show, Switch, createMemo } from "solid-js";
 import { useProgram } from "../context/ProgramProvider";
 import { Max } from "../../../api/maxes";
 import { Graph } from "../../../graph/Graph";
 import { Reps } from "../../../api/reps";
 import { Input } from "../../../forms/Input";
 import { useEditStat, CommonProps, EditableStatProps } from "../../../hooks/useEditStat";
-import { SHIMMER_DELAY_MS, createDelayedLatch } from "../../../hooks/createDelayedLatch";
+import { SPINNER_DELAY_MS, createMinimumAsyncDelay, createSmartAsyncDelay } from "../../../hooks/asymmetricDelay";
+import { Spinner } from "../../../icons/Spinner";
 
 type StatsProps = CommonProps &
   (
@@ -22,34 +23,38 @@ type StatsProps = CommonProps &
 const EditableCard: Component<EditableStatProps> = (props) => {
   const { amount, onSubmit, reset, mutation } = useEditStat(props);
 
-  const isUpdating = createDelayedLatch(() => mutation.isLoading, 200);
+  const isUpdating = createMinimumAsyncDelay(() => mutation.isLoading, SPINNER_DELAY_MS);
 
   return (
     <div class="rounded flex flex-col border border-gray-600 text-xl">
       <div class="text-center flex-shrink-0 p-3 border-b border-gray-600 bg-gray-900">{props.movement?.name}</div>
-      <div
-        class="flex-grow flex flex-col items-center justify-center p-3 text-4xl"
-        classList={{
-          shimmer: isUpdating(),
-        }}
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit();
-          }}
+      <div class="flex-grow flex flex-col items-center justify-center p-3 text-4xl">
+        <Show
+          when={!isUpdating()}
+          fallback={
+            <div class="h-14 flex flex-col justify-center">
+              <Spinner class="animate-spin" />
+            </div>
+          }
         >
-          <Input
-            control={amount}
-            type="number"
-            min={0}
-            class="w-full h-full ghost-input text-center"
-            placeholder="Edit"
-            disabled={isUpdating()}
-            required={props.type === "max"}
-            onBlur={reset}
-          />
-        </form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSubmit();
+            }}
+          >
+            <Input
+              control={amount}
+              type="number"
+              min={0}
+              class="w-full h-14 ghost-input text-center"
+              placeholder="Edit"
+              disabled={isUpdating()}
+              required={props.type === "max"}
+              onBlur={reset}
+            />
+          </form>
+        </Show>
       </div>
     </div>
   );
@@ -102,7 +107,7 @@ export const DataList: Component = () => {
     queryState: { isLoading, isSuccess },
   } = useProgram();
 
-  const delayedIsLoading = createDelayedLatch(isLoading, SHIMMER_DELAY_MS)
+  const delayedIsLoading = createSmartAsyncDelay(isLoading);
 
   return (
     <Switch>

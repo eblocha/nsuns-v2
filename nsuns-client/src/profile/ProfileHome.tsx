@@ -2,7 +2,7 @@ import { A, Outlet, useParams } from "@solidjs/router";
 import { Component, For, Match, Show, Switch, createEffect } from "solid-js";
 import { AddProgram, LoadingProgram, ProgramItem } from "./Program";
 import { ProfileGreeting } from "./ProfileGreeting";
-import { SHIMMER_DELAY_MS, createDelayedLatch } from "../hooks/createDelayedLatch";
+import { createMinimumAsyncDelay } from "../hooks/asymmetricDelay";
 import { RefreshButton } from "../components/RefreshButton";
 import { useProgramsQuery } from "../hooks/queries/programs";
 import { useNavigateToNewProgram } from "../hooks/navigation";
@@ -28,7 +28,7 @@ export const ProfileHome: Component = () => {
     }
   });
 
-  const isFetching = createDelayedLatch(() => programsQuery.isFetching, SHIMMER_DELAY_MS);
+  const isFetching = createMinimumAsyncDelay(() => programsQuery.isFetching);
 
   return (
     <div class="flex flex-col 2xl:h-full 2xl:grid 2xl:grid-rows-1 2xl:grid-cols-8 2xl:overflow-hidden">
