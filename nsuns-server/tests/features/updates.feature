@@ -1,6 +1,7 @@
 Feature: Updates
 
   Scenario: Updating maxes with no reps
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists
@@ -11,6 +12,7 @@ Feature: Updates
     Then My "bench press" max is 100
 
   Scenario: Updating maxes with 1 rep
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists
@@ -22,6 +24,7 @@ Feature: Updates
     Then My "bench press" max is 100
 
   Scenario: Updating maxes with 3 reps
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists
@@ -33,6 +36,7 @@ Feature: Updates
     Then My "bench press" max is 105
   
   Scenario: Updating maxes with 5 reps
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists
@@ -44,6 +48,7 @@ Feature: Updates
     Then My "bench press" max is 110
   
   Scenario: Updating maxes with 6 reps
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists
@@ -55,6 +60,7 @@ Feature: Updates
     Then My "bench press" max is 115
 
   Scenario: Undoing updates
+    Given I am an anonymous user
     Given A profile with name "test" exists
     And A program with name "test program" exists
     And A movement with name "bench press" exists

@@ -6,6 +6,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
+    auth::token::OwnerId,
     db::{
         commit_ok,
         transaction::{acquire, transaction},
@@ -42,16 +43,18 @@ fn get_inc_amount(latest_reps: Option<i32>) -> f64 {
 async fn run_updates(
     tx: &mut Transaction<'_, DB>,
     updates: Updates,
+    owner_id: OwnerId,
 ) -> OperationResult<UpdatedState> {
     let mut new_maxes = Vec::<Max>::with_capacity(updates.movement_ids.len());
     let mut new_reps = Vec::<Reps>::with_capacity(updates.movement_ids.len());
 
     for movement_id in updates.movement_ids {
-        let latest_max = Max::select_latest(movement_id, updates.profile_id, &mut **tx).await?;
+        let latest_max =
+            Max::select_latest(movement_id, updates.profile_id, owner_id, &mut **tx).await?;
 
         if let Some(latest_max) = latest_max {
             let latest_reps =
-                Reps::select_latest(movement_id, updates.profile_id, &mut **tx).await?;
+                Reps::select_latest(movement_id, updates.profile_id, owner_id, &mut **tx).await?;
 
             let inc = get_inc_amount(latest_reps.and_then(|r| r.amount));
 
@@ -60,7 +63,7 @@ async fn run_updates(
                 movement_id: latest_max.movement_id,
                 profile_id: latest_max.profile_id,
             }
-            .insert_one(&mut **tx)
+            .insert_one(owner_id, tx)
             .await?;
 
             let new_rep = CreateReps {
@@ -68,7 +71,7 @@ async fn run_updates(
                 movement_id: latest_max.movement_id,
                 profile_id: latest_max.profile_id,
             }
-            .insert_one(&mut **tx)
+            .insert_one(owner_id, tx)
             .await?;
 
             new_maxes.push(new_max);
@@ -83,10 +86,14 @@ async fn run_updates(
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn updates(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
+pub async fn updates(
+    State(pool): State<Pool>,
+    owner_id: OwnerId,
+    Json(updates): Json<Updates>,
+) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = run_updates(&mut tx, updates).await.map(Json);
+    let res = run_updates(&mut tx, updates, owner_id).await.map(Json);
     commit_ok(res, tx).await
 }
 
@@ -105,18 +112,23 @@ pub struct Removed {
     pub reps: Vec<DeletedId>,
 }
 
-async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> OperationResult<Removed> {
+async fn undo_updates(
+    tx: &mut Transaction<'_, DB>,
+    updates: Updates,
+    owner_id: OwnerId,
+) -> OperationResult<Removed> {
     let mut maxes = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());
     let mut reps = Vec::<DeletedId>::with_capacity(updates.movement_ids.len());
 
     for movement_id in updates.movement_ids {
-        if let Some(rep_id) = delete_latest_reps(updates.profile_id, movement_id, &mut **tx).await?
+        if let Some(rep_id) =
+            delete_latest_reps(updates.profile_id, movement_id, owner_id, &mut **tx).await?
         {
             reps.push(DeletedId(rep_id));
         }
 
         if let Some(max_id) =
-            delete_latest_maxes(updates.profile_id, movement_id, &mut **tx).await?
+            delete_latest_maxes(updates.profile_id, movement_id, owner_id, &mut **tx).await?
         {
             maxes.push(DeletedId(max_id));
         }
@@ -125,10 +137,14 @@ async fn undo_updates(tx: &mut Transaction<'_, DB>, updates: Updates) -> Operati
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn undo(State(pool): State<Pool>, Json(updates): Json<Updates>) -> impl IntoResponse {
+pub async fn undo(
+    State(pool): State<Pool>,
+    owner_id: OwnerId,
+    Json(updates): Json<Updates>,
+) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = undo_updates(&mut tx, updates).await.map(Json);
+    let res = undo_updates(&mut tx, updates, owner_id).await.map(Json);
     commit_ok(res, tx).await
 }
 

@@ -18,6 +18,7 @@ export const updateInArray = <I>(
 
 export type MergedQueryState = {
   isLoading: Accessor<boolean>;
+  isFetching: Accessor<boolean>;
   isSuccess: Accessor<boolean>;
   isError: Accessor<boolean>;
   error: Accessor<unknown>;
@@ -25,9 +26,10 @@ export type MergedQueryState = {
 
 export const combineQueries = (...queries: CreateQueryResult[]): MergedQueryState => {
   return {
-    isLoading: () => !queries.every((q) => !q.isLoading),
+    isLoading: () => queries.some((q) => q.isLoading),
+    isFetching: () => queries.some((q) => q.isFetching),
     isSuccess: () => queries.every((q) => q.isSuccess),
-    isError: () => !queries.every((q) => !q.isError),
+    isError: () => queries.some((q) => q.isError),
     error: () => queries.find((q) => q.error)?.error,
   };
 };

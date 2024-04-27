@@ -8,6 +8,7 @@ use config::{
 use serde::Deserialize;
 
 use crate::{
+    auth::settings::AuthSettings,
     db::settings::DatabaseSettings,
     observability::{metrics::settings::MetricsFeature, tracing::settings::LogSettings},
     openapi::settings::OpenApiFeature,
@@ -53,6 +54,7 @@ pub struct Settings {
     pub openapi: OpenApiFeature,
     #[serde(default)]
     pub logging: LogSettings,
+    pub auth: AuthSettings,
 }
 
 pub trait SetEnvOverride {

@@ -1,11 +1,13 @@
 import { Component, Match, Show, Switch, createRenderEffect, createSignal } from "solid-js";
-import { Profile, getProfile } from "../api";
+import { Profile, getProfile, isNotFound } from "../api";
 import { createQuery } from "@tanstack/solid-query";
 import { Input } from "../forms/Input";
 import { createControl, required } from "../hooks/forms";
 import { createUpdateProfileMutation } from "../hooks/queries/profiles";
 import { Trash } from "../icons/Trash";
 import { DeleteProfile } from "./DeleteProfile";
+import { A } from "@solidjs/router";
+import { Warning } from "../icons/Warning";
 
 const EditProfileName: Component<{ profile: Profile }> = (props) => {
   const name = createControl(props.profile.name, { validators: [required()] });
@@ -75,7 +77,7 @@ export const ProfileGreeting: Component<{ id: string }> = (props) => {
         <h2 class="text-2xl h-10 flex flex-row items-center gap-2">
           Welcome, <EditProfileName profile={query.data!} />
           <button
-            class="text-button text-base text-gray-600 mr-2 hover:text-red-500 focus:text-red-500 hover:transition-colors focus:transition-colors"
+            class="text-button text-base text-gray-600 hover:text-red-500 focus:text-red-500 hover:transition-colors focus:transition-colors"
             onClick={(e) => {
               e.preventDefault();
               setShowDeleteModal(true);
@@ -89,6 +91,20 @@ export const ProfileGreeting: Component<{ id: string }> = (props) => {
           close={() => setShowDeleteModal(false)}
           profile={query.data!}
         />
+      </Match>
+      <Match when={query.isError && isNotFound(query.error)}>
+        <div class="flex flex-row items-center gap-4">
+          <div class="flex flex-row items-center gap-2">
+            <Warning class="text-red-500" />
+            <h2 class="text-lg">Profile Not Found</h2>
+          </div>
+          <A
+            href="/"
+            class="secondary-button"
+          >
+            Switch Profile
+          </A>
+        </div>
       </Match>
     </Switch>
   );

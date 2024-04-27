@@ -8,6 +8,7 @@ import { CreateMovement, Movement } from "../api";
 import { Spinner } from "../icons/Spinner";
 import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
+import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
 
 export type MovementFormControls = ControlGroup<{
   name: Control<string>;
@@ -23,7 +24,7 @@ export const MovementForm: Component<{
   onSubmit?: () => void;
   onClose: () => void;
 }> = (props) => {
-  const isLoading = () => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading;
+  const isLoading = createSmartAsyncDelay(() => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading);
 
   const isError = () => props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
   const error = () => props.mutationCreate?.error || props.mutationUpdate?.error;
@@ -99,7 +100,7 @@ export const MovementForm: Component<{
           </Show>
         </button>
       </div>
-      <Show when={isError()}>
+      <Show when={!isLoading() && isError()}>
         <div class="w-full flex flex-row items-center justify-end gap-4 mt-2">
           <span>
             <Warning class="text-red-500" />

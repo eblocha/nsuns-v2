@@ -1,7 +1,10 @@
 use cucumber::when;
 use nsuns_server::{router::UPDATES_PATH, updates::handler::Updates};
 
-use crate::{util::JsonBody, world::NsunsWorld};
+use crate::{
+    util::{Auth, JsonBody},
+    world::NsunsWorld,
+};
 
 fn get_updates(world: &NsunsWorld) -> Updates {
     let profile_id = world.profile_world.unwrap_profile().id;
@@ -24,6 +27,7 @@ async fn run_updates(world: &mut NsunsWorld) {
         .client
         .post(UPDATES_PATH)
         .json_body(&get_updates(world))
+        .authed(&world)
         .send()
         .await;
 }
@@ -34,6 +38,7 @@ async fn undo_updates(world: &mut NsunsWorld) {
         .client
         .delete(UPDATES_PATH)
         .json_body(&get_updates(world))
+        .authed(world)
         .send()
         .await;
 }

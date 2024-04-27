@@ -8,4 +8,5 @@ export const QueryKeys = {
     summary: (programId: string) => ["programs", programId],
   },
   reps: (profileId: string) => ["reps", profileId],
+  auth: () => ["auth", "user-info"],
 } as const;

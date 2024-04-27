@@ -4,16 +4,17 @@ import { Plus } from "../icons/Plus";
 import { MovementItem } from "./Movement";
 import { useStats } from "../stats/StatsProvider";
 import { displayError } from "../util/errors";
+import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
 
 const Loading: Component = () => {
   return (
     <div class="w-full h-full grid grid-rows-6 gap-4">
-      <div class="shimmer rounded" />
-      <div class="shimmer rounded" />
-      <div class="shimmer rounded" />
-      <div class="shimmer rounded" />
-      <div class="shimmer rounded" />
-      <div class="shimmer rounded" />
+      <div class="shimmer rounded h-12" />
+      <div class="shimmer rounded h-12" />
+      <div class="shimmer rounded h-12" />
+      <div class="shimmer rounded h-12" />
+      <div class="shimmer rounded h-12" />
+      <div class="shimmer rounded h-12" />
     </div>
   );
 };
@@ -21,6 +22,8 @@ const Loading: Component = () => {
 export const MovementList: Component = () => {
   const { profileId, movementMap, movementsToMaxesMap, movementsToRepsMap, queryState } = useStats();
   const [showForm, setShowForm] = createSignal(false);
+
+  const fetching = createSmartAsyncDelay(queryState.isFetching);
 
   return (
     <div class="w-full flex flex-col">
@@ -61,6 +64,7 @@ export const MovementList: Component = () => {
                       profileId={profileId()}
                       maxes={movementsToMaxesMap()[movement.id]}
                       reps={movementsToRepsMap()[movement.id]}
+                      isFetching={fetching()}
                     />
                   )}
                 </For>

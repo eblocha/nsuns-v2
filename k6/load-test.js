@@ -30,19 +30,26 @@ function randomName() {
 }
 
 let profile;
+let cookie;
 let program;
 
-const checks = {
-  "is created": (response) => response.status === 201,
-  "body is json": (response) => response.body.startsWith("{"),
-};
-
 export default function () {
-  if (!profile) {
+  if (!profile || !cookie) {
+    // create anonymous session
+    const auth = http.post(`http://${host}/api/auth/anonymous`);
+
+    check(auth, {
+      "auth is ok": auth.status === 204,
+      "auth has cookie": auth.cookies["JWT"] && auth.cookies["JWT"].length,
+    });
+
+    cookie = auth.cookies["JWT"][0].value;
+
     const sets = 8;
 
     const headers = {
       "content-type": "application/json",
+      Cookie: "JWT=" + encodeURIComponent(cookie),
     };
 
     // create a profile
@@ -54,7 +61,10 @@ export default function () {
       { headers }
     );
 
-    check(profiles_res, checks);
+    check(profiles_res, {
+      "profile is created": (response) => response.status === 201,
+      "profile create response body is json": (response) => response.body.startsWith("{"),
+    });
 
     profile = JSON.parse(profiles_res.body);
 
@@ -70,7 +80,10 @@ export default function () {
       { headers }
     );
 
-    check(program_res, checks);
+    check(program_res, {
+      "program is created": (response) => response.status === 201,
+      "program create response body is json": (response) => response.body.startsWith("{"),
+    });
 
     program = JSON.parse(program_res.body);
 
@@ -87,7 +100,10 @@ export default function () {
         { headers }
       );
 
-      check(res, checks);
+      check(res, {
+        "movement is created": (response) => response.status === 201,
+        "movement create response body is json": (response) => response.body.startsWith("{"),
+      });
 
       const movement_id = JSON.parse(res.body).id;
 
@@ -98,17 +114,20 @@ export default function () {
         const set_res = http.post(
           `http://${host}/api/sets`,
           JSON.stringify({
-            program_id: program.id,
-            movement_id,
+            programId: program.id,
+            movementId: movement_id,
             day,
             reps: 8,
-            amount: 10,
-            percentage_of_max: movement_id,
+            amount: 75,
+            percentageOfMax: movement_id,
           }),
           { headers }
         );
 
-        check(set_res, checks);
+        check(set_res, {
+          "set is created": (response) => response.status === 201,
+          "set create response body is json": (response) => response.body.startsWith("{"),
+        });
       }
     }
 
@@ -116,11 +135,15 @@ export default function () {
   }
 
   // get the summary
-  const res = http.get(`http://${host}/api/programs/${program.id}`);
+  const res = http.get(`http://${host}/api/programs/${program.id}`, {
+    headers: {
+      Cookie: "JWT=" + encodeURIComponent(cookie),
+    },
+  });
 
   check(res, {
-    "is ok": (response) => response.status === 200,
-    "body is json": (response) => response.body.startsWith("{"),
+    "summary is ok": (response) => response.status === 200,
+    "summary response body is json": (response) => response.body.startsWith("{"),
   });
 
   sleep(1);

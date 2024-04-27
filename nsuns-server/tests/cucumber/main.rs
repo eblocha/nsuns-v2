@@ -1,5 +1,6 @@
 use cucumber::World;
 
+mod auth;
 mod common;
 mod maxes;
 mod movement;

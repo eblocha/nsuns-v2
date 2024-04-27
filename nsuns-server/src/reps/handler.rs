@@ -4,11 +4,16 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
+use transaction::{commit_ok, transaction};
 use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
-    db::{transaction::acquire, Pool},
+    auth::token::OwnerId,
+    db::{
+        transaction::{self, acquire},
+        Pool,
+    },
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -25,10 +30,11 @@ pub struct RepsQuery {
 #[tracing::instrument(skip_all)]
 pub async fn reps_index(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     Query(query): Query<RepsQuery>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    Reps::select_for_profile(query.profile_id, &mut *conn)
+    Reps::select_for_profile(query.profile_id, owner_id, &mut *conn)
         .await
         .map(Json)
 }
@@ -36,17 +42,28 @@ pub async fn reps_index(
 #[tracing::instrument(skip_all)]
 pub async fn create_reps(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(reps): ValidatedJson<CreateReps>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    reps.insert_one(&mut *conn).await.map(Json).map(created)
+    let mut tx = transaction(&mut *conn).await?;
+    let res = reps
+        .insert_one(owner_id, &mut tx)
+        .await
+        .map(Json)
+        .map(created);
+
+    commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]
 pub async fn update_reps(
     State(pool): State<Pool>,
+    owner_id: OwnerId,
     ValidatedJson(reps): ValidatedJson<UpdateReps>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    reps.update_one(&mut *conn).await.map(or_404::<_, Json<_>>)
+    reps.update_one(owner_id, &mut *conn)
+        .await
+        .map(or_404::<_, Json<_>>)
 }

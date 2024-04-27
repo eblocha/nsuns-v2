@@ -12,18 +12,13 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    db::{
+    assert_owner, auth::token::OwnerId, db::{
         tracing::{
             statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
             InstrumentExecutor,
         },
         DB,
-    },
-    db_span,
-    error::{ErrorWithStatus, OperationResult},
-    into_log_server_error, log_server_error,
-    sets::model::{Day, Set},
-    vec::MoveWithin,
+    }, db_span, error::{ErrorWithStatus, OperationResult}, into_log_server_error, log_server_error, profiles::model::Profile, sets::model::{Day, Set}, vec::MoveWithin
 };
 
 const TABLE: &str = "programs";
@@ -43,7 +38,7 @@ where
 }
 
 #[derive(Debug, Clone, sqlx::FromRow)]
-struct Program {
+pub struct Program {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
@@ -61,14 +56,26 @@ struct Program {
 impl Program {
     pub async fn select_one(
         id: Uuid,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
-        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * from {TABLE} WHERE id = $1"))
-            .bind(id)
-            .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
-            .await
-            .with_context(|| format!("failed to fetch program with id={id}"))
-            .map_err(into_log_server_error!())
+        sqlx::query_as::<_, Self>(formatcp!(
+            "{SELECT} * from {TABLE} WHERE id = $1 AND owner_id = $2"
+        ))
+        .bind(id)
+        .bind(owner_id)
+        .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
+        .await
+        .with_context(|| format!("failed to fetch program with id={id}"))
+        .map_err(into_log_server_error!())
+    }
+
+    pub async fn assert_owner(
+        id: Uuid,
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        assert_owner!(TABLE, "program", id, owner_id, executor)
     }
 }
 
@@ -88,27 +95,31 @@ const PROGRAM_META_COLS: &str = "id, name, description, owner, created_on";
 
 impl ProgramMeta {
     pub async fn select_all_for_profile(
+        profile_id: Uuid,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
-        owner: &Uuid,
     ) -> OperationResult<Vec<Self>> {
         sqlx::query_as::<_, Self>(formatcp!(
-            "{SELECT} {PROGRAM_META_COLS} FROM {TABLE} WHERE owner = $1 ORDER BY created_on",
+            "{SELECT} {PROGRAM_META_COLS} FROM {TABLE} WHERE owner = $1 AND owner_id = $2 ORDER BY created_on",
         ))
-        .bind(owner)
+        .bind(profile_id)
+        .bind(owner_id)
         .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
         .await
-        .with_context(|| format!("failed to select program with owner id={owner}"))
+        .with_context(|| format!("failed to select program with owner id={profile_id}"))
         .map_err(into_log_server_error!())
     }
 
     pub async fn select_one(
         id: Uuid,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
         sqlx::query_as::<_, Self>(formatcp!(
-            "{SELECT} {PROGRAM_META_COLS} FROM {TABLE} WHERE id = $1",
+            "{SELECT} {PROGRAM_META_COLS} FROM {TABLE} WHERE id = $1 AND owner_id = $2",
         ))
         .bind(id)
+        .bind(owner_id)
         .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
         .await
         .with_context(|| format!("failed to fetch program with id={id}"))
@@ -141,15 +152,18 @@ pub struct CreateProgram {
 impl CreateProgram {
     pub async fn insert_one(
         self,
-        executor: impl Executor<'_, Database = DB>,
+        owner_id: OwnerId,
+        tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<ProgramMeta> {
+        Profile::assert_owner(self.owner, owner_id, &mut **tx).await?;
         sqlx::query_as::<_, ProgramMeta>(formatcp!(
-            "{INSERT_INTO} {TABLE} (name, description, owner) VALUES ($1, $2, $3) RETURNING {PROGRAM_META_COLS}",
+            "{INSERT_INTO} {TABLE} (name, description, owner, owner_id) VALUES ($1, $2, $3, $4) RETURNING {PROGRAM_META_COLS}",
         ))
         .bind(self.name)
         .bind(self.description)
         .bind(self.owner)
-        .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .bind(owner_id)
+        .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| handle_error(e, || "failed to create program"))
         .map_err(log_server_error!())
@@ -169,14 +183,16 @@ pub struct UpdateProgram {
 impl UpdateProgram {
     pub async fn update_one(
         self,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<ProgramMeta>> {
         sqlx::query_as::<_, ProgramMeta>(formatcp!(
-            "{UPDATE} {TABLE} SET name = $1, description = $2 WHERE id = $3 RETURNING {PROGRAM_META_COLS}",
+            "{UPDATE} {TABLE} SET name = $1, description = $2 WHERE id = $3 AND owner_id = $4 RETURNING {PROGRAM_META_COLS}",
         ))
         .bind(self.name)
         .bind(self.description)
         .bind(self.id)
+        .bind(owner_id)
         .fetch_optional(executor.instrument_executor(db_span!(UPDATE, TABLE)))
         .await
         .map_err(|e| {
@@ -190,12 +206,14 @@ impl UpdateProgram {
 
 pub async fn delete_one(
     id: Uuid,
+    owner_id: OwnerId,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<Option<ProgramMeta>> {
     sqlx::query_as::<_, ProgramMeta>(formatcp!(
-        "{DELETE_FROM} {TABLE} WHERE id = $1 RETURNING {PROGRAM_META_COLS}"
+        "{DELETE_FROM} {TABLE} WHERE id = $1 AND owner_id = $2 RETURNING {PROGRAM_META_COLS}"
     ))
     .bind(id)
+    .bind(owner_id)
     .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
     .await
     .with_context(|| format!("failed to delete program with id={id}"))
@@ -217,9 +235,10 @@ pub struct ProgramSummary {
 
 pub async fn gather_program_summary(
     id: Uuid,
+    owner_id: OwnerId,
     tx: &mut Transaction<'_, DB>,
 ) -> OperationResult<Option<ProgramSummary>> {
-    let program_opt = Program::select_one(id, &mut **tx).await?;
+    let program_opt = Program::select_one(id, owner_id, &mut **tx).await?;
 
     let get_ctx = || format!("failed to fetch sets for program with id={id}");
 
@@ -235,7 +254,7 @@ pub async fn gather_program_summary(
         ]
         .concat();
 
-        let all_sets = Set::select_where_id_in(&all_ids, &mut **tx)
+        let all_sets = Set::select_where_id_in(&all_ids, owner_id, &mut **tx)
             .await
             .with_context(get_ctx)
             .map_err(into_log_server_error!())?;
@@ -319,15 +338,17 @@ pub async fn get_set_ids(
     program_id: Uuid,
     day: Day,
     for_update: bool,
+    owner_id: OwnerId,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<Option<Vec<Uuid>>> {
     let day_col = get_day_column(day);
     let lock_clause = if for_update { "FOR UPDATE" } else { "" };
 
     let set_ids = sqlx::query_as::<_, (Vec<Uuid>,)>(&format!(
-        "{SELECT} {day_col} FROM {TABLE} WHERE id = $1 {lock_clause}",
+        "{SELECT} {day_col} FROM {TABLE} WHERE id = $1 AND owner_id = $2 {lock_clause}",
     ))
     .bind(program_id)
+    .bind(owner_id)
     .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
     .await
     .with_context(|| {
@@ -343,14 +364,16 @@ pub async fn update_set_ids(
     program_id: Uuid,
     day: Day,
     set_ids: &Vec<Uuid>,
+    owner_id: OwnerId,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<PgQueryResult> {
     let day_col = get_day_column(day);
     sqlx::query(&format!(
-        "{UPDATE} {TABLE} SET {day_col} = $1 WHERE id = $2"
+        "{UPDATE} {TABLE} SET {day_col} = $1 WHERE id = $2 AND owner_id = $3"
     ))
     .bind(set_ids)
     .bind(program_id)
+    .bind(owner_id)
     .execute(executor.instrument_executor(db_span!(UPDATE, TABLE)))
     .await
     .with_context(|| {
@@ -377,16 +400,22 @@ pub struct SetId(Uuid);
 impl ReorderSets {
     pub async fn reorder<'a>(
         &self,
+        owner_id: OwnerId,
         tx: &mut Transaction<'a, DB>,
     ) -> OperationResult<Option<Vec<SetId>>> {
-        self.reorder_unlogged(tx).await.map_err(log_server_error!())
+        self.reorder_unlogged(owner_id, tx)
+            .await
+            .map_err(log_server_error!())
     }
 
     async fn reorder_unlogged<'a>(
         &self,
+        owner_id: OwnerId,
         tx: &mut Transaction<'a, DB>,
     ) -> OperationResult<Option<Vec<SetId>>> {
-        if let Some(mut set_ids) = get_set_ids(self.program_id, self.day, true, &mut **tx).await? {
+        if let Some(mut set_ids) =
+            get_set_ids(self.program_id, self.day, true, owner_id, &mut **tx).await?
+        {
             if self.from >= set_ids.len() || self.to >= set_ids.len() {
                 return Err(ErrorWithStatus::new(
                     StatusCode::CONFLICT,
@@ -395,7 +424,7 @@ impl ReorderSets {
             }
 
             if set_ids.move_within(self.from, self.to) {
-                update_set_ids(self.program_id, self.day, &set_ids, &mut **tx).await?;
+                update_set_ids(self.program_id, self.day, &set_ids, owner_id, &mut **tx).await?;
             }
 
             return Ok(Some(set_ids.into_iter().map(SetId).collect()));

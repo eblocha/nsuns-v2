@@ -1,11 +1,12 @@
-import { Component, For, Match, Switch, createMemo } from "solid-js";
+import { Component, For, Match, Show, Switch, createMemo } from "solid-js";
 import { useProgram } from "../context/ProgramProvider";
 import { Max } from "../../../api/maxes";
 import { Graph } from "../../../graph/Graph";
-import { Movement } from "../../../api";
 import { Reps } from "../../../api/reps";
 import { Input } from "../../../forms/Input";
 import { useEditStat, CommonProps, EditableStatProps } from "../../../hooks/useEditStat";
+import { SPINNER_DELAY_MS, createMinimumAsyncDelay, createSmartAsyncDelay } from "../../../hooks/asymmetricDelay";
+import { Spinner } from "../../../icons/Spinner";
 
 type StatsProps = CommonProps &
   (
@@ -22,32 +23,38 @@ type StatsProps = CommonProps &
 const EditableCard: Component<EditableStatProps> = (props) => {
   const { amount, onSubmit, reset, mutation } = useEditStat(props);
 
+  const isUpdating = createMinimumAsyncDelay(() => mutation.isLoading, SPINNER_DELAY_MS);
+
   return (
     <div class="rounded flex flex-col border border-gray-600 text-xl">
       <div class="text-center flex-shrink-0 p-3 border-b border-gray-600 bg-gray-900">{props.movement?.name}</div>
-      <div
-        class="flex-grow flex flex-col items-center justify-center p-3 text-4xl"
-        classList={{
-          shimmer: mutation.isLoading,
-        }}
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit();
-          }}
+      <div class="flex-grow flex flex-col items-center justify-center p-3 text-4xl">
+        <Show
+          when={!isUpdating()}
+          fallback={
+            <div class="h-14 flex flex-col justify-center">
+              <Spinner class="animate-spin" />
+            </div>
+          }
         >
-          <Input
-            control={amount}
-            type="number"
-            min={0}
-            class="w-full h-full ghost-input text-center"
-            placeholder="Edit"
-            disabled={mutation.isLoading}
-            required={props.type === "max"}
-            onBlur={reset}
-          />
-        </form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSubmit();
+            }}
+          >
+            <Input
+              control={amount}
+              type="number"
+              min={0}
+              class="w-full h-14 ghost-input text-center"
+              placeholder="Edit"
+              disabled={isUpdating()}
+              required={props.type === "max"}
+              onBlur={reset}
+            />
+          </form>
+        </Show>
       </div>
     </div>
   );
@@ -84,16 +91,11 @@ const StatRow: Component<StatsProps> = (props) => {
           data={points()}
           weight={4}
           fillOpacity="10%"
+          softYMinimum={props.type === 'reps' ? 0 : undefined}
         />
       </div>
     </div>
   );
-};
-
-type MaxRowData = {
-  movement?: Movement;
-  maxes: Reps[];
-  reps: Reps[];
 };
 
 export const DataList: Component = () => {
@@ -106,21 +108,11 @@ export const DataList: Component = () => {
     queryState: { isLoading, isSuccess },
   } = useProgram();
 
-  const maxesToShow = createMemo<MaxRowData[]>(() => {
-    const mm = movementMap();
-    const m2m = movementsToMaxesMap();
-    const m2r = movementsToRepsMap();
-
-    return relevantMovements().map((movementId) => ({
-      movement: mm[movementId],
-      maxes: m2m[movementId] ?? [],
-      reps: m2r[movementId] ?? [],
-    }));
-  });
+  const delayedIsLoading = createSmartAsyncDelay(isLoading);
 
   return (
     <Switch>
-      <Match when={isLoading()}>
+      <Match when={delayedIsLoading()}>
         <Loading />
       </Match>
       <Match when={isSuccess()}>
@@ -128,13 +120,12 @@ export const DataList: Component = () => {
           <div>
             <div class="text-3xl">Maxes</div>
             <ul>
-              <For each={maxesToShow()}>
-                {({ movement, maxes }) => (
+              <For each={relevantMovements()}>
+                {(movementId) => (
                   <li class="w-full mt-2">
-                    {/* @ts-expect-error: complaining about tagged union types */}
                     <StatRow
-                      movement={movement}
-                      stats={maxes}
+                      movement={movementMap()[movementId]}
+                      stats={movementsToMaxesMap()[movementId] ?? []}
                       type="max"
                       profileId={profileId()}
                     />
@@ -146,12 +137,12 @@ export const DataList: Component = () => {
           <div>
             <div class="text-3xl mt-2 2xl:mt-0">Reps</div>
             <ul>
-              <For each={maxesToShow()}>
-                {({ movement, reps }) => (
+              <For each={relevantMovements()}>
+                {(movementId) => (
                   <li class="w-full mt-2">
                     <StatRow
-                      movement={movement}
-                      stats={reps}
+                      movement={movementMap()[movementId]}
+                      stats={movementsToRepsMap()[movementId] ?? []}
                       type="reps"
                       profileId={profileId()}
                     />

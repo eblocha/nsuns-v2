@@ -28,7 +28,7 @@ export const useEditStat = (props: EditableStatProps) => {
   const amount = createControl(props.stat?.amount?.toString() || "");
 
   const reset = () => {
-    amount.reset(props.stat?.amount?.toString());
+    amount.reset(props.stat?.amount?.toString() ?? "");
   };
 
   createRenderEffect(reset);

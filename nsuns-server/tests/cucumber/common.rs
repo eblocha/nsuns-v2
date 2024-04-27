@@ -1,5 +1,6 @@
 use axum::Router;
 use nsuns_server::{
+    auth::settings::AuthSettings,
     db::settings::{default_timeout, DatabaseSettings},
     observability::metrics::settings::MetricsFeature,
     openapi::settings::OpenApiFeature,
@@ -57,6 +58,10 @@ pub async fn init() -> Router {
         metrics: MetricsFeature::Disabled,
         openapi: OpenApiFeature::Disabled,
         logging: Default::default(),
+        auth: AuthSettings {
+            jwt_encoding_secret: "jwt-secret".to_owned().into(),
+            jwt_decoding_secret: "jwt-secret".to_owned().into(),
+        },
     })
     .await
     .unwrap()

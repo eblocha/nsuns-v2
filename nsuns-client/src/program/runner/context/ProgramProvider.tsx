@@ -34,6 +34,7 @@ const InnerProvider: Component<{
     error: () => stats.queryState.error() || summaryQuery.error,
     isError: () => stats.queryState.isError() || summaryQuery.isError,
     isLoading: () => stats.queryState.isLoading() || summaryQuery.isLoading,
+    isFetching: () => stats.queryState.isFetching() || summaryQuery.isFetching,
     isSuccess: () => stats.queryState.isSuccess() && summaryQuery.isSuccess,
   };
 

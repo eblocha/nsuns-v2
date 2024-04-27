@@ -7,12 +7,13 @@ use chrono::NaiveDateTime;
 use const_format::formatcp;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
-use sqlx::Executor;
+use sqlx::{Executor, Transaction};
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    auth::token::OwnerId,
     db::{
         tracing::{
             statements::{DELETE_FROM, INSERT_INTO, SELECT, UPDATE},
@@ -23,6 +24,8 @@ use crate::{
     db_span,
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
+    movements::model::Movement,
+    profiles::model::Profile,
 };
 
 const TABLE: &str = "reps";
@@ -59,12 +62,14 @@ pub struct Reps {
 impl Reps {
     pub async fn select_for_profile(
         profile_id: Uuid,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Self>> {
         sqlx::query_as::<_, Self>(formatcp!(
-            "{SELECT} * FROM {TABLE} WHERE profile_id = $1 ORDER BY timestamp"
+            "{SELECT} * FROM {TABLE} WHERE profile_id = $1 AND owner_id = $2 ORDER BY timestamp"
         ))
         .bind(profile_id)
+        .bind(owner_id)
         .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
         .await
         .with_context(|| format!("failed to select reps for profile_id={profile_id}"))
@@ -74,13 +79,15 @@ impl Reps {
     pub async fn select_latest(
         movement_id: Uuid,
         profile_id: Uuid,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
         sqlx::query_as::<_, Self>(formatcp!(
-                "{SELECT} * FROM {TABLE} WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1"
+                "{SELECT} * FROM {TABLE} WHERE movement_id = $1 AND profile_id = $2 AND owner_id = $3 ORDER BY timestamp DESC LIMIT 1"
             ))
             .bind(movement_id)
             .bind(profile_id)
+            .bind(owner_id)
             .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
             .with_context(|| format!("failed to fetch latest reps for profile_id={profile_id} and movement_id={movement_id}"))
@@ -100,15 +107,20 @@ pub struct CreateReps {
 impl CreateReps {
     pub async fn insert_one(
         self,
-        executor: impl Executor<'_, Database = DB>,
+        owner_id: OwnerId,
+        tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<Reps> {
+        Profile::assert_owner(self.profile_id, owner_id, &mut **tx).await?;
+        Movement::assert_owner(self.movement_id, owner_id, &mut **tx).await?;
+
         sqlx::query_as::<_, (i64, NaiveDateTime)>(formatcp!(
-            "{INSERT_INTO} {TABLE} (profile_id, movement_id, amount) VALUES ($1, $2, $3) RETURNING id, timestamp",
+            "{INSERT_INTO} {TABLE} (profile_id, movement_id, amount, owner_id) VALUES ($1, $2, $3, $4) RETURNING id, timestamp",
         ))
         .bind(self.profile_id)
         .bind(self.movement_id)
         .bind(self.amount)
-        .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .bind(owner_id)
+        .fetch_one((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| handle_error(e, || "failed to insert a new rep record"))
         .map(|(id, timestamp)| Reps {
@@ -136,13 +148,15 @@ pub struct UpdateReps {
 impl UpdateReps {
     pub async fn update_one(
         self,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Reps>> {
         sqlx::query_as::<_, Reps>(formatcp!(
-            "{UPDATE} {TABLE} SET amount = $1 WHERE id = $2 RETURNING *"
+            "{UPDATE} {TABLE} SET amount = $1 WHERE id = $2 AND owner_id = $3 RETURNING *"
         ))
         .bind(self.amount)
         .bind(self.id)
+        .bind(owner_id)
         .fetch_optional(executor.instrument_executor(db_span!(UPDATE, TABLE)))
         .await
         .map_err(|e| {
@@ -157,15 +171,17 @@ impl UpdateReps {
 pub async fn delete_latest_reps(
     profile_id: Uuid,
     movement_id: Uuid,
+    owner_id: OwnerId,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<Option<i64>> {
     sqlx::query_as::<_, (i64,)>(formatcp!(
         "{DELETE_FROM} {TABLE} WHERE id = any(
-            array(SELECT id FROM {TABLE} WHERE movement_id = $1 AND profile_id = $2 ORDER BY timestamp DESC LIMIT 1)
+            array(SELECT id FROM {TABLE} WHERE movement_id = $1 AND profile_id = $2 AND owner_id = $3 ORDER BY timestamp DESC LIMIT 1)
         ) RETURNING id"
     ))
     .bind(movement_id)
     .bind(profile_id)
+    .bind(owner_id)
     .fetch_optional(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
     .await
     .map(|res| res.map(|(id,)| id))

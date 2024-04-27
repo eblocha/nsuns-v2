@@ -28,7 +28,13 @@ pub async fn initialize(settings: &Settings) -> anyhow::Result<Router> {
         .await
         .map_err(log_error!())?;
 
-    router(AppState { pool }, settings)
+    router(
+        AppState {
+            pool,
+            keys: (&settings.auth).into(),
+        },
+        settings,
+    )
 }
 
 #[derive(Clone)]

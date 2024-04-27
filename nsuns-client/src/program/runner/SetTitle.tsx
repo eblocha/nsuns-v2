@@ -4,6 +4,7 @@ import { repsDisplay, resolvedWeightDisplay } from "../../util/setDisplay";
 import { currentSet, day } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
 import { useProgram } from "./context/ProgramProvider";
+import { createSmartAsyncDelay } from "../../hooks/asymmetricDelay";
 
 const displaySet = (set: ProgramSet, movement: Movement, max?: number) => {
   const weightComponent = resolvedWeightDisplay(set, max);
@@ -74,9 +75,11 @@ export const TitleBanner: Component = () => {
     return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
 
+  const isLoading = createSmartAsyncDelay(queryState.isLoading);
+
   return (
     <Switch>
-      <Match when={queryState.isLoading()}>
+      <Match when={isLoading()}>
         <LoadingTitle />
       </Match>
       <Match when={queryState.isSuccess()}>

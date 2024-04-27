@@ -1,60 +1,56 @@
-import { Component, For, Match, Switch } from "solid-js";
-import { AddProfileCard, LoadingProfileCard, ProfileCard } from "./ProfileCard";
-import { createDelayedLatch } from "../hooks/createDelayedLatch";
-import { RefreshButton } from "../components/RefreshButton";
-import { createProfileQuery } from "../hooks/queries/profiles";
+import { Component, Show } from "solid-js";
+import { LoginForm } from "./LoginForm";
+import { displayError } from "../util/errors";
+import { Warning } from "../icons/Warning";
+import { Spinner } from "../icons/Spinner";
+import { useLoginAnonymousMutation, useUserInfoQuery } from "../hooks/queries/auth";
 
 export const Login: Component = () => {
-  const query = createProfileQuery();
+  const userInfo = useUserInfoQuery();
+  const loginAnonymousMutation = useLoginAnonymousMutation();
 
-  const isFetching = createDelayedLatch(() => query.isFetching, 200);
+  const name = () => {
+    switch (userInfo.data?.type) {
+      case 'anonymous': return 'a temporary user';
+      case 'user': return userInfo.data.username;
+      default: 'no-one'
+    }
+  }
+
+  const isAuthed = () => !!(userInfo.isSuccess && userInfo.data)
 
   return (
-    <div class="h-full w-full overflow-hidden p-10 flex flex-col items-center justify-center">
-      <h2 class="text-lg">Select a profile</h2>
-      <Switch>
-        <Match when={query.isLoading}>
-          <ul class="my-8 flex flex-row items-center gap-4">
-            <For each={[1, 2, 3]}>
-              {() => (
-                <li>
-                  <LoadingProfileCard />
-                </li>
-              )}
-            </For>
-          </ul>
-        </Match>
-        <Match when={query.isError}>
-          <div class="flex flex-col items-center justify-center my-10">
-            <div class="mb-2">Error fetching profiles: {`${query.error}`}</div>
-          </div>
-        </Match>
-        <Match when={query.isSuccess}>
-          <ul class="my-8 flex flex-row items-center gap-4">
-            <For each={query.data}>
-              {(profile) => (
-                <li
-                  class="rounded"
-                  classList={{
-                    shimmer: isFetching(),
-                  }}
-                >
-                  <ProfileCard {...profile} />
-                </li>
-              )}
-            </For>
-            <li>
-              <AddProfileCard />
-            </li>
-          </ul>
-        </Match>
-      </Switch>
-      <div class="flex flex-row items-center justify-center">
-        <RefreshButton
-          onClick={() => void query.refetch()}
-          isFetching={isFetching()}
-          class="secondary-button"
-        />
+    <div class="w-full h-full flex flex-col justify-center items-stretch p-80 gap-8">
+      <Show when={isAuthed()}>
+        <p class="text-center">You are currently loggged-in as {name()}.</p>
+      </Show>
+      <div class="grid grid-cols-2 w-full">
+        <div class="border-r border-gray-500 p-5 flex flex-row justify-end">
+          <LoginForm isAuthed={isAuthed()} />
+        </div>
+        <div class="p-5 flex flex-col items-start gap-4">
+          <h2 class="text-lg">Continue As Guest (2 day trial)</h2>
+          <Show when={loginAnonymousMutation.isError}>
+            <div class="w-full flex flex-row items-center gap-4">
+              <span>
+                <Warning class="text-red-500" />
+              </span>
+              {displayError(loginAnonymousMutation.error, "create session")}
+            </div>
+          </Show>
+          <button
+            class="primary-button"
+            disabled={loginAnonymousMutation.isLoading}
+            onClick={() => loginAnonymousMutation.mutate()}
+          >
+            <Show
+              when={!loginAnonymousMutation.isLoading}
+              fallback={<Spinner class="animate-spin my-1" />}
+            >
+              Continue
+            </Show>
+          </button>
+        </div>
       </div>
     </div>
   );

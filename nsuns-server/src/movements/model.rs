@@ -10,6 +10,8 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    assert_owner,
+    auth::token::OwnerId,
     db::{
         tracing::{
             statements::{INSERT_INTO, SELECT, UPDATE},
@@ -49,9 +51,11 @@ where
 
 impl Movement {
     pub async fn select_all(
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Vec<Self>> {
-        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * FROM {TABLE}"))
+        sqlx::query_as::<_, Self>(formatcp!("{SELECT} * FROM {TABLE} WHERE owner_id = $1"))
+            .bind(owner_id)
             .fetch_all(executor.instrument_executor(db_span!(SELECT, TABLE)))
             .await
             .context("failed to select movements")
@@ -60,14 +64,16 @@ impl Movement {
 
     pub async fn update_one(
         self,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Option<Self>> {
         sqlx::query(formatcp!(
-            "{UPDATE} {TABLE} SET name = $1, description = $2 WHERE id = $3"
+            "{UPDATE} {TABLE} SET name = $1, description = $2 WHERE id = $3 AND owner_id = $4"
         ))
         .bind(&self.name)
         .bind(self.description.as_ref())
         .bind(self.id)
+        .bind(owner_id)
         .execute(executor.instrument_executor(db_span!(UPDATE, TABLE)))
         .await
         .map_err(|e| {
@@ -84,6 +90,14 @@ impl Movement {
         })
         .map_err(log_server_error!())
     }
+
+    pub async fn assert_owner(
+        id: Uuid,
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        assert_owner!(TABLE, "movement", id, owner_id, executor)
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
@@ -98,13 +112,15 @@ pub struct CreateMovement {
 impl CreateMovement {
     pub async fn insert_one(
         self,
+        owner_id: OwnerId,
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<Movement> {
         sqlx::query_as::<_, Movement>(formatcp!(
-            "{INSERT_INTO} {TABLE} (name, description) VALUES ($1, $2) RETURNING *",
+            "{INSERT_INTO} {TABLE} (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *",
         ))
         .bind(&self.name)
         .bind(self.description.as_ref())
+        .bind(owner_id)
         .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| handle_error(e, || "failed to insert new movement"))
