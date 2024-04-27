@@ -49,7 +49,7 @@ pub struct UserInfo {
 #[derive(Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AnonymousInfo {
-    #[schema(format = Int64)]
+    #[schema(value_type = i64)]
     #[serde(with = "ts_milliseconds")]
     pub expiry_date: DateTime<Utc>,
 }
