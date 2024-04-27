@@ -1,15 +1,14 @@
 import { Component, Show } from "solid-js";
 import { Input } from "../forms/Input";
-import { A, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
 import { Spinner } from "../icons/Spinner";
 import { useCreateProgram } from "../hooks/queries/programs";
 import { useNavigateToProgram } from "../hooks/navigation";
 import { createControl, required } from "../hooks/forms";
-import { ErrorMessages } from "../forms/ErrorMessages";
 import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
 
-export const NewProgram: Component = () => {
+export const NewProgram: Component<{ close: () => void }> = (props) => {
   const params = useParams<{ profileId: string }>();
   const navigateToProgram = useNavigateToProgram();
 
@@ -18,6 +17,7 @@ export const NewProgram: Component = () => {
   const mutation = useCreateProgram({
     onSuccess: (program) => {
       navigateToProgram(program.id);
+      props.close();
     },
   });
 
@@ -32,55 +32,42 @@ export const NewProgram: Component = () => {
   };
 
   return (
-    <div class="w-full h-full p-14 border-l border-gray-700 flex flex-col items-start justify-center gap-4">
-      <h2 class="text-2xl">Create New Program</h2>
+    <div class="flex flex-col gap-2 p-3 border rounded border-gray-500">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           onSubmit();
         }}
-        class="flex flex-col w-80 gap-4"
+        class="flex flex-row gap-2 items-center"
       >
-        <div class="flex flex-col items-end">
-          <label
-            for="program-name"
-            class="flex flex-row items-center gap-2"
+        <label for="program-name">
+          <span class="text-red-500">*</span>Title
+        </label>
+        <Input
+          control={name}
+          class="input flex-grow"
+          name="program-name"
+          required={true}
+          autofocus={true}
+        />
+        <button
+          class="secondary-button"
+          onClick={props.close}
+          type="button"
+        >
+          Cancel
+        </button>
+        <button
+          class="primary-button flex flex-row items-center justify-center w-20"
+          disabled={mutation.isLoading || name.hasErrors()}
+        >
+          <Show
+            when={!mutation.isLoading}
+            fallback={<Spinner class="animate-spin my-1" />}
           >
-            <div>
-              <span class="text-red-500">*</span>Title
-            </div>
-            <div class="flex-grow">
-              <Input
-                control={name}
-                class="input w-full"
-                name="program-name"
-                required={true}
-                autofocus={true}
-              />
-            </div>
-          </label>
-          <ErrorMessages control={name} />
-        </div>
-
-        <div class="flex flex-row items-center justify-end">
-          <A
-            href="../.."
-            class="text-button"
-          >
-            Cancel
-          </A>
-          <button
-            class="primary-button ml-2 flex flex-row items-center justify-center w-36"
-            disabled={mutation.isLoading || name.hasErrors()}
-          >
-            <Show
-              when={!mutation.isLoading}
-              fallback={<Spinner class="animate-spin my-1" />}
-            >
-              Create Program
-            </Show>
-          </button>
-        </div>
+            Create
+          </Show>
+        </button>
         <Show when={mutation.isError}>
           <div class="w-full flex flex-row items-center justify-end gap-4">
             <span>

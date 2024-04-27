@@ -4,7 +4,6 @@ import { Component, Show, createEffect } from "solid-js";
 import { SelectProfile } from "./profile/entry/SelectProfile";
 import { CreateProfile } from "./profile/entry/CreateProfile";
 import { ProfileHome } from "./profile/ProfileHome";
-import { NewProgram } from "./program/NewProgram";
 import { ProgramBuilder } from "./program/builder/ProgramBuilder";
 import { ProgramRunner } from "./program/runner/ProgramRunner";
 import { NotFound } from "./NotFound";
@@ -78,10 +77,6 @@ const RoutingApp: Component = () => {
           component={ProfileHome}
         >
           <Route path="/" />
-          <Route
-            path="program/new"
-            component={NewProgram}
-          />
           <Route
             path="program/:programId"
             component={ProgramBuilder}

@@ -1,31 +1,26 @@
 import { A, Outlet, useParams } from "@solidjs/router";
-import { Component, For, Match, Show, Switch, createEffect } from "solid-js";
-import { AddProgram, LoadingProgram, ProgramItem } from "./Program";
+import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
+import { LoadingProgram, ProgramItem } from "./Program";
 import { ProfileGreeting } from "./ProfileGreeting";
 import { createMinimumAsyncDelay } from "../hooks/asymmetricDelay";
 import { RefreshButton } from "../components/RefreshButton";
 import { useProgramsQuery } from "../hooks/queries/programs";
-import { useNavigateToNewProgram } from "../hooks/navigation";
 import { MovementList } from "../movements/MovementList";
 import { StatsProvider } from "../stats/StatsProvider";
 import { createQuery } from "@tanstack/solid-query";
 import { getProfile, isNotFound } from "../api";
+import { Plus } from "../icons/Plus";
+import { NewProgram } from "../program/NewProgram";
 
 export const ProfileHome: Component = () => {
   const params = useParams<{ profileId: string; programId?: string }>();
-  const navToNewProgram = useNavigateToNewProgram();
   const programsQuery = useProgramsQuery(() => params.profileId);
+  const [isAddingProgram, setIsAddingProgram] = createSignal(false);
 
   const profileQuery = createQuery({
     queryKey: () => ["profiles", params.profileId],
     queryFn: () => getProfile(params.profileId),
     enabled: !!params.profileId,
-  });
-
-  createEffect(() => {
-    if (profileQuery.isSuccess && programsQuery.isSuccess && programsQuery.data?.length === 0) {
-      navToNewProgram();
-    }
   });
 
   const isFetching = createMinimumAsyncDelay(() => programsQuery.isFetching);
@@ -38,14 +33,14 @@ export const ProfileHome: Component = () => {
             <ProfileGreeting id={params.profileId} />
           </div>
           <Show when={!isNotFound(profileQuery.error)}>
-            <h2 class="text-xl">Your Programs</h2>
-            <div class="flex flex-col justify-center">
+            <h2 class="text-xl mb-2">Your Programs</h2>
+            <div class="flex flex-col justify-center gap-4">
               <Switch>
                 <Match when={programsQuery.isLoading}>
-                  <ul class="my-8 w-full">
+                  <ul class="w-full">
                     <For each={[1, 2, 3]}>
                       {() => (
-                        <li>
+                        <li class="mt-2">
                           <LoadingProgram />
                         </li>
                       )}
@@ -53,16 +48,16 @@ export const ProfileHome: Component = () => {
                   </ul>
                 </Match>
                 <Match when={programsQuery.isError}>
-                  <div class="flex flex-col items-center justify-center my-10">
-                    <div class="mb-2">Failed to fetch programs: {`${programsQuery.error}`}</div>
+                  <div class="flex flex-col items-center justify-center">
+                    Failed to fetch programs: {`${programsQuery.error}`}
                   </div>
                 </Match>
                 <Match when={programsQuery.isSuccess}>
-                  <ul class="my-4 w-full">
+                  <ul class="w-full">
                     <For each={programsQuery.data}>
                       {(program, i) => (
                         <li
-                          class="rounded border mb-2"
+                          class="rounded border mt-2"
                           classList={{
                             shimmer: isFetching(),
                             "border-blue-500": program.id.toString() === params.programId,
@@ -80,16 +75,24 @@ export const ProfileHome: Component = () => {
                   </ul>
                 </Match>
               </Switch>
-              <div class="flex flex-row items-center overflow-visible">
-                <AddProgram />
+              <Show when={isAddingProgram()}>
+                <NewProgram close={() => setIsAddingProgram(false)} />
+              </Show>
+              <div class="flex flex-row items-center overflow-visible gap-2">
+                <button
+                  class="text-button-outline flex flex-row items-center justify-start gap-2"
+                  onClick={() => setIsAddingProgram(true)}
+                >
+                  <Plus /> Add Program
+                </button>
                 <RefreshButton
                   isFetching={isFetching()}
                   onClick={() => void programsQuery.refetch()}
-                  class="secondary-button ml-2"
+                  class="secondary-button"
                 />
                 <A
                   href="/"
-                  class="text-button ml-2"
+                  class="text-button"
                 >
                   Switch Profile
                 </A>
