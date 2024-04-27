@@ -6,8 +6,6 @@ import { Spinner } from "../icons/Spinner";
 import { useLoginAnonymousMutation, useUserInfoQuery } from "../hooks/queries/auth";
 
 export const Login: Component = () => {
-  // TODO add warning about logging in if user is currently anonymous, since that would delete their data
-
   const userInfo = useUserInfoQuery();
   const loginAnonymousMutation = useLoginAnonymousMutation();
 
@@ -19,14 +17,16 @@ export const Login: Component = () => {
     }
   }
 
+  const isAuthed = () => !!(userInfo.isSuccess && userInfo.data)
+
   return (
     <div class="w-full h-full flex flex-col justify-center items-stretch p-80 gap-8">
-      <Show when={userInfo.isSuccess && userInfo.data}>
+      <Show when={isAuthed()}>
         <p class="text-center">You are currently loggged-in as {name()}.</p>
       </Show>
       <div class="grid grid-cols-2 w-full">
         <div class="border-r border-gray-500 p-5 flex flex-row justify-end">
-          <LoginForm />
+          <LoginForm isAuthed={isAuthed()} />
         </div>
         <div class="p-5 flex flex-col items-start gap-4">
           <h2 class="text-lg">Continue As Guest (2 day trial)</h2>

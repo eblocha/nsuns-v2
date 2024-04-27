@@ -9,7 +9,7 @@ import { Input } from "../forms/Input";
 import styles from "./LoginForm.module.css";
 import { useLoginMutation } from "../hooks/queries/auth";
 
-export const LoginForm: Component = () => {
+export const LoginForm: Component<{isAuthed: boolean}> = (props) => {
   const form = createControlGroup({
     username: createControl<string>("", { validators: [required()] }),
     password: createControl<string>("", { validators: [required()] }),
@@ -72,12 +72,14 @@ export const LoginForm: Component = () => {
       </div>
 
       <div class="float-right flex flex-row items-center justify-end w-full gap-2">
+        <Show when={props.isAuthed}>
         <A
           href="/"
           class="text-button text-center"
         >
           Home
         </A>
+        </Show>
         <button
           type="button"
           onClick={() => form.reset()}

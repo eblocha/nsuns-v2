@@ -14,7 +14,7 @@ import { ExpiryWarning } from "./login/ExpiryWarning";
 import { useUserInfoQuery } from "./hooks/queries/auth";
 import { Spinner } from "./icons/Spinner";
 import { createDelayedLatch } from "./hooks/createDelayedLatch";
-import { useNavigateToLogin } from "./hooks/navigation";
+import { useNavigateToLogin, useNavigateToProfileHome } from "./hooks/navigation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,11 +38,14 @@ const queryClient = new QueryClient({
 const RoutingApp: Component = () => {
   const userInfo = useUserInfoQuery();
   const navigateToLogin = useNavigateToLogin();
+  const navigateToProfileHome = useNavigateToProfileHome();
   const location = useLocation();
 
   createEffect(() => {
     if (userInfo.isSuccess && userInfo.data === null && location.pathname !== "/login") {
       navigateToLogin();
+    } else if (userInfo.isSuccess && userInfo.data !== null && location.pathname === "/login") {
+      navigateToProfileHome();
     }
   });
 
