@@ -59,7 +59,7 @@ export const useCreateProgramFromTemplate = <TError = unknown, TContext = unknow
       );
       await queryClient.invalidateQueries({
         queryKey: QueryKeys.movements(),
-      })
+      });
     },
   });
   return mutation;

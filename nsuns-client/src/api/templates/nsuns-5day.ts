@@ -787,4 +787,4 @@ export default {
       description: null,
     },
   ],
-} satisfies NewProgramTemplate
+} satisfies NewProgramTemplate;

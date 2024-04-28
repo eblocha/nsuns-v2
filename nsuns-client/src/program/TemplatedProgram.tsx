@@ -45,7 +45,7 @@ const TemplatedMovementRow: Component<{
 export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: () => void; cancel: () => void }> = (
   props
 ) => {
-  const params = useParams<{ profileId: string }>()
+  const params = useParams<{ profileId: string }>();
   const navigateToProgram = useNavigateToProgram();
 
   const movementQuery = useMovementsQuery();
