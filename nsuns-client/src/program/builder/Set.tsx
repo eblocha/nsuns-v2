@@ -4,6 +4,7 @@ import { EditSet } from "./EditSet";
 import { plural, repsDisplay } from "../../util/setDisplay";
 import { Day } from "../../util/days";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
+import { Grip } from "../../icons/Grip";
 
 export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const movement = movements.find((m) => m.id === set.movementId);
@@ -26,6 +27,18 @@ export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const repsComponent = repsDisplay(set);
 
   return `${nameComponent}${weightComponent}${repsComponent}`;
+};
+
+export const SetInner: Component<{ summary: string | null; description: string | null }> = (props) => {
+  return (
+    <>
+      <div class="flex flex-row items-center justify-between">
+        {props.summary}
+        <Grip class="cursor-move text-gray-300 text-lg" />
+      </div>
+      <div class="text-sm opacity-60">{props.description}</div>
+    </>
+  );
 };
 
 export const SetComponent: Component<{
@@ -53,8 +66,10 @@ export const SetComponent: Component<{
           hidden: isEditing(),
         }}
       >
-        {displaySet(props.set, props.movements)}
-        <div class="text-sm opacity-60">{props.set.description}</div>
+        <SetInner
+          summary={displaySet(props.set, props.movements)}
+          description={props.set.description}
+        />
       </button>
       <Show when={isEditing()}>
         <EditSet

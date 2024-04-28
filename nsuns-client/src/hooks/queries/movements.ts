@@ -9,6 +9,7 @@ export const useMovementsQuery = () => {
   const query = createQuery({
     queryKey: QueryKeys.movements,
     queryFn: getMovements,
+    staleTime: Infinity
   });
 
   return query;

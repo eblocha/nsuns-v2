@@ -2,7 +2,7 @@ import { Component, For, createSignal } from "solid-js";
 import { DragEventHandler } from "@thisbeyond/solid-dnd";
 import { DragDropProvider, DragDropSensors, DragOverlay, SortableProvider, closestCenter } from "@thisbeyond/solid-dnd";
 import { Movement, ProgramSet } from "../../api";
-import { SetComponent, displaySet } from "./Set";
+import { SetComponent, SetInner, displaySet } from "./Set";
 import { Day } from "../../util/days";
 import { useReorderSets } from "../../hooks/queries/programs";
 
@@ -27,11 +27,21 @@ export const SetList: Component<{
 
   const setIds = () => props.sets.map((set) => set.id);
 
-  const activeItemDescription = () => {
+  const activeItemSummary = () => {
     const index = activeItem();
     const set = index !== null && props.sets[index];
     if (set) {
       return displaySet(set, props.movements);
+    }
+
+    return null;
+  };
+
+  const activeItemDescription = () => {
+    const index = activeItem();
+    const set = index !== null && props.sets[index];
+    if (set) {
+      return set.description;
     }
 
     return null;
@@ -73,7 +83,12 @@ export const SetList: Component<{
         </For>
       </SortableProvider>
       <DragOverlay>
-        <div class="p-2 rounded border border-gray-700 mb-2 bg-gray-800">{activeItemDescription()}</div>
+        <div class="p-2 rounded border border-gray-700 mb-2 bg-gray-800">
+          <SetInner
+            summary={activeItemSummary()}
+            description={activeItemDescription()}
+          />
+        </div>
       </DragOverlay>
     </DragDropProvider>
   );

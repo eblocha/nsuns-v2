@@ -13,12 +13,10 @@ export const SetSummary: Component<{ sets: ProgramSet[] }> = (props) => {
 
   return (
     <Show when={props.sets.length}>
-      <div class="mb-2">
-        <p>
-          {props.sets.length} Set{plural(props.sets.length)}, {nUnique()} unique movement
-          {plural(nUnique())}
-        </p>
-      </div>
+      <p>
+        {props.sets.length} Set{plural(props.sets.length)}, {nUnique()} unique movement
+        {plural(nUnique())}
+      </p>
     </Show>
   );
 };

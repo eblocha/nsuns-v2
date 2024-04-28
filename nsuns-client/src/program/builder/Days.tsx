@@ -72,7 +72,7 @@ export const Days: Component<{ summary: ProgramSummary }> = (props) => {
                 <Show
                   when={expanded()[index()]}
                   fallback={
-                    <li>
+                    <li class="mb-4">
                       <SetSummary sets={getSets(index())} />
                     </li>
                   }

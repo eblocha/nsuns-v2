@@ -15,6 +15,7 @@ import { Accessor } from "solid-js";
 import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
 import { ProgramSummaryQueryData } from "./sets";
+import { ProgramTemplate, createProgramFromTemplate } from "../../api/programTemplate";
 
 export type ProgramsQueryData = QueryData<ReturnType<typeof useProgramsQuery>>;
 
@@ -34,6 +35,23 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
   const mutation = createMutation({
     ...options,
     mutationFn: createProgram,
+    onSuccess: (program, ...args) => {
+      options?.onSuccess?.(program, ...args);
+      queryClient.setQueryData(QueryKeys.programs.list(program.owner), (programs?: ProgramsQueryData) =>
+        programs ? [...programs, program] : undefined
+      );
+    },
+  });
+  return mutation;
+};
+
+export const useCreateProgramFromTemplate = <TError = unknown, TContext = unknown>(
+  options?: Partial<CreateMutationOptions<Program, TError, ProgramTemplate, TContext>>
+) => {
+  const queryClient = useQueryClient();
+  const mutation = createMutation({
+    ...options,
+    mutationFn: createProgramFromTemplate,
     onSuccess: (program, ...args) => {
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(QueryKeys.programs.list(program.owner), (programs?: ProgramsQueryData) =>
