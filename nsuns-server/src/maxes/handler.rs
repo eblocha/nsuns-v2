@@ -9,7 +9,11 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
-    auth::token::OwnerId, db::{acquire, transaction, Pool}, error::extract::WithErrorRejection, response_transforms::{created, or_404}, validation::ValidatedJson
+    auth::token::OwnerId,
+    db::{acquire, transaction, Pool},
+    error::extract::WithErrorRejection,
+    response_transforms::{created, or_404},
+    validation::ValidatedJson,
 };
 
 use super::model::{CreateMax, Max, UpdateMax};

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{collections::BTreeMap, fmt::Display};
 
 use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
@@ -42,7 +42,9 @@ where
     }
 }
 
-#[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug, Clone, Copy, sqlx::Type)]
+#[derive(
+    Serialize_repr, Deserialize_repr, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, sqlx::Type,
+)]
 #[repr(i16)]
 pub enum Day {
     Sunday,
@@ -114,6 +116,90 @@ pub struct CreateSet {
 }
 
 impl CreateSet {
+    /// Insert multiple sets into a program.
+    ///
+    /// The program id inside each set model is ignored in favor of the one in the argument.
+    pub async fn insert_many(
+        sets: &[Self],
+        program_id: Uuid,
+        owner_id: OwnerId,
+        tx: &mut Transaction<'_, DB>,
+    ) -> OperationResult<Vec<Set>> {
+        // sqlx does not yet support providing iterators for bound data.
+        let movement_ids: Vec<_> = sets.iter().map(|s| s.movement_id).collect();
+        let reps: Vec<_> = sets.iter().map(|s| s.reps).collect();
+        let reps_is_minimum: Vec<_> = sets.iter().map(|s| s.reps_is_minimum).collect();
+        let description: Vec<_> = sets.iter().map(|s| s.description.as_deref()).collect();
+        let amount: Vec<_> = sets.iter().map(|s| s.amount).collect();
+        let percentage_of_max: Vec<_> = sets.iter().map(|s| s.percentage_of_max).collect();
+        let day: Vec<_> = sets.iter().map(|s| s.day as i16).collect();
+
+        Movement::assert_all_owner(&movement_ids, owner_id, &mut **tx).await?;
+        Program::assert_owner(program_id, owner_id, &mut **tx).await?;
+
+        let sets = sqlx::query_as::<_, Set>(formatcp!(
+            "{INSERT_INTO} {TABLE} (
+                movement_id,
+                reps,
+                reps_is_minimum,
+                description,
+                amount,
+                percentage_of_max,
+                day,
+                program_id,
+                owner_id
+            ) VALUES (
+                unnest($1),
+                unnest($2),
+                unnest($3),
+                unnest($4),
+                unnest($5),
+                unnest($6),
+                unnest($7),
+                $8,
+                $9
+            ) RETURNING *"
+        ))
+        .bind(&movement_ids)
+        .bind(&reps)
+        .bind(&reps_is_minimum)
+        .bind(&description)
+        .bind(&amount)
+        .bind(&percentage_of_max)
+        .bind(&day)
+        .bind(program_id)
+        .bind(owner_id)
+        .fetch_all((&mut **tx).instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .await
+        .map_err(|e| handle_error(e, || "failed to insert new set"))
+        .map_err(log_server_error!())?;
+
+        let mut set_map: BTreeMap<Day, Vec<Uuid>> = BTreeMap::new();
+
+        for set in sets.iter() {
+            if let Some(sets_for_day) = set_map.get_mut(&set.day) {
+                sets_for_day.push(set.id);
+            } else {
+                set_map.insert(set.day, vec![set.id]);
+            }
+        }
+
+        for (day, new_set_ids) in set_map.into_iter() {
+            let set_ids = if let Some(mut set_ids) =
+                get_set_ids(program_id, day, true, owner_id, &mut **tx).await?
+            {
+                set_ids.extend(new_set_ids);
+                set_ids
+            } else {
+                new_set_ids
+            };
+
+            update_set_ids(program_id, day, &set_ids, owner_id, &mut **tx).await?;
+        }
+
+        Ok(sets)
+    }
+
     pub async fn insert_one(
         self,
         owner_id: OwnerId,
@@ -188,7 +274,7 @@ pub async fn delete_one(
         let set_ids = get_set_ids(program_id, day, true, owner_id, &mut **tx).await?;
 
         if let Some(set_ids) = set_ids {
-            let set_ids = set_ids.into_iter().filter(|set_id| *set_id != id).collect();
+            let set_ids: Vec<_> = set_ids.into_iter().filter(|set_id| *set_id != id).collect();
             update_set_ids(program_id, day, &set_ids, owner_id, &mut **tx).await?;
         }
         Ok(Some(()))

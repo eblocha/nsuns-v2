@@ -8,11 +8,15 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
-    auth::token::OwnerId, db::{
+    auth::token::OwnerId,
+    db::{
         commit_ok,
         transaction::{acquire, transaction},
         Pool,
-    }, error::extract::WithErrorRejection, response_transforms::{created, or_404}, validation::ValidatedJson
+    },
+    error::extract::WithErrorRejection,
+    response_transforms::{created, or_404},
+    validation::ValidatedJson,
 };
 
 use super::model::{

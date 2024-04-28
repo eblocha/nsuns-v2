@@ -12,7 +12,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    assert_owner,
+    assert_all_owner, assert_owner,
     auth::token::OwnerId,
     db::{
         tracing::{
@@ -84,6 +84,14 @@ impl Program {
         executor: impl Executor<'_, Database = DB>,
     ) -> OperationResult<()> {
         assert_owner!(TABLE, "program", id, owner_id, executor)
+    }
+
+    pub async fn assert_all_owner(
+        ids: &[Uuid],
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        assert_all_owner!(TABLE, "program", ids, owner_id, executor)
     }
 }
 
@@ -371,7 +379,7 @@ pub async fn get_set_ids(
 pub async fn update_set_ids(
     program_id: Uuid,
     day: Day,
-    set_ids: &Vec<Uuid>,
+    set_ids: &[Uuid],
     owner_id: OwnerId,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<PgQueryResult> {

@@ -18,7 +18,16 @@ use crate::{
         self,
         middleware::{manage_tokens, redirect_on_missing_auth_cookie},
         token::JwtKeys,
-    }, db::Pool, error::middleware::json_errors, health::health_check, maxes, movements, observability::{metrics::middleware::WithMetrics, tracing::middleware::WithTracing}, openapi::WithOpenApi, profiles, program, reps, sets, settings::Settings, updates
+    },
+    db::Pool,
+    error::middleware::json_errors,
+    health::health_check,
+    maxes, movements,
+    observability::{metrics::middleware::WithMetrics, tracing::middleware::WithTracing},
+    openapi::WithOpenApi,
+    profiles, program, reps, sets,
+    settings::Settings,
+    updates,
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";

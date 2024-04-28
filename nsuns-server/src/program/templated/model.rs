@@ -55,7 +55,7 @@ pub struct TemplatedProgram {
 }
 
 fn validate_set_template(set: &SetTemplate, movements_len: usize) -> Result<(), ValidationErrors> {
-    let mut set_errs = set.validate().err().unwrap_or_else(ValidationErrors::new);
+    let mut set_errs = set.validate().err().unwrap_or_default();
 
     if set.movement_index >= movements_len {
         set_errs.add(
@@ -122,23 +122,40 @@ impl TemplatedProgram {
         tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<ProgramMeta> {
         // We don't need to assert any ownership, since we are deferring resource creation to respective models.
-        let mut movement_ids = Vec::with_capacity(self.movements.len());
+        let mut movement_ids: Vec<_> = (0..self.movements.len()).map(|_| Uuid::nil()).collect();
 
-        // verify all referenced movements are owned by this owner, or create the movement
-        for movement in self.movements.into_iter() {
+        let mut new_movement_indexes: Vec<usize> = Vec::new();
+        let mut movements_to_create: Vec<CreateMovement> = Vec::new();
+
+        // verify all referenced movements are owned by this owner, or add it to the movements to create
+        for (index, movement) in self.movements.into_iter().enumerate() {
             match movement {
                 MovementTemplate::Ref(MovementRef { id }) => {
-                    movement_ids.push(id);
+                    movement_ids[index] = id;
                 }
                 MovementTemplate::New(movement) => {
-                    // TODO optimize this to create all at once
-                    let movement = movement.insert_one(owner_id, &mut **tx).await?;
-                    movement_ids.push(movement.id);
+                    movements_to_create.push(movement);
+                    new_movement_indexes.push(index);
                 }
             }
         }
 
-        // create the program
+        let new_movements =
+            CreateMovement::insert_many(&movements_to_create, owner_id, &mut **tx).await?;
+
+        debug_assert_eq!(
+            new_movement_indexes.len(),
+            new_movements.len(),
+            "Did not create the expected number of movements!"
+        );
+
+        for (idx, movement) in new_movements.iter().enumerate() {
+            // new_movement length will be equal to `new_movement_indexes` length - query would fail otherwise.
+            let index = new_movement_indexes[idx];
+            movement_ids[index] = movement.id;
+        }
+
+        // create the program - this checks ownership of the profile
         let program_meta = CreateProgram {
             description: None,
             name: self.name,
@@ -147,26 +164,36 @@ impl TemplatedProgram {
         .insert_one(owner_id, tx)
         .await?;
 
-        // add sets
-        for (index, day_template) in self.days.into_iter().enumerate() {
-            // SAFETY: `self.days` is an array of length 7, so `index` can never be more than 6.
-            let day: Day = unsafe { Day::from_i16_unchecked(index as i16) };
-            for set in day_template.sets.into_iter() {
-                // TODO optimize this to create all at once
-                CreateSet {
-                    amount: set.amount,
-                    day,
-                    description: set.description,
-                    movement_id: movement_ids[set.movement_index], // validated by `Validate` impl
-                    percentage_of_max: set.percentage_of_max_index.map(|idx| movement_ids[idx]), // validated by `Validate` impl
-                    program_id: program_meta.id,
-                    reps: set.reps,
-                    reps_is_minimum: set.reps_is_minimum,
-                }
-                .insert_one(owner_id, tx)
-                .await?;
-            }
-        }
+        let sets_to_create: Vec<CreateSet> = self
+            .days
+            .into_iter()
+            .enumerate()
+            .flat_map(|(index, day_template)| {
+                // SAFETY: `self.days` is an array of length 7, so `index` can never be more than 6.
+                let day: Day = unsafe { Day::from_i16_unchecked(index as i16) };
+
+                day_template
+                    .sets
+                    .into_iter()
+                    .map(|set| {
+                        CreateSet {
+                            amount: set.amount,
+                            day,
+                            description: set.description,
+                            movement_id: movement_ids[set.movement_index], // validated by `Validate` impl
+                            percentage_of_max: set
+                                .percentage_of_max_index
+                                .map(|idx| movement_ids[idx]), // validated by `Validate` impl
+                            program_id: program_meta.id,
+                            reps: set.reps,
+                            reps_is_minimum: set.reps_is_minimum,
+                        }
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+
+        CreateSet::insert_many(&sets_to_create, program_meta.id, owner_id, tx).await?;
 
         Ok(program_meta)
     }

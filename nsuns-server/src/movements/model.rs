@@ -10,7 +10,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    assert_owner,
+    assert_all_owner, assert_owner,
     auth::token::OwnerId,
     db::{
         tracing::{
@@ -98,6 +98,14 @@ impl Movement {
     ) -> OperationResult<()> {
         assert_owner!(TABLE, "movement", id, owner_id, executor)
     }
+
+    pub async fn assert_all_owner(
+        ids: &[Uuid],
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        assert_all_owner!(TABLE, "movement", ids, owner_id, executor)
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
@@ -124,6 +132,33 @@ impl CreateMovement {
         .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
         .await
         .map_err(|e| handle_error(e, || "failed to insert new movement"))
+        .map_err(log_server_error!())
+    }
+
+    pub async fn insert_many(
+        movements: &[Self],
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<Vec<Movement>> {
+        // sqlx does not yet support providing iterators for bound data.
+        let names: Vec<_> = movements.iter().map(|m| m.name.as_str()).collect();
+        let descriptions: Vec<_> = movements.iter().map(|m| m.description.as_deref()).collect();
+
+        sqlx::query_as::<_, Movement>(formatcp!(
+            "{INSERT_INTO} {TABLE} (name, description, owner_id)
+            VALUES (
+                unnest($1),
+                unnest($2),
+                $3
+            )
+            RETURNING *"
+        ))
+        .bind(&names)
+        .bind(&descriptions)
+        .bind(owner_id)
+        .fetch_all(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .await
+        .map_err(|e| handle_error(e, || "failed to insert new movements"))
         .map_err(log_server_error!())
     }
 }
