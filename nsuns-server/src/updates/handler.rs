@@ -12,7 +12,7 @@ use crate::{
         transaction::{acquire, transaction},
         Pool, DB,
     },
-    error::OperationResult,
+    error::{extract::WithErrorRejection, OperationResult},
     maxes::model::{delete_latest_maxes, CreateMax, Max},
     reps::model::{delete_latest_reps, CreateReps, Reps},
 };
@@ -89,7 +89,7 @@ async fn run_updates(
 pub async fn updates(
     State(pool): State<Pool>,
     owner_id: OwnerId,
-    Json(updates): Json<Updates>,
+    WithErrorRejection(Json(updates)): WithErrorRejection<Json<Updates>>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
@@ -140,7 +140,7 @@ async fn undo_updates(
 pub async fn undo(
     State(pool): State<Pool>,
     owner_id: OwnerId,
-    Json(updates): Json<Updates>,
+    WithErrorRejection(Json(updates)): WithErrorRejection<Json<Updates>>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;

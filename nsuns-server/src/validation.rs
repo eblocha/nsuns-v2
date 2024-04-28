@@ -2,12 +2,11 @@ use async_trait::async_trait;
 use axum::{
     extract::{rejection::JsonRejection, FromRequest},
     http::{Request, StatusCode},
-    response::{IntoResponse, Response},
     Json,
 };
-use serde::de::DeserializeOwned;
-use thiserror::Error;
 use validator::Validate;
+
+use crate::error::ErrorWithStatus;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ValidatedJson<T>(pub T);
@@ -15,36 +14,21 @@ pub struct ValidatedJson<T>(pub T);
 #[async_trait]
 impl<T, S, B> FromRequest<S, B> for ValidatedJson<T>
 where
-    T: DeserializeOwned + Validate,
-    S: Send + Sync,
+    T: Validate,
     Json<T>: FromRequest<S, B, Rejection = JsonRejection>,
+    S: Send + Sync,
     B: Send + 'static,
 {
-    type Rejection = ServerError;
+    type Rejection = ErrorWithStatus<String>;
 
     async fn from_request(req: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
-        let Json(value) = Json::from_request(req, state).await?;
-        value.validate()?;
+        let Json(value) = Json::from_request(req, state)
+            .await
+            .map_err(|json_err| ErrorWithStatus::new(json_err.status(), json_err.body_text()))?;
+        value.validate().map_err(|validation_err| {
+            let message = format!("Input validation error: [{validation_err}]").replace('\n', ", ");
+            ErrorWithStatus::new(StatusCode::UNPROCESSABLE_ENTITY, message)
+        })?;
         Ok(ValidatedJson(value))
-    }
-}
-
-#[derive(Debug, Error)]
-pub enum ServerError {
-    #[error(transparent)]
-    ValidationError(#[from] validator::ValidationErrors),
-    #[error(transparent)]
-    AxumRejection(#[from] JsonRejection),
-}
-
-impl IntoResponse for ServerError {
-    fn into_response(self) -> Response {
-        match self {
-            ServerError::ValidationError(_) => {
-                let message = format!("Input validation error: [{self}]").replace('\n', ", ");
-                (StatusCode::UNPROCESSABLE_ENTITY, message).into_response()
-            }
-            ServerError::AxumRejection(e) => e.into_response(),
-        }
     }
 }

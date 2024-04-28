@@ -8,13 +8,13 @@ use chrono::Utc;
 use http::{Request, StatusCode, Uri};
 use tower_cookies::Cookies;
 
-use crate::error::{ErrorWithStatus, OperationResult};
+use crate::error::{extract::WithErrorRejection, ErrorWithStatus, OperationResult};
 
 use super::token::{create_empty_cookie, JwtKeys, COOKIE_NAME};
 
 pub async fn redirect_on_missing_auth_cookie<B>(
-    cookies: Cookies,
-    uri: Uri,
+    WithErrorRejection(cookies): WithErrorRejection<Cookies>,
+    uri: Uri, // uri extraction is infallible
     request: Request<B>,
     next: Next<B>,
 ) -> Response {

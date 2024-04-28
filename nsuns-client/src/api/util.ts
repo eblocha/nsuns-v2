@@ -1,4 +1,4 @@
-import { ApiError } from "./error";
+import { ApiError, JsonError } from "./error";
 
 export const applicationJson = "application/json";
 
@@ -32,7 +32,11 @@ export type FetchParams = Parameters<typeof fetch>;
 const getErrorMessage = async (res: Response): Promise<string> => {
   const contentType = res.headers.get("content-type");
 
-  if (contentType?.startsWith("text/html")) return "";
+  if (contentType?.toLowerCase().startsWith("text/html")) return "";
+  if (contentType?.toLowerCase().startsWith(applicationJson)) {
+    const jsonError = (await res.json()) as JsonError;
+    return jsonError.message ?? "";
+  }
 
   return await res.text();
 };

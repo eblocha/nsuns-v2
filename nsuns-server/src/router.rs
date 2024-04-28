@@ -18,15 +18,7 @@ use crate::{
         self,
         middleware::{manage_tokens, redirect_on_missing_auth_cookie},
         token::JwtKeys,
-    },
-    db::Pool,
-    health::health_check,
-    maxes, movements,
-    observability::{metrics::middleware::WithMetrics, tracing::middleware::WithTracing},
-    openapi::WithOpenApi,
-    profiles, program, reps, sets,
-    settings::Settings,
-    updates,
+    }, db::Pool, error::middleware::json_errors, health::health_check, maxes, movements, observability::{metrics::middleware::WithMetrics, tracing::middleware::WithTracing}, openapi::WithOpenApi, profiles, program, reps, sets, settings::Settings, updates
 };
 
 pub const PROFILES_PATH: &str = "/api/profiles";
@@ -94,10 +86,11 @@ pub fn router(state: AppState, settings: &Settings) -> anyhow::Result<Router> {
         .with_state(state.clone())
         .route_layer(from_fn_with_state(state.clone(), manage_tokens))
         .with_openapi(&settings.openapi)
-        .layer(CatchPanicLayer::new())
         .static_files(settings.server.static_dir.as_ref())
         .layer(CookieManagerLayer::new())
         .route(HEALTH_PATH, get(health_check))
+        .layer(from_fn(json_errors))
         .with_metrics(&settings.metrics)
+        .layer(CatchPanicLayer::new())
         .with_tracing())
 }

@@ -12,7 +12,7 @@ use transaction::{acquire, commit_ok};
 
 use crate::{
     db::{transaction, Pool, DB},
-    error::{ErrorWithStatus, OperationResult},
+    error::{extract::WithErrorRejection, ErrorWithStatus, OperationResult},
     into_log_server_error,
 };
 
@@ -63,8 +63,10 @@ async fn login_user(
 pub async fn login(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
-    TypedHeader(Authorization(creds)): TypedHeader<Authorization<Basic>>,
-    cookies: Cookies,
+    WithErrorRejection(TypedHeader(Authorization(creds))): WithErrorRejection<
+        TypedHeader<Authorization<Basic>>,
+    >,
+    WithErrorRejection(cookies): WithErrorRejection<Cookies>,
 ) -> OperationResult<StatusCode> {
     let mut tx = transaction(&pool).await?;
 
@@ -106,7 +108,7 @@ async fn login_anonymous(
 pub async fn anonymous(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
-    cookies: Cookies,
+    WithErrorRejection(cookies): WithErrorRejection<Cookies>,
 ) -> OperationResult<StatusCode> {
     let mut tx = transaction(&pool).await?;
 
@@ -141,7 +143,7 @@ async fn delete_owner_if_anonymous(
 pub async fn logout(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
-    cookies: Cookies,
+    WithErrorRejection(cookies): WithErrorRejection<Cookies>,
 ) -> OperationResult<StatusCode> {
     // the acquire phase is not spanned here, but this avoids waiting for a connection if the user is non-anonymous
     delete_owner_if_anonymous(&keys, &cookies, &pool).await?;

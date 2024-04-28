@@ -14,6 +14,7 @@ use crate::{
         transaction::{self, acquire},
         Pool,
     },
+    error::extract::WithErrorRejection,
     response_transforms::{created, or_404},
     validation::ValidatedJson,
 };
@@ -31,7 +32,7 @@ pub struct RepsQuery {
 pub async fn reps_index(
     State(pool): State<Pool>,
     owner_id: OwnerId,
-    Query(query): Query<RepsQuery>,
+    WithErrorRejection(Query(query)): WithErrorRejection<Query<RepsQuery>>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     Reps::select_for_profile(query.profile_id, owner_id, &mut *conn)

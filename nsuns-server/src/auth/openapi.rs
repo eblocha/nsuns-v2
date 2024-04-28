@@ -53,7 +53,7 @@ fn create_auth_path(description: &str) -> PathItem {
 impl Customizer<PathsBuilder> for AuthModule {
     fn customize(builder: PathsBuilder) -> PathsBuilder {
         let login_op = OperationBuilder::new()
-            .description(Some("Log in as a persistent user"))
+            .description(Some("Log in as a persistent user. Use the Authorize button to set the credentials to use for this request."))
             .response(no_content(), ResponseBuilder::new().build())
             .security(SecurityRequirement::new::<_, _, &str>(BASIC_AUTH, []))
             .tag(TAG)

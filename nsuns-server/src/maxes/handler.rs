@@ -9,10 +9,7 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
-    auth::token::OwnerId,
-    db::{acquire, transaction, Pool},
-    response_transforms::{created, or_404},
-    validation::ValidatedJson,
+    auth::token::OwnerId, db::{acquire, transaction, Pool}, error::extract::WithErrorRejection, response_transforms::{created, or_404}, validation::ValidatedJson
 };
 
 use super::model::{CreateMax, Max, UpdateMax};
@@ -27,7 +24,7 @@ pub struct MaxesQuery {
 #[tracing::instrument(skip_all)]
 pub async fn maxes_index(
     State(pool): State<Pool>,
-    Query(query): Query<MaxesQuery>,
+    WithErrorRejection(Query(query)): WithErrorRejection<Query<MaxesQuery>>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;

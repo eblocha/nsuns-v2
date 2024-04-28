@@ -8,14 +8,11 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
-    auth::token::OwnerId,
-    db::{
+    auth::token::OwnerId, db::{
         commit_ok,
         transaction::{acquire, transaction},
         Pool,
-    },
-    response_transforms::{created, or_404},
-    validation::ValidatedJson,
+    }, error::extract::WithErrorRejection, response_transforms::{created, or_404}, validation::ValidatedJson
 };
 
 use super::model::{
@@ -32,7 +29,7 @@ pub struct ProgramQuery {
 #[tracing::instrument(skip_all)]
 pub async fn profile_programs(
     State(pool): State<Pool>,
-    Query(params): Query<ProgramQuery>,
+    WithErrorRejection(Query(params)): WithErrorRejection<Query<ProgramQuery>>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;

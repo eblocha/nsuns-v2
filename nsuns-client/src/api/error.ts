@@ -1,3 +1,9 @@
+export type JsonError = {
+  path: string;
+  message: string;
+  status: number;
+};
+
 export class ApiError {
   constructor(
     readonly status: number,
