@@ -1,10 +1,5 @@
 import { Component, For, Setter, Show, createEffect, createMemo, createRenderEffect, createSignal } from "solid-js";
-import {
-  MovementTemplate,
-  NewProgramTemplate,
-  ProgramTemplate,
-  TEMPLATES,
-} from "../api/programTemplate";
+import { MovementTemplate, NewProgramTemplate, ProgramTemplate, TEMPLATES } from "../api/programTemplate";
 import { useMovementsQuery } from "../hooks/queries/movements";
 import { Select, SelectOption } from "../forms/Select";
 import { Control, createControl } from "../hooks/forms";
@@ -14,6 +9,8 @@ import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
 import { Spinner } from "../icons/Spinner";
 import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
+import { useNavigateToProgram } from "../hooks/navigation";
+import { useParams } from "@solidjs/router";
 
 type TranslatedMovement = {
   id?: string;
@@ -48,10 +45,14 @@ const TemplatedMovementRow: Component<{
 export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: () => void; cancel: () => void }> = (
   props
 ) => {
+  const params = useParams<{ profileId: string }>()
+  const navigateToProgram = useNavigateToProgram();
+
   const movementQuery = useMovementsQuery();
   const mutation = useCreateProgramFromTemplate({
-    onSuccess: () => {
-      props.cancel();
+    onSuccess: (program) => {
+      navigateToProgram(program.id);
+      props.close();
     },
   });
 
@@ -110,6 +111,7 @@ export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: 
 
     const template: ProgramTemplate = {
       ...props.template,
+      owner: params.profileId,
       movements: movementTemplates,
     };
 

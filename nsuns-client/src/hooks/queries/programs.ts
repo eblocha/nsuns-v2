@@ -52,11 +52,14 @@ export const useCreateProgramFromTemplate = <TError = unknown, TContext = unknow
   const mutation = createMutation({
     ...options,
     mutationFn: createProgramFromTemplate,
-    onSuccess: (program, ...args) => {
+    onSuccess: async (program, ...args) => {
       options?.onSuccess?.(program, ...args);
       queryClient.setQueryData(QueryKeys.programs.list(program.owner), (programs?: ProgramsQueryData) =>
         programs ? [...programs, program] : undefined
       );
+      await queryClient.invalidateQueries({
+        queryKey: QueryKeys.movements(),
+      })
     },
   });
   return mutation;

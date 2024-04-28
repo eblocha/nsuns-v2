@@ -8,12 +8,11 @@ use jsonwebtoken::{
 };
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
-use sqlx::{Database, Decode, Encode, Type};
 use time::Duration;
 use tower_cookies::{cookie::SameSite, Cookie};
 use uuid::Uuid;
 
-use crate::{db::DB, error::ErrorWithStatus};
+use crate::error::ErrorWithStatus;
 
 use super::settings::AuthSettings;
 
@@ -36,33 +35,9 @@ impl Claims {
 }
 
 /// The authenticated resource owner id
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(transparent)]
 pub struct OwnerId(Uuid);
-
-// We implement these so they can be passed to sqlx without giving access to the inner uuid.
-// This avoids the raw uuid propagating through the app without the newtype wrapper.
-impl<'q> Encode<'q, DB> for OwnerId {
-    fn encode_by_ref(
-        &self,
-        buf: &mut <DB as sqlx::database::HasArguments<'q>>::ArgumentBuffer,
-    ) -> sqlx::encode::IsNull {
-        self.0.encode_by_ref(buf)
-    }
-}
-
-impl<'r> Decode<'r, DB> for OwnerId {
-    fn decode(
-        value: <DB as sqlx::database::HasValueRef<'r>>::ValueRef,
-    ) -> Result<Self, sqlx::error::BoxDynError> {
-        Uuid::decode(value).map(OwnerId)
-    }
-}
-
-impl Type<DB> for OwnerId {
-    fn type_info() -> <DB as Database>::TypeInfo {
-        Uuid::type_info()
-    }
-}
 
 pub const COOKIE_NAME: &str = "JWT";
 

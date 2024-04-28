@@ -54,6 +54,16 @@ pub enum Day {
     Saturday,
 }
 
+impl Day {
+    /// # Safety
+    /// Caller guarantees that `value` is within the range 0..=6
+    pub unsafe fn from_i16_unchecked(value: i16) -> Self {
+        // explicit type annotation to use transmute more safely.
+        let day: Day = unsafe { std::mem::transmute(value) };
+        day
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Set {

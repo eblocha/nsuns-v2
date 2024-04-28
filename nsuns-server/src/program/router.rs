@@ -6,8 +6,12 @@ use axum::{
 
 use crate::{db::Pool, router::State};
 
-use super::handler::{
-    create_program, delete_program, profile_programs, program_summary, reorder_sets, update_program,
+use super::{
+    handler::{
+        create_program, delete_program, profile_programs, program_summary, reorder_sets,
+        update_program,
+    },
+    templated::handler::create_from_template,
 };
 
 pub const REORDER_SETS_PATH: &str = "/reorder-sets";
@@ -24,5 +28,6 @@ where
                 .put(update_program),
         )
         .route(REORDER_SETS_PATH, post(reorder_sets))
+        .route("/from-template", post(create_from_template))
         .route("/:id", get(program_summary).delete(delete_program))
 }
