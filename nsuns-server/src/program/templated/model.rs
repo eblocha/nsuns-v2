@@ -10,7 +10,7 @@ use crate::{
     error::OperationResult,
     movements::model::CreateMovement,
     program::model::{CreateProgram, ProgramMeta},
-    sets::model::{CreateSet, Day},
+    sets::model::{CreateSet, Day}, validation::Validated,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
@@ -48,10 +48,10 @@ pub enum MovementTemplate {
 
 #[derive(Debug, Deserialize, Serialize, Clone, ToSchema)]
 pub struct TemplatedProgram {
-    pub name: String,
-    pub owner: Uuid,
-    pub days: [DayTemplate; 7],
-    pub movements: Vec<MovementTemplate>,
+    name: String,
+    owner: Uuid,
+    days: [DayTemplate; 7],
+    movements: Vec<MovementTemplate>,
 }
 
 fn validate_set_template(set: &SetTemplate, movements_len: usize) -> Result<(), ValidationErrors> {
@@ -115,20 +115,22 @@ impl Validate for TemplatedProgram {
     }
 }
 
-impl TemplatedProgram {
+impl Validated<TemplatedProgram> {
     pub async fn insert(
         self,
         owner_id: OwnerId,
         tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<ProgramMeta> {
+        let template = self.into_inner();
+
         // We don't need to assert any ownership, since we are deferring resource creation to respective models.
-        let mut movement_ids: Vec<_> = (0..self.movements.len()).map(|_| Uuid::nil()).collect();
+        let mut movement_ids: Vec<_> = (0..template.movements.len()).map(|_| Uuid::nil()).collect();
 
         let mut new_movement_indexes: Vec<usize> = Vec::new();
         let mut movements_to_create: Vec<CreateMovement> = Vec::new();
 
         // verify all referenced movements are owned by this owner, or add it to the movements to create
-        for (index, movement) in self.movements.into_iter().enumerate() {
+        for (index, movement) in template.movements.into_iter().enumerate() {
             match movement {
                 MovementTemplate::Ref(MovementRef { id }) => {
                     movement_ids[index] = id;
@@ -158,24 +160,25 @@ impl TemplatedProgram {
         // create the program - this checks ownership of the profile
         let program_meta = CreateProgram {
             description: None,
-            name: self.name,
-            owner: self.owner,
+            name: template.name,
+            owner: template.owner,
         }
         .insert_one(owner_id, tx)
         .await?;
 
-        let sets_to_create: Vec<CreateSet> = self
+        let sets_to_create: Vec<CreateSet> = template
             .days
             .into_iter()
             .enumerate()
             .flat_map(|(index, day_template)| {
                 // SAFETY: `self.days` is an array of length 7, so `index` can never be more than 6.
                 let day: Day = unsafe { Day::from_i16_unchecked(index as i16) };
+                let movement_ids = &movement_ids;
 
                 day_template
                     .sets
                     .into_iter()
-                    .map(|set| {
+                    .map(move |set| {
                         CreateSet {
                             amount: set.amount,
                             day,
@@ -189,7 +192,6 @@ impl TemplatedProgram {
                             reps_is_minimum: set.reps_is_minimum,
                         }
                     })
-                    .collect::<Vec<_>>()
             })
             .collect();
 

@@ -4,8 +4,9 @@ use transaction::commit_ok;
 use crate::{
     auth::token::OwnerId,
     db::{acquire, transaction, Pool},
+    error::extract::WithErrorRejection,
     response_transforms::created,
-    validation::ValidatedJson,
+    validation::Validated,
 };
 
 use super::model::TemplatedProgram;
@@ -14,11 +15,13 @@ use super::model::TemplatedProgram;
 pub async fn create_from_template(
     State(pool): State<Pool>,
     owner_id: OwnerId,
-    ValidatedJson(template): ValidatedJson<TemplatedProgram>,
+    WithErrorRejection(Json(validated_template)): WithErrorRejection<
+        Json<Validated<TemplatedProgram>>,
+    >,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = template
+    let res = validated_template
         .insert(owner_id, &mut tx)
         .await
         .map(Json)
