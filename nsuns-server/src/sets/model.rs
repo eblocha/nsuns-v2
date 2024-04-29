@@ -303,8 +303,13 @@ impl UpdateSet {
     pub async fn update_one(
         self,
         owner_id: OwnerId,
-        executor: impl Executor<'_, Database = DB>,
+        tx: &mut Transaction<'_, DB>,
     ) -> OperationResult<Option<Set>> {
+        Movement::assert_owner(self.movement_id, owner_id, &mut **tx).await?;
+        if let Some(percentage_of_max) = self.percentage_of_max {
+            Movement::assert_owner(percentage_of_max, owner_id, &mut **tx).await?;
+        }
+
         let res = sqlx::query_as::<_, (Uuid, Day)>(formatcp!(
             "{UPDATE} {TABLE} SET
             movement_id = $1,
@@ -325,7 +330,7 @@ impl UpdateSet {
         .bind(self.percentage_of_max)
         .bind(self.id)
         .bind(owner_id)
-        .fetch_optional(executor.instrument_executor(db_span!(UPDATE, TABLE)))
+        .fetch_optional((&mut **tx).instrument_executor(db_span!(UPDATE, TABLE)))
         .await
         .map_err(|e| {
             handle_error(e, || {

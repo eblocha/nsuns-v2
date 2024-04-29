@@ -42,9 +42,12 @@ pub async fn update_set(
     ValidatedJson(set): ValidatedJson<UpdateSet>,
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
-    set.update_one(owner_id, &mut *conn)
+    let mut tx = transaction(&mut *conn).await?;
+    let res = set.update_one(owner_id, &mut tx)
         .await
-        .map(or_404::<_, Json<_>>)
+        .map(or_404::<_, Json<_>>);
+
+    commit_ok(res, tx).await
 }
 
 #[tracing::instrument(skip_all)]
