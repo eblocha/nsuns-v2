@@ -129,7 +129,6 @@ impl Validated<TemplatedProgram> {
         let mut new_movement_indexes: Vec<usize> = Vec::new();
         let mut movements_to_create: Vec<CreateMovement> = Vec::new();
 
-        // verify all referenced movements are owned by this owner, or add it to the movements to create
         for (index, movement) in template.movements.into_iter().enumerate() {
             match movement {
                 MovementTemplate::Ref(MovementRef { id }) => {

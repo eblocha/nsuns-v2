@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Display};
+use std::fmt::Display;
 
 use anyhow::{anyhow, Context};
 use axum::http::StatusCode;
@@ -23,7 +23,7 @@ use crate::{
     error::{ErrorWithStatus, OperationResult},
     into_log_server_error, log_server_error,
     movements::model::Movement,
-    program::model::{get_set_ids, update_set_ids, Program},
+    program::model::{get_set_ids, update_set_ids, Program, ProgramSetIds},
 };
 
 const TABLE: &str = "program_sets";
@@ -135,7 +135,6 @@ impl CreateSet {
         let day: Vec<_> = sets.iter().map(|s| s.day as i16).collect();
 
         Movement::assert_all_owner(&movement_ids, owner_id, &mut **tx).await?;
-        Program::assert_owner(program_id, owner_id, &mut **tx).await?;
 
         let sets = sqlx::query_as::<_, Set>(formatcp!(
             "{INSERT_INTO} {TABLE} (
@@ -174,30 +173,30 @@ impl CreateSet {
         .map_err(|e| handle_error(e, || "failed to insert new set"))
         .map_err(log_server_error!())?;
 
-        let mut set_map: BTreeMap<Day, Vec<Uuid>> = BTreeMap::new();
+        let program_opt = ProgramSetIds::select_one(program_id, true, owner_id, &mut **tx).await?;
 
-        for set in sets.iter() {
-            if let Some(sets_for_day) = set_map.get_mut(&set.day) {
-                sets_for_day.push(set.id);
-            } else {
-                set_map.insert(set.day, vec![set.id]);
+        if let Some(mut program) = program_opt {
+            for set in sets.iter() {
+                match set.day {
+                    Day::Sunday => program.set_ids_sunday.push(set.id),
+                    Day::Monday => program.set_ids_monday.push(set.id),
+                    Day::Tuesday => program.set_ids_tuesday.push(set.id),
+                    Day::Wednesday => program.set_ids_wednesday.push(set.id),
+                    Day::Thursday => program.set_ids_thursday.push(set.id),
+                    Day::Friday => program.set_ids_friday.push(set.id),
+                    Day::Saturday => program.set_ids_saturday.push(set.id),
+                }
             }
+
+            program.update_one(owner_id, &mut **tx).await?;
+
+            Ok(sets)
+        } else {
+            Err(ErrorWithStatus::new(
+                StatusCode::CONFLICT,
+                anyhow!("referenced program does not exist"),
+            ))
         }
-
-        for (day, new_set_ids) in set_map.into_iter() {
-            let set_ids = if let Some(mut set_ids) =
-                get_set_ids(program_id, day, true, owner_id, &mut **tx).await?
-            {
-                set_ids.extend(new_set_ids);
-                set_ids
-            } else {
-                new_set_ids
-            };
-
-            update_set_ids(program_id, day, &set_ids, owner_id, &mut **tx).await?;
-        }
-
-        Ok(sets)
     }
 
     pub async fn insert_one(

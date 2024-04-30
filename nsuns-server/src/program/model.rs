@@ -61,6 +61,86 @@ pub struct Program {
     pub set_ids_saturday: Vec<Uuid>,
 }
 
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct ProgramSetIds {
+    pub id: Uuid,
+    pub set_ids_sunday: Vec<Uuid>,
+    pub set_ids_monday: Vec<Uuid>,
+    pub set_ids_tuesday: Vec<Uuid>,
+    pub set_ids_wednesday: Vec<Uuid>,
+    pub set_ids_thursday: Vec<Uuid>,
+    pub set_ids_friday: Vec<Uuid>,
+    pub set_ids_saturday: Vec<Uuid>,
+}
+
+impl ProgramSetIds {
+    pub async fn select_one(
+        id: Uuid,
+        for_update: bool,
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<Option<Self>> {
+        let lock_clause = if for_update { "FOR UPDATE" } else { "" };
+
+        sqlx::query_as::<_, Self>(&format!(
+            "{SELECT}
+            id,
+            set_ids_sunday,
+            set_ids_monday,
+            set_ids_tuesday,
+            set_ids_wednesday,
+            set_ids_thursday,
+            set_ids_friday,
+            set_ids_saturday
+            FROM {TABLE}
+            WHERE id = $1 AND owner_id = $2 {lock_clause}"
+        ))
+        .bind(id)
+        .bind(owner_id)
+        .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
+        .await
+        .with_context(|| format!("failed to fetch program with id={id}"))
+        .map_err(into_log_server_error!())
+    }
+
+    /// Blindly update set ids on a program.
+    ///
+    /// This does _NOT_ check that the sets pointed to are valid, nor remove any dropped sets.
+    ///
+    /// This is primarily intended for bootstrapping a new program from a template.
+    pub async fn update_one(
+        &self,
+        owner_id: OwnerId,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<()> {
+        sqlx::query(formatcp!(
+            "{UPDATE} {TABLE} SET
+            set_ids_sunday = $1,
+            set_ids_monday = $2,
+            set_ids_tuesday = $3,
+            set_ids_wednesday = $4,
+            set_ids_thursday = $5,
+            set_ids_friday = $6,
+            set_ids_saturday = $7
+            WHERE id = $8 AND owner_id = $9"
+        ))
+        .bind(&self.set_ids_sunday)
+        .bind(&self.set_ids_monday)
+        .bind(&self.set_ids_tuesday)
+        .bind(&self.set_ids_wednesday)
+        .bind(&self.set_ids_thursday)
+        .bind(&self.set_ids_friday)
+        .bind(&self.set_ids_saturday)
+        .bind(self.id)
+        .bind(owner_id)
+        .execute(executor.instrument_executor(db_span!(UPDATE, TABLE)))
+        .await
+        .with_context(|| format!("failed to fetch program with id={}", self.id))
+        .map_err(into_log_server_error!())
+        .map(|_| ())
+    }
+}
+
 impl Program {
     pub async fn select_one(
         id: Uuid,
