@@ -58,6 +58,10 @@ To get a list of cargo-make targets, use `cargo make --list-all-steps`.
 
 The base docker-compose file includes services for monitoring the server. The grafana UI is accessible at http://localhost:3100. You can import some example dashboard definitions from `./config/grafana-dashboards`
 
+Metrics include tracing, which is set up to record 10% of traces by default.
+
+![TRacing](images/tracing.jpg)
+
 ### Load Testing
 
 Load testing can be performed with the `cargo make load-test` command. This will create a `load_test` database, start the server, and run k6 against it.
