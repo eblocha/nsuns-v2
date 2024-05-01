@@ -168,10 +168,10 @@ impl Validated<TemplatedProgram> {
         let sets_to_create: Vec<CreateSet> = template
             .days
             .into_iter()
-            .enumerate()
-            .flat_map(|(index, day_template)| {
+            .zip(0..7_i16)
+            .flat_map(|(day_template, index)| {
                 // SAFETY: `self.days` is an array of length 7, so `index` can never be more than 6.
-                let day: Day = unsafe { Day::from_i16_unchecked(index as i16) };
+                let day: Day = unsafe { Day::from_i16_unchecked(index) };
                 let movement_ids = &movement_ids;
 
                 day_template

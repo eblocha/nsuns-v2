@@ -24,12 +24,14 @@ impl<T> Validated<T> {
         Ok(Validated(value))
     }
 
-    pub fn as_ref(&self) -> &T {
-        &self.0
-    }
-
     pub fn into_inner(self) -> T {
         self.0
+    }
+}
+
+impl<T> AsRef<T> for Validated<T> {
+    fn as_ref(&self) -> &T {
+        &self.0
     }
 }
 
