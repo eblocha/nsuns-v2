@@ -1,8 +1,8 @@
-import { Component, For, Setter, Show, createEffect, createMemo, createRenderEffect, createSignal } from "solid-js";
+import { Component, For, Setter, Show, createMemo, createRenderEffect, createSignal } from "solid-js";
 import { MovementTemplate, NewProgramTemplate, ProgramTemplate, TEMPLATES } from "../api/programTemplate";
 import { useMovementsQuery } from "../hooks/queries/movements";
 import { Select, SelectOption } from "../forms/Select";
-import { Control, createControl } from "../hooks/forms";
+import { Validator, createControl, required } from "../hooks/forms";
 import { Movement } from "../api";
 import { useCreateProgramFromTemplate } from "../hooks/queries/programs";
 import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
@@ -11,6 +11,7 @@ import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
 import { useNavigateToProgram } from "../hooks/navigation";
 import { useParams } from "@solidjs/router";
+import { Input } from "../forms/Input";
 
 type TranslatedMovement = {
   id?: string;
@@ -20,8 +21,12 @@ type TranslatedMovement = {
 
 const TemplatedMovementRow: Component<{
   movement: TranslatedMovement;
-  control: Control<string>;
+  names: string[];
+  setName: (name: string) => void;
+  existingId: string;
+  setExistingId: (id: string) => void;
   options: Movement[];
+  index: number;
 }> = (props) => {
   const movementOptions = createMemo<SelectOption[]>(() =>
     props.options.map((movement) => ({
@@ -30,15 +35,67 @@ const TemplatedMovementRow: Component<{
     }))
   );
 
-  createEffect(() => props.control.reset(props.movement.id ?? ""));
+  const isUnique: Validator<string> = (name: string) => {
+    return {
+      isNotUnique:
+        props.names.some((n, idx) => idx !== props.index && name === n) ||
+        props.options.some((movement) => movement.name === name),
+    };
+  };
+
+  const nameControl = createControl<string>(props.names[props.index] ?? "", {
+    validators: [required(), isUnique],
+    alwaysShowError: true,
+  });
+  const selectControl = createControl(props.existingId);
+
+  createRenderEffect(() => {
+    nameControl.setValue(props.names[props.index] ?? "");
+  });
+
+  createRenderEffect(() => {
+    selectControl.setValue(props.existingId);
+  });
 
   return (
-    <Select
-      class="input w-full"
-      control={props.control}
-      options={movementOptions()}
-      emptyOption="<create new>"
-    />
+    <>
+      <Select
+        class="input h-8"
+        control={{
+          ...selectControl,
+          setValue: (val) => {
+            if (typeof val === "function") {
+              props.setExistingId(val(selectControl.value()));
+            } else {
+              props.setExistingId(val);
+            }
+            return selectControl.setValue(val);
+          },
+        }}
+        options={movementOptions()}
+        emptyOption="<create new>"
+      />
+      <Show
+        when={selectControl.value() === ""}
+        fallback={<span class="self-center h-8 flex items-center">{props.movement.name}</span>}
+      >
+        <Input
+          class="input h-8"
+          control={{
+            ...nameControl,
+            setValue: (val) => {
+              if (typeof val === "function") {
+                props.setName(val(nameControl.value()));
+              } else {
+                props.setName(val);
+              }
+              return nameControl.setValue(val);
+            },
+          }}
+          required={selectControl.value() === ""}
+        />
+      </Show>
+    </>
   );
 };
 
@@ -81,9 +138,8 @@ export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: 
       .filter((name): name is TranslatedMovement => !!name);
   });
 
-  const controls = createMemo(() =>
-    translatedMovements().map((movement) => ({ control: createControl(movement.id ?? ""), movement }))
-  );
+  const [names, setNames] = createSignal(translatedMovements().map(() => ""));
+  const [selectedIds, setSelectedIds] = createSignal(translatedMovements().map((movement) => movement.id ?? ""));
 
   const onSubmit = (event: SubmitEvent) => {
     event.preventDefault();
@@ -92,22 +148,28 @@ export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: 
       return;
     }
 
-    const movementTemplates: MovementTemplate[] = controls().map((value) => {
-      const id = value.control.value();
+    const translated = translatedMovements();
+    const movementTemplates: MovementTemplate[] = [];
+
+    for (let i = 0; i < translated.length; i++) {
+      // SAFETY: these arrays are all created from the value of `translatedMovements`
+      const id = selectedIds()[i]!;
+      const name = names()[i]!;
+      const movement = translated[i]!;
 
       if (id) {
-        return {
+        movementTemplates.push({
           type: "existing",
           id,
-        } satisfies MovementTemplate;
+        });
       } else {
-        return {
+        movementTemplates.push({
           type: "new",
-          name: value.movement.name,
-          description: value.movement.description,
-        } satisfies MovementTemplate;
+          name,
+          description: movement.description,
+        });
       }
-    });
+    }
 
     const template: ProgramTemplate = {
       ...props.template,
@@ -125,20 +187,33 @@ export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: 
     >
       <h2 class="text-lg">Template: {props.template.name}</h2>
       <hr class="border-gray-600" />
-      <div class="grid grid-cols-2 gap-2">
-        <div class="font-bold">Template Movement</div>
+      <div class="grid grid-cols-3 gap-2">
+        <div class="font-bold">Template</div>
         <div class="font-bold">Mapped To</div>
-        <For each={controls()}>
-          {(control) => (
+        <div class="font-bold">Name</div>
+        <For each={translatedMovements()}>
+          {(movement, index) => (
             <>
-              <span>{control.movement.name}</span>
-              <div>
-                <TemplatedMovementRow
-                  control={control.control}
-                  movement={control.movement}
-                  options={movementList()}
-                />
-              </div>
+              <span class="self-center h-8 flex items-center">{movement.name}</span>
+              <TemplatedMovementRow
+                names={names()}
+                existingId={selectedIds()[index()]!}
+                setName={(value) => {
+                  const idx = index();
+                  setNames((names) => {
+                    return names.map((name, index) => (index === idx ? value : name));
+                  });
+                }}
+                setExistingId={(value) => {
+                  const idx = index();
+                  setSelectedIds((ids) => {
+                    return ids.map((id, index) => (index === idx ? value : id));
+                  });
+                }}
+                movement={movement}
+                options={movementList()}
+                index={index()}
+              />
             </>
           )}
         </For>

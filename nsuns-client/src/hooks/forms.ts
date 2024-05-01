@@ -7,6 +7,8 @@ export type Validator<T> = (value: T) => ErrorInfo;
 export type InputOptions<T> = {
   validators?: Validator<T>[];
   errorMessageMapping?: Record<string, string>;
+  isChanged?: (a: T, b: T) => boolean;
+  alwaysShowError?: boolean;
 };
 
 export const DEFAULT_ERROR_MESSAGES = {
@@ -43,7 +45,7 @@ export const createControl = <T>(initialValue: T, options?: InputOptions<T>): Co
   const [dirty, setDirty] = createSignal(false);
   const [touched, setTouched] = createSignal(false);
 
-  const isChanged = () => value() !== initial();
+  const isChanged = () => (options?.isChanged ? options.isChanged(value(), initial()) : value() !== initial());
 
   const errorMessageMapping: Record<string, string> = options?.errorMessageMapping ?? DEFAULT_ERROR_MESSAGES;
 
@@ -67,7 +69,7 @@ export const createControl = <T>(initialValue: T, options?: InputOptions<T>): Co
 
   const hasErrors = createMemo(() => !Object.values(errors()).every((v) => !v));
 
-  const showErrors = () => dirty() && hasErrors();
+  const showErrors = () => (options?.alwaysShowError || dirty()) && hasErrors();
 
   const reset = (value?: T) =>
     batch(() => {
