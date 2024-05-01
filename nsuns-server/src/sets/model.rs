@@ -59,6 +59,7 @@ pub enum Day {
 impl Day {
     /// # Safety
     /// Caller guarantees that `value` is within the range 0..=6
+    #[must_use]
     pub unsafe fn from_i16_unchecked(value: i16) -> Self {
         // explicit type annotation to use transmute more safely.
         let day: Day = unsafe { std::mem::transmute(value) };
@@ -176,7 +177,7 @@ impl CreateSet {
         let program_opt = ProgramSetIds::select_one(program_id, true, owner_id, &mut **tx).await?;
 
         if let Some(mut program) = program_opt {
-            for set in sets.iter() {
+            for set in &sets {
                 match set.day {
                     Day::Sunday => program.set_ids_sunday.push(set.id),
                     Day::Monday => program.set_ids_monday.push(set.id),

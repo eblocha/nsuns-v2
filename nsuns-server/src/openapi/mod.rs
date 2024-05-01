@@ -64,6 +64,7 @@ impl OpenApi for ApiDoc {
 }
 
 pub trait WithOpenApi {
+    #[must_use]
     fn with_openapi(self, settings: &OpenApiFeature) -> Self;
 }
 

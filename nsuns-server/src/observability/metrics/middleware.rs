@@ -78,6 +78,7 @@ async fn track_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
 }
 
 pub trait WithMetrics {
+    #[must_use]
     fn with_metrics(self, settings: &MetricsFeature) -> Self;
 }
 

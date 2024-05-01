@@ -30,7 +30,7 @@ impl Default for ServerSettings {
     fn default() -> Self {
         Self {
             port: default_server_port(),
-            static_dir: Default::default(),
+            static_dir: Option::default(),
         }
     }
 }
@@ -70,6 +70,7 @@ pub trait SetEnvOverride {
 
     /// Convenience method to unwrap a result from `set_env_override`.
     /// This is useful if the config key is static, and known to parse correctly.
+    #[must_use]
     fn set_env_override_unwrap<E>(self, key: &str, env_var: E) -> Self
     where
         Self: Sized,

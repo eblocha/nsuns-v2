@@ -10,7 +10,8 @@ use crate::{
     error::OperationResult,
     movements::model::CreateMovement,
     program::model::{CreateProgram, ProgramMeta},
-    sets::model::{CreateSet, Day}, validation::Validated,
+    sets::model::{CreateSet, Day},
+    validation::Validated,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, ToSchema)]
@@ -61,18 +62,17 @@ fn validate_set_template(set: &SetTemplate, movements_len: usize) -> Result<(), 
         set_errs.add(
             "movement_index",
             ValidationError::new("movement_index out of bounds"),
-        )
+        );
     }
 
     if set
         .percentage_of_max_index
-        .map(|idx| idx >= movements_len)
-        .unwrap_or(false)
+        .is_some_and(|idx| idx >= movements_len)
     {
         set_errs.add(
             "percentage_of_max_index",
             ValidationError::new("percentage_of_max_index out of bounds"),
-        )
+        );
     }
 
     if set_errs.is_empty() {
@@ -174,23 +174,18 @@ impl Validated<TemplatedProgram> {
                 let day: Day = unsafe { Day::from_i16_unchecked(index) };
                 let movement_ids = &movement_ids;
 
-                day_template
-                    .sets
-                    .into_iter()
-                    .map(move |set| {
-                        CreateSet {
-                            amount: set.amount,
-                            day,
-                            description: set.description,
-                            movement_id: movement_ids[set.movement_index], // validated by `Validate` impl
-                            percentage_of_max: set
-                                .percentage_of_max_index
-                                .map(|idx| movement_ids[idx]), // validated by `Validate` impl
-                            program_id: program_meta.id,
-                            reps: set.reps,
-                            reps_is_minimum: set.reps_is_minimum,
-                        }
-                    })
+                day_template.sets.into_iter().map(move |set| {
+                    CreateSet {
+                        amount: set.amount,
+                        day,
+                        description: set.description,
+                        movement_id: movement_ids[set.movement_index], // validated by `Validate` impl
+                        percentage_of_max: set.percentage_of_max_index.map(|idx| movement_ids[idx]), // validated by `Validate` impl
+                        program_id: program_meta.id,
+                        reps: set.reps,
+                        reps_is_minimum: set.reps_is_minimum,
+                    }
+                })
             })
             .collect();
 

@@ -35,7 +35,7 @@ pub type MetricsFeature = Feature<MetricsSettings>;
 
 impl Default for MetricsFeature {
     fn default() -> Self {
-        Self::Enabled(Default::default())
+        Self::Enabled(MetricsSettings::default())
     }
 }
 

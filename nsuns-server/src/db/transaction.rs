@@ -8,7 +8,7 @@ use crate::{db_span, error::OperationResult, into_log_server_error};
 use super::{pool::DB, Pool};
 
 /// Acquire a new connection from the pool.
-/// Does not convert into OperationResult.
+/// Does not convert into `OperationResult`.
 #[inline]
 pub async fn acquire_instrumented(pool: &Pool) -> Result<PoolConnection<DB>, sqlx::Error> {
     pool.acquire()
@@ -105,7 +105,7 @@ pub async fn commit_ok_instrumented<T, E>(
 ) -> Result<T, CommitError<T, E>> {
     match result {
         Ok(value) => match commit_instrumented(tx).await {
-            Ok(_) => Ok(value),
+            Ok(()) => Ok(value),
             Err(reason) => Err(CommitError::FailedCommit { reason, value }),
         },
         Err(original_error) => {

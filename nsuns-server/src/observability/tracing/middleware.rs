@@ -58,14 +58,14 @@ fn collect<B>(req: &http::Request<B>) -> RequestMetadata {
     }
 }
 
-pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse {
+pub async fn trace<B>(request: http::Request<B>, next: Next<B>) -> impl IntoResponse {
     let meta = if tracing::enabled!(Level::INFO) {
-        Some(collect(&req))
+        Some(collect(&request))
     } else {
         None
     };
 
-    let res = next.run(req).await;
+    let response = next.run(request).await;
 
     if let Some(meta) = meta {
         let trace_id = get_trace_id(&tracing::Span::current());
@@ -74,7 +74,7 @@ pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse
 
         tracing::info!(
             %latency,
-            status = res.status().as_u16(),
+            status = response.status().as_u16(),
             method = %meta.method,
             path = meta.path,
             query = meta.query,
@@ -82,10 +82,11 @@ pub async fn trace<B>(req: http::Request<B>, next: Next<B>) -> impl IntoResponse
             "finished processing request",
         );
     }
-    res
+    response
 }
 
 pub trait WithTracing {
+    #[must_use]
     fn with_tracing(self) -> Self;
 }
 

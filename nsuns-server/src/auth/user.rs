@@ -83,6 +83,10 @@ pub enum Error {
     ParseError(#[from] ParseError),
 }
 
+/// Authenticate a user and return the user model
+/// 
+/// # Panics
+/// Panics if the task spawned to compute the password hash is cancelled (indicates a bug)
 pub async fn authenticate(
     executor: impl Executor<'_, Database = DB>,
     auth: Basic,
@@ -97,13 +101,13 @@ pub async fn authenticate(
     if let Some(user) = user {
         tokio::task::spawn_blocking(move || {
             match verify_password(auth.password(), user.password_hash.expose_secret()) {
-                Ok(_) => Ok(Some(user)),
+                Ok(()) => Ok(Some(user)),
                 Err(VerifyError::Parse(e)) => Err(e.into()),
                 Err(VerifyError::PasswordInvalid) => Ok(None),
             }
         })
         .await
-        .expect("password hashing is not cancellable")
+        .expect("password hashing is not cancellable (this is a bug)")
     } else {
         Ok(None)
     }

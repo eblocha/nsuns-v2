@@ -11,7 +11,7 @@ use tower_cookies::Cookies;
 
 use super::ErrorWithStatus;
 
-/// Wraps an extractor to return an ErrorWithStatus rejection instead,
+/// Wraps an extractor to return an `ErrorWithStatus` rejection instead,
 /// which will be converted to a JSON response.
 pub struct WithErrorRejection<T>(pub T);
 

@@ -1,4 +1,4 @@
-/// Generates an expression that will execute a DB query to validate a row is owned by owner_id.
+/// Generates an expression that will execute a DB query to validate a row is owned by `owner_id`.
 ///
 /// The table must use `id` as the column name of the primary key.
 ///
@@ -38,7 +38,7 @@ macro_rules! assert_owner {
     };
 }
 
-/// Generates an expression that will execute a DB query to validate a number of rows are owned by owner_id.
+/// Generates an expression that will execute a DB query to validate a number of rows are owned by `owner_id`.
 ///
 /// The table must use `id` as the column name of the primary key.
 ///

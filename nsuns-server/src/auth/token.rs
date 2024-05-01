@@ -25,6 +25,7 @@ pub struct Claims {
 }
 
 impl Claims {
+    #[must_use]
     pub fn generate(owner_id: Uuid, user_id: Option<Uuid>) -> Self {
         Self {
             owner_id: OwnerId(owner_id),
@@ -96,6 +97,8 @@ impl From<Error> for ErrorWithStatus<anyhow::Error> {
     }
 }
 
+/// Create a cookie for the JWT
+#[must_use]
 pub fn create_token_cookie<'c>(token: String) -> Cookie<'c> {
     Cookie::build(COOKIE_NAME, token)
         .path("/")
@@ -105,6 +108,8 @@ pub fn create_token_cookie<'c>(token: String) -> Cookie<'c> {
         .finish()
 }
 
+/// Create an empty cookie suitable for instructing the client to remove their JWT cookie
+#[must_use]
 pub fn create_empty_cookie<'c>() -> Cookie<'c> {
     Cookie::build(COOKIE_NAME, "")
         .path("/")
@@ -113,6 +118,11 @@ pub fn create_empty_cookie<'c>() -> Cookie<'c> {
         .finish()
 }
 
+/// Create an expiry date for a new JWT
+/// 
+/// # Panics
+/// Panics if the new date would overflow an i64 in its seconds representation
+#[must_use]
 pub fn create_new_expiry_date() -> DateTime<Utc> {
     Utc::now()
         .checked_add_days(Days::new(2))

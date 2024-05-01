@@ -37,7 +37,7 @@ impl Default for LogSettings {
         Self {
             json: default_json_format(),
             directive: default_directive(),
-            opentelemetry: Default::default(),
+            opentelemetry: Feature::default(),
         }
     }
 }
@@ -201,6 +201,7 @@ pub fn default_service_name() -> String {
     env!("CARGO_PKG_NAME").to_string()
 }
 
+#[must_use]
 pub fn default_sample_rate() -> f64 {
     0.1
 }
@@ -229,8 +230,8 @@ impl Default for OpenTelemetrySettings {
             exporter_host: default_exporter_host(),
             exporter_timeout: default_exporter_timeout(),
             service_name: default_service_name(),
-            batch: Default::default(),
-            span_limits: Default::default(),
+            batch: SpanBatchSettings::default(),
+            span_limits: SpanSettings::default(),
             sample_rate: default_sample_rate(),
         }
     }

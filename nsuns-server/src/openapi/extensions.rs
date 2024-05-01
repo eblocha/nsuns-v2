@@ -38,6 +38,7 @@ pub fn id_path_param(description: Option<&str>) -> Option<Vec<Parameter>> {
 }
 
 pub trait JsonContent {
+    #[must_use]
     fn json_content<S>(self, schema: S) -> Self
     where
         S: Into<RefOr<Schema>>;

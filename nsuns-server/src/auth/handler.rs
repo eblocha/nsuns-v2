@@ -34,19 +34,15 @@ async fn login_user(
     cookies: Cookies,
 ) -> OperationResult<()> {
     // authenticate user
-    let user = match authenticate(&mut **tx, auth)
+    let Some(user) = authenticate(&mut **tx, auth)
         .await
         .context("Failed to authenticate")
-        .map_err(into_log_server_error!())?
-    {
-        Some(user) => user,
-        None => {
+        .map_err(into_log_server_error!())? else {
             return Err(ErrorWithStatus::new(
                 StatusCode::UNAUTHORIZED,
                 anyhow!("Bad credentials"),
             ))
-        }
-    };
+        };
 
     let claims = Claims::generate(user.owner_id, Some(user.id));
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
