@@ -119,7 +119,7 @@ pub fn create_empty_cookie<'c>() -> Cookie<'c> {
 }
 
 /// Create an expiry date for a new JWT
-/// 
+///
 /// # Panics
 /// Panics if the new date would overflow an i64 in its seconds representation
 #[must_use]

@@ -43,7 +43,8 @@ pub async fn update_set(
 ) -> impl IntoResponse {
     let mut conn = acquire(&pool).await?;
     let mut tx = transaction(&mut *conn).await?;
-    let res = set.update_one(owner_id, &mut tx)
+    let res = set
+        .update_one(owner_id, &mut tx)
         .await
         .map(or_404::<_, Json<_>>);
 

@@ -84,7 +84,7 @@ pub enum Error {
 }
 
 /// Authenticate a user and return the user model
-/// 
+///
 /// # Panics
 /// Panics if the task spawned to compute the password hash is cancelled (indicates a bug)
 pub async fn authenticate(
