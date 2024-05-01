@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 .shimmer {
   overflow: hidden;
   position: relative;
@@ -70,6 +69,15 @@ a {
 .circle-text-button {
   @apply p-2 rounded-full bg-transparent hover:bg-gray-800 active:bg-gray-700 disabled:bg-transparent disabled:opacity-50;
 }
+
+.tippy-box > .tippy-content {
+  @apply bg-gray-800 rounded p-2;
+}
+
+.tippy-box > .tippy-arrow:before {
+  @apply text-gray-800;
+}
+
 
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,

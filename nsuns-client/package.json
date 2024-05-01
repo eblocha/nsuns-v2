@@ -33,6 +33,8 @@
     "@solidjs/router": "^0.8.2",
     "@tanstack/solid-query": "^4.29.25",
     "@thisbeyond/solid-dnd": "^0.7.4",
-    "solid-js": "^1.7.6"
+    "solid-js": "^1.7.6",
+    "solid-tippy": "^0.2.1",
+    "tippy.js": "^6.3.7"
   }
 }

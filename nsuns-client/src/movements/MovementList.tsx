@@ -1,10 +1,12 @@
 import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
+import { useTippy } from "solid-tippy";
 import { CreateMovement } from "./CreateMovement";
 import { Plus } from "../icons/Plus";
 import { MovementItem } from "./Movement";
 import { useStats } from "../stats/StatsProvider";
 import { displayError } from "../util/errors";
 import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
+import { CircleInfo } from "../icons/CircleInfo";
 
 const Loading: Component = () => {
   return (
@@ -24,10 +26,27 @@ export const MovementList: Component = () => {
   const [showForm, setShowForm] = createSignal(false);
 
   const fetching = createSmartAsyncDelay(queryState.isFetching);
+  const [tooltipAnchor, setTooltipAnchor] = createSignal<HTMLElement | undefined>();
+
+  useTippy(tooltipAnchor, {
+    props: {
+      trigger: "mouseenter click focus",
+      content: "Movements are shared across profiles.",
+      placement: "right",
+      arrow: true,
+      duration: 250,
+    },
+    hidden: true,
+  });
 
   return (
     <div class="w-full flex flex-col">
-      <h2 class="mb-4 text-xl">Movements</h2>
+      <h2 class="mb-4 text-xl flex items-center gap-2">
+        Movements
+        <span class="text-gray-200 text-base pt-1">
+          <CircleInfo ref={setTooltipAnchor} />
+        </span>
+      </h2>
       <div class="flex-grow">
         <Switch>
           <Match when={queryState.isLoading()}>
