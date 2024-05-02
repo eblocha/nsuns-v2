@@ -28,8 +28,8 @@ pub fn param_in_default() -> Option<ParameterIn> {
 }
 
 #[must_use]
-pub fn id_path_param(description: Option<&str>) -> Option<Vec<Parameter>> {
-    Some(vec![ParameterBuilder::new()
+pub fn id_path_param(description: Option<&str>) -> Option<impl IntoIterator<Item = Parameter>> {
+    Some([ParameterBuilder::new()
         .name("id")
         .description(description)
         .required(Required::True)
