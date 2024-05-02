@@ -10,10 +10,7 @@ use http::Response;
 
 use crate::observability::attributes::HttpRequestAttributes;
 
-use super::{
-    names::{HTTP_SERVER_ACTIVE_REQUESTS, HTTP_SERVER_REQUEST_DURATION},
-    settings::MetricsFeature,
-};
+use super::settings::MetricsFeature;
 
 type Attribute = (&'static str, String);
 
@@ -61,15 +58,15 @@ async fn track_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
 
     let mut duration_attrs = build_attrs(&attrs);
 
-    metrics::increment_gauge!(HTTP_SERVER_ACTIVE_REQUESTS, 1.0, &active_requests_attrs);
+    metrics::increment_gauge!("http.server.active_requests", 1.0, &active_requests_attrs);
 
     let response = next.run(req).await;
 
     finalize_attrs(&mut duration_attrs, &response);
 
-    metrics::decrement_gauge!(HTTP_SERVER_ACTIVE_REQUESTS, 1.0, &active_requests_attrs);
+    metrics::decrement_gauge!("http.server.active_requests", 1.0, &active_requests_attrs);
     metrics::histogram!(
-        HTTP_SERVER_REQUEST_DURATION,
+        "http.server.request.duration",
         start.elapsed(),
         &duration_attrs
     );
