@@ -1,15 +1,22 @@
-use std::path::Path;
+use std::{path::Path, sync::Arc};
 
 use anyhow::Context;
 use sqlx::{migrate::MigrationSource, postgres::PgPoolOptions, Acquire, Postgres};
 use tracing::Instrument;
 
-use crate::db_span;
+use crate::{acquire_unlogged, db_span};
 
-use super::{acquire_unlogged, settings::DatabaseSettings};
+use super::settings::DatabaseSettings;
 
 pub type DB = Postgres;
-pub type Pool = sqlx::Pool<DB>;
+
+#[derive(Debug, Clone)]
+pub struct Pool {
+    /// Avoid using the inner pool directly. Isntead, use the `acquire` and `transaction` macros.
+    #[doc(hidden)]
+    pub inner: sqlx::Pool<DB>,
+    pub settings: Arc<DatabaseSettings>,
+}
 
 pub const DB_NAME: &str = "postgresql";
 
@@ -39,7 +46,12 @@ pub async fn prepare(settings: &DatabaseSettings) -> anyhow::Result<Pool> {
 
     let migrations = Path::new(&settings.migrations);
 
-    let mut conn = acquire_unlogged(&pool).await?;
+    let pool = Pool {
+        inner: pool,
+        settings: Arc::new(settings.clone()),
+    };
+
+    let mut conn = acquire_unlogged!(&pool).await?;
 
     run_migrations(migrations, &mut *conn).await?;
 

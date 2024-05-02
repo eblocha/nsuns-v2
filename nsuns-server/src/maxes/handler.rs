@@ -4,15 +4,16 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
-use transaction::commit_ok;
 use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
+    acquire,
     auth::token::OwnerId,
-    db::{acquire, transaction, Pool},
+    db::{transaction::commit_ok, Pool},
     error::extract::WithErrorRejection,
     response_transforms::{created, or_404},
+    transaction,
     validation::ValidatedJson,
 };
 
@@ -31,7 +32,7 @@ pub async fn maxes_index(
     WithErrorRejection(Query(query)): WithErrorRejection<Query<MaxesQuery>>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
 
     Max::select_for_profile(query.profile_id, owner_id, &mut *conn)
         .await
@@ -44,8 +45,7 @@ pub async fn create_max(
     owner_id: OwnerId,
     ValidatedJson(max): ValidatedJson<CreateMax>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = max
         .insert_one(owner_id, &mut tx)
         .await
@@ -60,7 +60,7 @@ pub async fn update_max(
     owner_id: OwnerId,
     ValidatedJson(max): ValidatedJson<UpdateMax>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     max.update_one(owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)

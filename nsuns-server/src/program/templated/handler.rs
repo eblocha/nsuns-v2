@@ -1,11 +1,11 @@
 use axum::{extract::State, response::IntoResponse, Json};
-use transaction::commit_ok;
 
 use crate::{
     auth::token::OwnerId,
-    db::{acquire, transaction, Pool},
+    db::{commit_ok, Pool},
     error::extract::WithErrorRejection,
     response_transforms::created,
+    transaction,
     validation::Validated,
 };
 
@@ -19,8 +19,7 @@ pub async fn create_from_template(
         Json<Validated<TemplatedProgram>>,
     >,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = validated_template
         .insert(owner_id, &mut tx)
         .await

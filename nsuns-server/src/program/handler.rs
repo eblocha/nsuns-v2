@@ -8,14 +8,12 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
+    acquire,
     auth::token::OwnerId,
-    db::{
-        commit_ok,
-        transaction::{acquire, transaction},
-        Pool,
-    },
+    db::{commit_ok, Pool},
     error::extract::WithErrorRejection,
     response_transforms::{created, or_404},
+    transaction,
     validation::ValidatedJson,
 };
 
@@ -36,7 +34,7 @@ pub async fn profile_programs(
     WithErrorRejection(Query(params)): WithErrorRejection<Query<ProgramQuery>>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     ProgramMeta::select_all_for_profile(params.profile_id, owner_id, &mut *conn)
         .await
         .map(Json)
@@ -48,8 +46,7 @@ pub async fn create_program(
     owner_id: OwnerId,
     ValidatedJson(program): ValidatedJson<CreateProgram>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
 
     let res = program
         .insert_one(owner_id, &mut tx)
@@ -66,7 +63,7 @@ pub async fn update_program(
     owner_id: OwnerId,
     ValidatedJson(program): ValidatedJson<UpdateProgram>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     program
         .update_one(owner_id, &mut *conn)
         .await
@@ -79,8 +76,7 @@ pub async fn reorder_sets(
     owner_id: OwnerId,
     ValidatedJson(reorder): ValidatedJson<ReorderSets>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = reorder
         .reorder(owner_id, &mut tx)
         .await
@@ -94,7 +90,7 @@ pub async fn delete_program(
     Path(id): Path<Uuid>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     delete_one(id, owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)
@@ -106,8 +102,7 @@ pub async fn program_summary(
     Path(id): Path<Uuid>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = gather_program_summary(id, owner_id, &mut tx)
         .await
         .map(or_404::<_, Json<_>>);

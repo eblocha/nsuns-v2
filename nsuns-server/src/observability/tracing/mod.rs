@@ -1,4 +1,3 @@
-mod global_fields;
 pub mod middleware;
 mod opentelemetry;
 pub mod settings;

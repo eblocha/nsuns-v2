@@ -6,6 +6,7 @@ use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, FromRow};
 use thiserror::Error;
+use tracing::Instrument;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -106,6 +107,7 @@ pub async fn authenticate(
                 Err(VerifyError::PasswordInvalid) => Ok(None),
             }
         })
+        .instrument(tracing::info_span!("verify_pasword"))
         .await
         .expect("password hashing is not cancellable (this is a bug)")
     } else {

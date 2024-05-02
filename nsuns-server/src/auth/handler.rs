@@ -8,12 +8,12 @@ use axum::{
 use http::StatusCode;
 use sqlx::{Executor, Transaction};
 use tower_cookies::Cookies;
-use transaction::{acquire, commit_ok};
 
 use crate::{
-    db::{transaction, Pool, DB},
+    as_executor,
+    db::{transaction::commit_ok, Pool, DB},
     error::{extract::WithErrorRejection, ErrorWithStatus, OperationResult},
-    into_log_server_error,
+    into_log_server_error, transaction,
 };
 
 use super::{
@@ -65,7 +65,7 @@ pub async fn login(
     >,
     WithErrorRejection(cookies): WithErrorRejection<Cookies>,
 ) -> OperationResult<StatusCode> {
-    let mut tx = transaction(&pool).await?;
+    let mut tx = transaction!(&pool).await?;
 
     let res = login_user(&mut tx, &keys, creds, cookies).await;
 
@@ -107,7 +107,7 @@ pub async fn anonymous(
     State(keys): State<JwtKeys>,
     WithErrorRejection(cookies): WithErrorRejection<Cookies>,
 ) -> OperationResult<StatusCode> {
-    let mut tx = transaction(&pool).await?;
+    let mut tx = transaction!(&pool).await?;
 
     let res = login_anonymous(&mut tx, &keys, cookies).await;
 
@@ -143,7 +143,7 @@ pub async fn logout(
     WithErrorRejection(cookies): WithErrorRejection<Cookies>,
 ) -> OperationResult<StatusCode> {
     // the acquire phase is not spanned here, but this avoids waiting for a connection if the user is non-anonymous
-    delete_owner_if_anonymous(&keys, &cookies, &pool).await?;
+    delete_owner_if_anonymous(&keys, &cookies, as_executor!(&pool)).await?;
 
     cookies.remove(create_empty_cookie());
 
@@ -152,8 +152,7 @@ pub async fn logout(
 
 #[tracing::instrument(skip_all)]
 pub async fn agent_info(State(pool): State<Pool>, owner_id: OwnerId) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
 
     let user_option = select_user_info_by_owner_id(owner_id, &mut *tx)
         .await

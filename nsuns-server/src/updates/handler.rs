@@ -7,14 +7,11 @@ use uuid::Uuid;
 
 use crate::{
     auth::token::OwnerId,
-    db::{
-        commit_ok,
-        transaction::{acquire, transaction},
-        Pool, DB,
-    },
+    db::{commit_ok, Pool, DB},
     error::{extract::WithErrorRejection, OperationResult},
     maxes::model::{delete_latest_maxes, CreateMax, Max},
     reps::model::{delete_latest_reps, CreateReps, Reps},
+    transaction,
 };
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -91,8 +88,7 @@ pub async fn updates(
     owner_id: OwnerId,
     WithErrorRejection(Json(updates)): WithErrorRejection<Json<Updates>>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = run_updates(&mut tx, updates, owner_id).await.map(Json);
     commit_ok(res, tx).await
 }
@@ -142,8 +138,7 @@ pub async fn undo(
     owner_id: OwnerId,
     WithErrorRejection(Json(updates)): WithErrorRejection<Json<Updates>>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = undo_updates(&mut tx, updates, owner_id).await.map(Json);
     commit_ok(res, tx).await
 }

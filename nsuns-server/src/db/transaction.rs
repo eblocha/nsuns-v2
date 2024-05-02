@@ -1,58 +1,90 @@
 use anyhow::Context;
-use sqlx::{pool::PoolConnection, Acquire, Transaction};
+use sqlx::Transaction;
 use thiserror::Error;
 use tracing::Instrument;
 
 use crate::{db_span, error::OperationResult, into_log_server_error};
 
-use super::{pool::DB, Pool};
+use super::pool::DB;
 
-/// Acquire a new connection from the pool.
-/// Does not convert into `OperationResult`.
-#[inline]
-pub async fn acquire_instrumented(pool: &Pool) -> Result<PoolConnection<DB>, sqlx::Error> {
-    pool.acquire()
-        .instrument(db_span!("acquire connection"))
-        .await
+/// Create a span for interacting with the database pool, such as acquiring connections.
+///
+/// This will record information about the pool in the span.
+#[macro_export]
+macro_rules! pool_span {
+    ($name:expr, $pool:expr) => {
+        tracing::info_span!(
+            $name,
+            otel.kind = ?opentelemetry_api::trace::SpanKind::Client,
+            db.system = $crate::db::pool::DB_NAME,
+            db.statement = tracing::field::Empty,
+            db.user = $pool.settings.username,
+            db.name = $pool.settings.database,
+            server.address = $pool.settings.host,
+            server.port = $pool.settings.port
+        )
+    };
 }
 
-/// Acquire a new connection from the pool.
-/// Useful for creating a separate trace of connect vs. query
-#[inline]
-pub async fn acquire(pool: &Pool) -> OperationResult<PoolConnection<DB>> {
-    acquire_unlogged(pool)
-        .await
-        .map_err(into_log_server_error!())
+/// Acquire an instrumented connection from the connection pool
+#[macro_export]
+macro_rules! acquire {
+    ($pool:expr) => {
+        async {
+            $crate::acquire_unlogged!(&$pool)
+                .await
+                .map_err($crate::into_log_server_error!())
+        }
+    };
 }
 
-/// Used for initialization outside of a request context
-#[inline]
-pub async fn acquire_unlogged(pool: &Pool) -> anyhow::Result<PoolConnection<DB>> {
-    acquire_instrumented(pool)
-        .await
-        .context("failed to acquire connection")
+/// Acquire an instrumented connection from the connection pool, without logging the error
+#[macro_export]
+macro_rules! acquire_unlogged {
+    ($pool:expr) => {
+        async {
+            anyhow::Context::context(
+                tracing_futures::Instrument::instrument(
+                    sqlx::Acquire::acquire(&$pool.inner),
+                    $crate::pool_span!("acquire connection", $pool),
+                )
+                .await,
+                "failed to acquire connection",
+            )
+        }
+    };
 }
 
-/// Acquire a new transaction using an appropriate span
-#[inline]
-pub async fn transaction_instrumented<'a>(
-    acquire: impl Acquire<'a, Database = DB>,
-) -> Result<Transaction<'a, DB>, sqlx::Error> {
-    acquire
-        .begin()
-        .instrument(db_span!("begin transaction"))
-        .await
+/// Begin a transaction. This will enter an appropriate span while beginning the transaction
+#[macro_export]
+macro_rules! transaction {
+    ($pool:expr) => {
+        async {
+            anyhow::Context::context(
+                tracing_futures::Instrument::instrument(
+                    sqlx::Transaction::begin($crate::acquire!($pool).await?),
+                    $crate::pool_span!("begin transaction", $pool),
+                )
+                .await,
+                "failed to begin transaction",
+            )
+            .map_err($crate::into_log_server_error!())
+        }
+    };
 }
 
-/// Acquire a new transaction
-#[inline]
-pub async fn transaction<'a>(
-    acquire: impl Acquire<'a, Database = DB>,
-) -> OperationResult<Transaction<'a, DB>> {
-    transaction_instrumented(acquire)
-        .await
-        .context("failed to start a transaction")
-        .map_err(into_log_server_error!())
+/// Create an instrumented executor from a connection pool.
+///
+/// Note that the executor's span will be very generic, so prefer to create an executor with
+/// `acquire!(&pool)` or `transaction!(&pool)`, and use `InstrumentedExecutor` to add a more specific span.
+#[macro_export]
+macro_rules! as_executor {
+    ($pool:expr) => {
+        $crate::db::tracing::InstrumentExecutor::instrument_executor(
+            &$pool.inner,
+            $crate::pool_span!("database query", $pool),
+        )
+    };
 }
 
 /// Commit the transaction if the result is Ok, otherwise rollback.

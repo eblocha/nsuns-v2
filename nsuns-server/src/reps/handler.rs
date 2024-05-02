@@ -4,18 +4,16 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
-use transaction::{commit_ok, transaction};
 use utoipa::IntoParams;
 use uuid::Uuid;
 
 use crate::{
+    acquire,
     auth::token::OwnerId,
-    db::{
-        transaction::{self, acquire},
-        Pool,
-    },
+    db::{commit_ok, Pool},
     error::extract::WithErrorRejection,
     response_transforms::{created, or_404},
+    transaction,
     validation::ValidatedJson,
 };
 
@@ -34,7 +32,7 @@ pub async fn reps_index(
     owner_id: OwnerId,
     WithErrorRejection(Query(query)): WithErrorRejection<Query<RepsQuery>>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     Reps::select_for_profile(query.profile_id, owner_id, &mut *conn)
         .await
         .map(Json)
@@ -46,8 +44,7 @@ pub async fn create_reps(
     owner_id: OwnerId,
     ValidatedJson(reps): ValidatedJson<CreateReps>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = reps
         .insert_one(owner_id, &mut tx)
         .await
@@ -63,7 +60,7 @@ pub async fn update_reps(
     owner_id: OwnerId,
     ValidatedJson(reps): ValidatedJson<UpdateReps>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     reps.update_one(owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)

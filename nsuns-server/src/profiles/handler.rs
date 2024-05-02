@@ -6,13 +6,11 @@ use axum::{
 use uuid::Uuid;
 
 use crate::{
+    acquire,
     auth::token::OwnerId,
-    db::{
-        commit_ok,
-        transaction::{acquire, transaction},
-        Pool,
-    },
+    db::{commit_ok, Pool},
     response_transforms::{created, or_404},
+    transaction,
     validation::ValidatedJson,
 };
 
@@ -20,7 +18,7 @@ use super::model::{CreateProfile, Profile};
 
 #[tracing::instrument(skip_all)]
 pub async fn profiles_index(State(pool): State<Pool>, owner_id: OwnerId) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     Profile::select_all(owner_id, &mut *conn).await.map(Json)
 }
 
@@ -30,7 +28,7 @@ pub async fn get_profile(
     Path(id): Path<Uuid>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     Profile::select_one(id, owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)
@@ -42,8 +40,7 @@ pub async fn create_profile(
     owner_id: OwnerId,
     ValidatedJson(profile): ValidatedJson<CreateProfile>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = profile
         .create_one(owner_id, &mut tx)
         .await
@@ -58,8 +55,7 @@ pub async fn update_profile(
     owner_id: OwnerId,
     ValidatedJson(profile): ValidatedJson<Profile>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = profile.update_one(owner_id, &mut tx).await.map(Json);
     commit_ok(res, tx).await
 }
@@ -70,7 +66,7 @@ pub async fn delete_profile(
     Path(id): Path<Uuid>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
+    let mut conn = acquire!(&pool).await?;
     Profile::delete_one(id, owner_id, &mut *conn)
         .await
         .map(or_404::<_, Json<_>>)

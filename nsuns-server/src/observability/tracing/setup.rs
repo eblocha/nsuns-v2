@@ -1,17 +1,9 @@
 use opentelemetry_api::global;
 use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*};
 
-use crate::{db, observability::tracing::global_fields::WithGlobalFields, settings::Settings};
+use crate::settings::Settings;
 
 use super::{opentelemetry, settings::OpenTelemetryFeature};
-
-/// Determine if the span is a database client call
-fn db_span_filter(attrs: &tracing::span::Attributes<'_>) -> bool {
-    attrs
-        .metadata()
-        .target()
-        .ends_with(db::tracing::TRACING_TARGET_SUFFIX)
-}
 
 pub struct TraceGuard {
     opentelemetry: bool,
@@ -52,28 +44,9 @@ pub fn setup_tracing(settings: &Settings) -> anyhow::Result<TraceGuard> {
         opentelemetry: settings.logging.opentelemetry.is_enabled(),
     };
 
-    let connection_string = format!(
-        "Server={server};Database={db};Uid={user};MaximumPoolSize={pool_sz};",
-        server = settings.database.host,
-        db = settings.database.database,
-        user = settings.database.username,
-        pool_sz = settings.database.max_connections
-    );
-
     tracing_subscriber::registry()
         .with(fmt_layer)
         .with(telemetry_layer)
-        .with_global_fields_filtered(
-            [
-                ("db.name", settings.database.database.clone()),
-                ("db.user", settings.database.username.clone()),
-                ("db.connection_string", connection_string),
-                ("server.address", settings.database.host.clone()),
-            ],
-            db_span_filter,
-        )
-        // separate layer for different type
-        .with_global_fields_filtered([("server.port", settings.database.port)], db_span_filter)
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(LevelFilter::INFO.into())

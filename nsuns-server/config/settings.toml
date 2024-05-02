@@ -19,6 +19,7 @@ enabled = true
 
 [logging.opentelemetry]
 enabled = true
+sample_rate = 1
 
 [logging.opentelemetry.batch]
 scheduled_delay = "500ms"

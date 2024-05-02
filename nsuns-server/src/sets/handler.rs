@@ -7,12 +7,9 @@ use uuid::Uuid;
 
 use crate::{
     auth::token::OwnerId,
-    db::{
-        commit_ok,
-        transaction::{acquire, transaction},
-        Pool,
-    },
+    db::{commit_ok, Pool},
     response_transforms::{created, no_content_or_404, or_404},
+    transaction,
     validation::ValidatedJson,
 };
 
@@ -24,8 +21,7 @@ pub async fn create_set(
     owner_id: OwnerId,
     ValidatedJson(set): ValidatedJson<CreateSet>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = set
         .insert_one(owner_id, &mut tx)
         .await
@@ -41,8 +37,7 @@ pub async fn update_set(
     owner_id: OwnerId,
     ValidatedJson(set): ValidatedJson<UpdateSet>,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = set
         .update_one(owner_id, &mut tx)
         .await
@@ -57,8 +52,7 @@ pub async fn delete_set(
     Path(id): Path<Uuid>,
     owner_id: OwnerId,
 ) -> impl IntoResponse {
-    let mut conn = acquire(&pool).await?;
-    let mut tx = transaction(&mut *conn).await?;
+    let mut tx = transaction!(&pool).await?;
     let res = delete_one(id, owner_id, &mut tx)
         .await
         .map(no_content_or_404);

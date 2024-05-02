@@ -17,7 +17,7 @@ pub fn default_max_connections() -> u32 {
     5
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub host: String,
     pub port: u16,
