@@ -27,7 +27,7 @@ async fn run_updates(world: &mut NsunsWorld) {
         .client
         .post(UPDATES_PATH)
         .json_body(&get_updates(world))
-        .authed(&world)
+        .authed(world)
         .send()
         .await;
 }

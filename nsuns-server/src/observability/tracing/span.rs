@@ -3,11 +3,11 @@ use opentelemetry_api::{
     propagation::TextMapPropagator,
     trace::{SpanKind, TraceContextExt},
 };
-use opentelemetry_http::{HeaderExtractor, HeaderInjector};
+use opentelemetry_http::HeaderExtractor;
 use opentelemetry_sdk::propagation::TraceContextPropagator;
 use opentelemetry_semantic_conventions as semcov;
 use tower_http::trace::{MakeSpan, OnResponse};
-use tracing::{field::Empty, Span};
+use tracing::field::Empty;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::observability::attributes::HttpRequestAttributes;
@@ -131,22 +131,4 @@ fn response_body_size<B>(res: &http::Response<B>) -> Option<u64> {
                 .map(Some)
                 .unwrap_or_default()
         })
-}
-
-pub trait WithSpan: Sized {
-    fn with_current_span(self) -> Self {
-        self.with_span(&Span::current())
-    }
-
-    fn with_span(self, span: &Span) -> Self;
-}
-
-impl<B> WithSpan for http::Request<B> {
-    /// Update outbound requests to contain otel tracing headers for the current span
-    fn with_span(mut self, span: &Span) -> Self {
-        TraceContextPropagator::new()
-            .inject_context(&span.context(), &mut HeaderInjector(self.headers_mut()));
-
-        self
-    }
 }
