@@ -1,7 +1,10 @@
 use std::time::Instant;
 
 use axum::{
-    extract::Request, middleware::{from_fn, Next}, response::{IntoResponse, Response}, Router
+    extract::Request,
+    middleware::{from_fn, Next},
+    response::{IntoResponse, Response},
+    Router,
 };
 
 use crate::observability::attributes::HttpRequestAttributes;

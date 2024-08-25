@@ -4,7 +4,10 @@ use std::{
 };
 
 use axum::{
-    extract::Request, middleware::{from_fn, Next}, response::IntoResponse, Router
+    extract::Request,
+    middleware::{from_fn, Next},
+    response::IntoResponse,
+    Router,
 };
 use http::Method;
 use tower_http::{trace::TraceLayer, LatencyUnit};

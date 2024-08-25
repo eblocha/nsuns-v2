@@ -9,7 +9,10 @@ use jsonwebtoken::{
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 use time::Duration;
-use tower_cookies::{cookie::{CookieBuilder, SameSite}, Cookie};
+use tower_cookies::{
+    cookie::{CookieBuilder, SameSite},
+    Cookie,
+};
 use uuid::Uuid;
 
 use crate::error::ErrorWithStatus;

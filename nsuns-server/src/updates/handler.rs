@@ -1,5 +1,4 @@
 use axum::{extract::State, response::IntoResponse, Json};
-use axum_macros::debug_handler;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 use sqlx::Transaction;
@@ -83,7 +82,6 @@ async fn run_updates(
     })
 }
 
-#[debug_handler]
 #[tracing::instrument(skip_all)]
 pub async fn updates(
     State(pool): State<Pool>,

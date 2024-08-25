@@ -1,10 +1,9 @@
 use anyhow::{anyhow, Context};
-use axum::{
-    extract::State,
-    response::IntoResponse,
-    Json,
+use axum::{extract::State, response::IntoResponse, Json};
+use axum_extra::{
+    headers::{authorization::Basic, Authorization},
+    TypedHeader,
 };
-use axum_extra::{headers::{authorization::Basic, Authorization}, TypedHeader};
 use http::StatusCode;
 use sqlx::{Executor, Transaction};
 use tower_cookies::Cookies;

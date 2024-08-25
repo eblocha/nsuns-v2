@@ -38,7 +38,7 @@ impl Connected<IncomingStream<'_>> for ClientInfo {
     fn connect_info(target: IncomingStream<'_>) -> Self {
         ClientInfo {
             remote_addr: target.remote_addr(),
-            local_addr: target.local_addr().ok()
+            local_addr: target.local_addr().ok(),
         }
     }
 }

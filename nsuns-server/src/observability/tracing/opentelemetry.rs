@@ -1,5 +1,5 @@
 use anyhow::Context;
-use opentelemetry::{KeyValue, trace::TracerProvider};
+use opentelemetry::{trace::TracerProvider, KeyValue};
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
     runtime::Tokio,
@@ -49,7 +49,8 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
         .install_batch(Tokio)
         .context("failed to install otel tracer")?;
 
-    let opentelemetry = tracing_opentelemetry::layer().with_tracer(tracer.tracer(settings.service_name.clone()));
+    let opentelemetry =
+        tracing_opentelemetry::layer().with_tracer(tracer.tracer(settings.service_name.clone()));
 
     Ok(opentelemetry)
 }
