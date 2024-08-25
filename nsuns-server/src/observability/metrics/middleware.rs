@@ -1,12 +1,8 @@
 use std::time::Instant;
 
 use axum::{
-    http::Request,
-    middleware::{from_fn, Next},
-    response::IntoResponse,
-    Router,
+    extract::Request, middleware::{from_fn, Next}, response::{IntoResponse, Response}, Router
 };
-use http::Response;
 
 use crate::observability::attributes::HttpRequestAttributes;
 
@@ -40,14 +36,14 @@ fn build_attrs(attrs: &HttpRequestAttributes) -> Vec<Attribute> {
     duration_attrs
 }
 
-fn finalize_attrs<B>(attrs: &mut Vec<Attribute>, response: &Response<B>) {
+fn finalize_attrs(attrs: &mut Vec<Attribute>, response: &Response) {
     attrs.push((
         "http.response.status_code",
         response.status().as_u16().to_string(),
     ));
 }
 
-async fn track_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
+async fn track_metrics(req: Request, next: Next) -> impl IntoResponse {
     let start = Instant::now();
 
     let attrs: HttpRequestAttributes = (&req).into();

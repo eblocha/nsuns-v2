@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use axum::{
-    extract::{rejection::JsonRejection, FromRequest},
-    http::Request,
+    extract::{rejection::JsonRejection, FromRequest, Request},
     Json,
 };
 use serde::{de, Deserialize};
@@ -52,15 +51,14 @@ impl<'de, T: Validate + Deserialize<'de>> Deserialize<'de> for Validated<T> {
 pub struct ValidatedJson<T>(pub T);
 
 #[async_trait]
-impl<T, S, B> FromRequest<S, B> for ValidatedJson<T>
+impl<T, S> FromRequest<S> for ValidatedJson<T>
 where
-    Json<Validated<T>>: FromRequest<S, B, Rejection = JsonRejection>,
+    Json<Validated<T>>: FromRequest<S, Rejection = JsonRejection>,
     S: Send + Sync,
-    B: Send + 'static,
 {
     type Rejection = ErrorWithStatus<String>;
 
-    async fn from_request(req: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
         let Json(Validated(value)) = Json::from_request(req, state)
             .await
             .map_err(|json_err| ErrorWithStatus::new(json_err.status(), json_err.body_text()))?;

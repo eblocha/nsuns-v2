@@ -30,7 +30,7 @@ impl Auth for RequestBuilder {
         if let Some(cookie) = &world.auth_cookie {
             self.header(
                 "Cookie",
-                Cookie::new(COOKIE_NAME, cookie).encoded().to_string(),
+                &Cookie::new(COOKIE_NAME, cookie).encoded().to_string(),
             )
         } else {
             self

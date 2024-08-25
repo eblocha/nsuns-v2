@@ -1,22 +1,22 @@
 use anyhow::anyhow;
 use axum::{
-    extract::State,
+    extract::{Request, State},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
 };
 use chrono::Utc;
-use http::{Request, StatusCode, Uri};
+use http::{StatusCode, Uri};
 use tower_cookies::Cookies;
 
 use crate::error::{extract::WithErrorRejection, ErrorWithStatus, OperationResult};
 
 use super::token::{create_empty_cookie, JwtKeys, COOKIE_NAME};
 
-pub async fn redirect_on_missing_auth_cookie<B>(
+pub async fn redirect_on_missing_auth_cookie(
     WithErrorRejection(cookies): WithErrorRejection<Cookies>,
     uri: Uri, // uri extraction is infallible
-    request: Request<B>,
-    next: Next<B>,
+    request: Request,
+    next: Next,
 ) -> Response {
     if cookies.get(COOKIE_NAME).is_none() && uri.path() != "/login" {
         Redirect::to("/login").into_response()
@@ -27,11 +27,11 @@ pub async fn redirect_on_missing_auth_cookie<B>(
     }
 }
 
-pub async fn manage_tokens<B>(
+pub async fn manage_tokens(
     State(keys): State<JwtKeys>,
     cookies: Cookies,
-    mut request: Request<B>,
-    next: Next<B>,
+    mut request: Request,
+    next: Next,
 ) -> OperationResult<Response> {
     if let Some(cookie) = cookies.get(COOKIE_NAME) {
         let claims = match keys.decode(cookie.value()) {

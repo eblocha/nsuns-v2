@@ -1,9 +1,9 @@
 use anyhow::Context;
-use opentelemetry::KeyValue;
+use opentelemetry::{KeyValue, trace::TracerProvider};
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
     runtime::Tokio,
-    trace::{self, Sampler, Tracer, XrayIdGenerator},
+    trace::{Config, RandomIdGenerator, Sampler, Tracer},
     Resource,
 };
 use opentelemetry_semantic_conventions as semcov;
@@ -34,10 +34,10 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
         .with_exporter(otlp_exporter)
         .with_batch_config((&settings.batch).into())
         .with_trace_config(
-            trace::config()
+            Config::default()
                 .with_sampler(Sampler::TraceIdRatioBased(settings.sample_rate))
                 .with_span_limits((&settings.span_limits).into())
-                .with_id_generator(XrayIdGenerator::default())
+                .with_id_generator(RandomIdGenerator::default())
                 .with_resource(Resource::new(vec![
                     KeyValue::new(
                         semcov::resource::SERVICE_NAME,
@@ -49,7 +49,7 @@ pub fn layer<S: tracing::Subscriber + for<'span> LookupSpan<'span>>(
         .install_batch(Tokio)
         .context("failed to install otel tracer")?;
 
-    let opentelemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+    let opentelemetry = tracing_opentelemetry::layer().with_tracer(tracer.tracer(settings.service_name.clone()));
 
     Ok(opentelemetry)
 }

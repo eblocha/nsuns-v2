@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use config::builder::BuilderState;
 use opentelemetry_otlp::{OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_TIMEOUT};
-use opentelemetry_sdk::trace::{BatchConfig, SpanLimits};
+use opentelemetry_sdk::trace::{BatchConfig, BatchConfigBuilder, SpanLimits};
 use serde::Deserialize;
 
 use crate::{
@@ -127,12 +127,13 @@ impl Default for SpanBatchSettings {
 
 impl From<&SpanBatchSettings> for BatchConfig {
     fn from(settings: &SpanBatchSettings) -> Self {
-        BatchConfig::default()
+        BatchConfigBuilder::default()
             .with_max_queue_size(settings.max_queue_size)
             .with_scheduled_delay(settings.scheduled_delay)
             .with_max_export_batch_size(settings.max_export_batch_size)
             .with_max_export_timeout(settings.max_export_timeout)
             .with_max_concurrent_exports(settings.max_concurrent_exports)
+            .build()
     }
 }
 

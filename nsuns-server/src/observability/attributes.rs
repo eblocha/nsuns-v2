@@ -55,8 +55,8 @@ impl<'r, B> From<&'r http::Request<B>> for HttpRequestAttributes<'r> {
             http_route: matched_path,
             user_agent_original: user_agent(request),
             client_address,
-            network_local_address: client_info.as_ref().map(network_local_ip),
-            network_local_port: client_info.as_ref().map(network_local_port),
+            network_local_address: client_info.as_ref().and_then(network_local_ip),
+            network_local_port: client_info.as_ref().and_then(network_local_port),
             network_peer_address: peer_address,
             network_peer_port: client_info.as_ref().map(network_peer_port),
             network_protocol_name: "http",
@@ -109,13 +109,13 @@ fn network_peer_port(client_info: &ClientInfo) -> u16 {
 }
 
 #[inline]
-fn network_local_ip(client_info: &ClientInfo) -> IpAddr {
-    client_info.local_addr.ip()
+fn network_local_ip(client_info: &ClientInfo) -> Option<IpAddr> {
+    client_info.local_addr.map(|addr| addr.ip())
 }
 
 #[inline]
-fn network_local_port(client_info: &ClientInfo) -> u16 {
-    client_info.local_addr.port()
+fn network_local_port(client_info: &ClientInfo) -> Option<u16> {
+    client_info.local_addr.map(|addr| addr.port())
 }
 
 #[inline]

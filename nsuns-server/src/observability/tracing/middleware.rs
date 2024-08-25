@@ -4,9 +4,7 @@ use std::{
 };
 
 use axum::{
-    middleware::{from_fn, Next},
-    response::IntoResponse,
-    Router,
+    extract::Request, middleware::{from_fn, Next}, response::IntoResponse, Router
 };
 use http::Method;
 use tower_http::{trace::TraceLayer, LatencyUnit};
@@ -49,7 +47,7 @@ struct RequestMetadata {
     query: Option<String>,
 }
 
-fn collect<B>(req: &http::Request<B>) -> RequestMetadata {
+fn collect(req: &Request) -> RequestMetadata {
     RequestMetadata {
         start: Instant::now(),
         method: req.method().clone(),
@@ -58,7 +56,7 @@ fn collect<B>(req: &http::Request<B>) -> RequestMetadata {
     }
 }
 
-pub async fn trace<B>(request: http::Request<B>, next: Next<B>) -> impl IntoResponse {
+pub async fn trace(request: Request, next: Next) -> impl IntoResponse {
     let meta = if tracing::enabled!(Level::INFO) {
         Some(collect(&request))
     } else {

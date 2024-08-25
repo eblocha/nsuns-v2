@@ -1,12 +1,13 @@
 use async_trait::async_trait;
 use axum::{
     extract::{
-        rejection::{JsonRejection, PathRejection, QueryRejection, TypedHeaderRejection},
-        FromRequest, FromRequestParts, Path, Query,
+        rejection::{JsonRejection, PathRejection, QueryRejection},
+        FromRequest, FromRequestParts, Path, Query, Request,
     },
-    Json, TypedHeader,
+    Json,
 };
-use http::{request::Parts, Request, StatusCode};
+use axum_extra::{typed_header::TypedHeaderRejection, TypedHeader};
+use http::{request::Parts, StatusCode};
 use tower_cookies::Cookies;
 
 use super::ErrorWithStatus;
@@ -16,15 +17,14 @@ use super::ErrorWithStatus;
 pub struct WithErrorRejection<T>(pub T);
 
 #[async_trait]
-impl<T, S, B> FromRequest<S, B> for WithErrorRejection<Json<T>>
+impl<T, S> FromRequest<S> for WithErrorRejection<Json<T>>
 where
-    Json<T>: FromRequest<S, B, Rejection = JsonRejection>,
+    Json<T>: FromRequest<S, Rejection = JsonRejection>,
     S: Send + Sync,
-    B: Send + 'static,
 {
     type Rejection = ErrorWithStatus<String>;
 
-    async fn from_request(req: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
         let value = Json::from_request(req, state)
             .await
             .map_err(|e| ErrorWithStatus::new(e.status(), e.body_text()))?;

@@ -9,7 +9,7 @@ use jsonwebtoken::{
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 use time::Duration;
-use tower_cookies::{cookie::SameSite, Cookie};
+use tower_cookies::{cookie::{CookieBuilder, SameSite}, Cookie};
 use uuid::Uuid;
 
 use crate::error::ErrorWithStatus;
@@ -100,22 +100,22 @@ impl From<Error> for ErrorWithStatus<anyhow::Error> {
 /// Create a cookie for the JWT
 #[must_use]
 pub fn create_token_cookie<'c>(token: String) -> Cookie<'c> {
-    Cookie::build(COOKIE_NAME, token)
+    CookieBuilder::new(COOKIE_NAME, token)
         .path("/")
         .max_age(Duration::days(2))
         .http_only(true)
         .same_site(SameSite::Lax)
-        .finish()
+        .build()
 }
 
 /// Create an empty cookie suitable for instructing the client to remove their JWT cookie
 #[must_use]
 pub fn create_empty_cookie<'c>() -> Cookie<'c> {
-    Cookie::build(COOKIE_NAME, "")
+    CookieBuilder::new(COOKIE_NAME, "")
         .path("/")
         .http_only(true)
         .same_site(SameSite::Lax)
-        .finish()
+        .build()
 }
 
 /// Create an expiry date for a new JWT

@@ -1,8 +1,10 @@
+use std::net::SocketAddr;
+
 use anyhow::Context;
 use axum::Router;
-use hyper::Server;
+use tokio::net::TcpListener;
 
-use crate::{feature::Feature, server::bind, shutdown::shutdown_signal};
+use crate::{feature::Feature, shutdown::shutdown_signal};
 
 use super::{
     router::router,
@@ -15,13 +17,15 @@ pub fn initialize(settings: &MetricsSettings) -> anyhow::Result<Router> {
 
 pub async fn run(settings: &MetricsFeature) -> anyhow::Result<()> {
     if let Feature::Enabled(settings) = settings {
-        let addr = bind(settings.port)?;
+        let addr = SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, settings.port));
+
+        let tcp = TcpListener::bind(addr).await?;
+
         let app = initialize(settings)?;
 
-        tracing::info!("metrics listening on {}", addr.local_addr());
+        tracing::info!("metrics listening on {}", addr);
 
-        Server::builder(addr)
-            .serve(app.into_make_service())
+        axum::serve(tcp, app.into_make_service())
             .with_graceful_shutdown(shutdown_signal())
             .await
             .context("metrics listener failed to start")

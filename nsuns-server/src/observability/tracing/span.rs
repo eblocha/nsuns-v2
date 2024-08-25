@@ -1,8 +1,6 @@
 use axum::extract::MatchedPath;
-use opentelemetry_api::{
-    propagation::TextMapPropagator,
-    trace::{SpanKind, TraceContextExt},
-};
+use opentelemetry::{propagation::TextMapPropagator, trace::TraceContextExt};
+use opentelemetry_api::trace::SpanKind;
 use opentelemetry_http::HeaderExtractor;
 use opentelemetry_sdk::propagation::TraceContextPropagator;
 use opentelemetry_semantic_conventions as semcov;
@@ -95,16 +93,16 @@ impl<B> OnResponse<B> for UpdateSpanOnResponse {
         span: &tracing::Span,
     ) {
         span.record(
-            semcov::trace::HTTP_RESPONSE_STATUS_CODE.as_str(),
+            semcov::trace::HTTP_RESPONSE_STATUS_CODE,
             response.status().as_u16(),
         );
 
         if response.status().is_server_error() {
-            span.record(semcov::trace::OTEL_STATUS_CODE.as_str(), "ERROR");
+            span.record(semcov::trace::OTEL_STATUS_CODE, "ERROR");
         }
 
         span.record(
-            semcov::trace::HTTP_RESPONSE_BODY_SIZE.as_str(),
+            semcov::attribute::HTTP_RESPONSE_BODY_SIZE,
             response_body_size(response),
         );
     }

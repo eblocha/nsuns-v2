@@ -1,5 +1,4 @@
 use futures::{future::BoxFuture, stream::BoxStream, FutureExt, StreamExt};
-use opentelemetry_semantic_conventions as semcov;
 use sqlx::Executor;
 use tracing_futures::Instrument;
 
@@ -39,7 +38,7 @@ pub struct InstrumentedExecutor<Executor> {
 
 impl<Ex> InstrumentedExecutor<Ex> {
     fn record_sql(&self, sql: &str) {
-        self.span.record(semcov::trace::DB_STATEMENT.as_str(), sql);
+        self.span.record("db.statement", sql);
     }
 }
 

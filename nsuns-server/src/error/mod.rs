@@ -39,6 +39,7 @@ impl<E> From<E> for ErrorWithStatus<E> {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct StoredErrorMessage(String);
 
 impl<E> IntoResponse for ErrorWithStatus<E>

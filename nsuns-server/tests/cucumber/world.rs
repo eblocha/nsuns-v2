@@ -24,7 +24,7 @@ impl NsunsWorld {
         let router = common::init().await;
         Self {
             auth_cookie: None,
-            client: TestClient::new(router),
+            client: TestClient::new(router).await,
             profile_world: Default::default(),
             movement_world: Default::default(),
             program_world: Default::default(),

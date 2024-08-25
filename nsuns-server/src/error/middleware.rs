@@ -1,5 +1,4 @@
-use axum::{middleware::Next, response::IntoResponse, Json};
-use http::Request;
+use axum::{extract::Request, middleware::Next, response::IntoResponse, Json};
 use serde::Serialize;
 
 use super::StoredErrorMessage;
@@ -13,7 +12,7 @@ struct ErrorResponse {
 
 /// Converts `ErrorWithStatus` responses (which store the message in response extensions)
 /// into a json-serialized response, with extra metadata.
-pub async fn json_errors<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
+pub async fn json_errors(req: Request, next: Next) -> impl IntoResponse {
     let path = req.uri().path().to_owned();
 
     let mut response = next.run(req).await;
