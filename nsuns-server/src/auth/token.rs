@@ -1,5 +1,6 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use chrono::{serde::ts_milliseconds, DateTime, Days, Utc};
+use const_format::formatcp;
 use http::StatusCode;
 use jsonwebtoken::{
     decode, encode,
@@ -8,19 +9,34 @@ use jsonwebtoken::{
 };
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
+use sqlx::{Executor, FromRow};
 use time::Duration;
 use tower_cookies::{
     cookie::{CookieBuilder, SameSite},
-    Cookie,
+    Cookie, Cookies,
 };
 use uuid::Uuid;
 
-use crate::error::ErrorWithStatus;
+use crate::{
+    db::{
+        tracing::{
+            statements::{DELETE_FROM, INSERT_INTO, SELECT},
+            InstrumentExecutor,
+        },
+        DB,
+    },
+    db_span,
+    error::{ErrorWithStatus, OperationResult},
+    into_log_server_error,
+};
 
 use super::settings::AuthSettings;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+const TABLE: &str = "sessions";
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Claims {
+    pub id: Uuid,
     pub owner_id: OwnerId,
     pub user_id: Option<Uuid>,
     #[serde(with = "ts_milliseconds")]
@@ -28,20 +44,72 @@ pub struct Claims {
 }
 
 impl Claims {
+    /// Create a new session
+    ///
+    /// Pass [`None`] for `user_id` for anonymous users.
+    /// Pass [`None`] for `exp` to generate a new expiry date.
     #[must_use]
-    pub fn generate(owner_id: Uuid, user_id: Option<Uuid>) -> Self {
-        Self {
-            owner_id: OwnerId(owner_id),
-            user_id,
-            exp: create_new_expiry_date(),
-        }
+    pub async fn insert_one(
+        executor: impl Executor<'_, Database = DB>,
+        owner_id: Uuid,
+        user_id: Option<Uuid>,
+        exp: Option<DateTime<Utc>>,
+    ) -> OperationResult<Claims> {
+        let exp = exp.unwrap_or_else(create_new_expiry_date);
+        sqlx::query_as::<_, Claims>(formatcp!(
+            "{INSERT_INTO} {TABLE} (user_id, owner_id, exp) VALUES ($1, $2, $3) RETURNING *"
+        ))
+        .bind(user_id)
+        .bind(owner_id)
+        .bind(exp)
+        .fetch_one(executor.instrument_executor(db_span!(INSERT_INTO, TABLE)))
+        .await
+        .context("failed to create a session")
+        .map_err(into_log_server_error!())
     }
+
+    #[must_use]
+    pub async fn select_one(
+        id: Uuid,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<Option<Claims>> {
+        sqlx::query_as::<_, Claims>(formatcp!("{SELECT} * FROM {TABLE} WHERE id = $1"))
+            .bind(id)
+            .fetch_optional(executor.instrument_executor(db_span!(SELECT, TABLE)))
+            .await
+            .context("failed to select session")
+            .map_err(into_log_server_error!())
+    }
+
+    #[must_use]
+    pub async fn revoke(&self, executor: impl Executor<'_, Database = DB>) -> OperationResult<()> {
+        sqlx::query(formatcp!("{DELETE_FROM} {TABLE} WHERE id = $1"))
+            .bind(self.id)
+            .execute(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
+            .await
+            .with_context(|| format!("failed to revoke token with id={}", self.id))
+            .map_err(into_log_server_error!())
+            .map(|_| ())
+    }
+}
+
+/// Decode claims from cookies, returning [`None`] if the cookie does not contain a token or contains an invalid token.
+pub fn decode_claims_from_cookies(keys: &JwtKeys, cookies: &Cookies) -> Option<Claims> {
+    cookies
+        .get(COOKIE_NAME)
+        .and_then(|cookie| keys.decode(cookie.value()).ok())
 }
 
 /// The authenticated resource owner id
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
 pub struct OwnerId(Uuid);
+
+impl OwnerId {
+    pub fn as_uuid(&self) -> Uuid {
+        self.0
+    }
+}
 
 pub const COOKIE_NAME: &str = "JWT";
 

@@ -8,9 +8,13 @@ use chrono::Utc;
 use http::{StatusCode, Uri};
 use tower_cookies::Cookies;
 
-use crate::error::{extract::WithErrorRejection, ErrorWithStatus, OperationResult};
+use crate::{
+    acquire,
+    db::Pool,
+    error::{extract::WithErrorRejection, ErrorWithStatus, OperationResult},
+};
 
-use super::token::{create_empty_cookie, JwtKeys, COOKIE_NAME};
+use super::token::{create_empty_cookie, Claims, JwtKeys, COOKIE_NAME};
 
 pub async fn redirect_on_missing_auth_cookie(
     WithErrorRejection(cookies): WithErrorRejection<Cookies>,
@@ -28,6 +32,7 @@ pub async fn redirect_on_missing_auth_cookie(
 }
 
 pub async fn manage_tokens(
+    State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
     cookies: Cookies,
     mut request: Request,
@@ -47,6 +52,16 @@ pub async fn manage_tokens(
         };
 
         if Utc::now().gt(&claims.exp) {
+            cookies.remove(create_empty_cookie());
+            return Err(ErrorWithStatus::new(StatusCode::UNAUTHORIZED, anyhow!("")));
+        }
+
+        // Verify the token has not been revoked
+        let mut conn = acquire!(&pool).await?;
+
+        let stored_claims = Claims::select_one(claims.id, &mut *conn).await?;
+
+        if stored_claims.is_none() {
             cookies.remove(create_empty_cookie());
             return Err(ErrorWithStatus::new(StatusCode::UNAUTHORIZED, anyhow!("")));
         }

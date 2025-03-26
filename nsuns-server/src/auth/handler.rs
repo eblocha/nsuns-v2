@@ -9,7 +9,6 @@ use sqlx::{Executor, Transaction};
 use tower_cookies::Cookies;
 
 use crate::{
-    as_executor,
     db::{transaction::commit_ok, Pool, DB},
     error::{extract::WithErrorRejection, ErrorWithStatus, OperationResult},
     into_log_server_error, transaction,
@@ -17,8 +16,8 @@ use crate::{
 
 use super::{
     token::{
-        create_empty_cookie, create_new_expiry_date, create_token_cookie, Claims, JwtKeys, OwnerId,
-        COOKIE_NAME,
+        create_empty_cookie, create_new_expiry_date, create_token_cookie,
+        decode_claims_from_cookies, Claims, JwtKeys, OwnerId,
     },
     user::{
         authenticate, create_anonymous_user, delete_owner, select_owner_expiry,
@@ -44,11 +43,11 @@ async fn login_user(
         ));
     };
 
-    let claims = Claims::generate(user.owner_id, Some(user.id));
+    let claims = Claims::insert_one(&mut **tx, user.owner_id, Some(user.id), None).await?;
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
     let cookie = create_token_cookie(token);
 
-    delete_owner_if_anonymous(keys, &cookies, &mut **tx).await?;
+    delete_owner_if_anonymous(Some(claims), &mut **tx).await?;
 
     cookies.add(cookie);
 
@@ -78,7 +77,7 @@ async fn login_anonymous(
     keys: &JwtKeys,
     cookies: Cookies,
 ) -> OperationResult<()> {
-    delete_owner_if_anonymous(keys, &cookies, &mut **tx).await?;
+    delete_owner_if_anonymous(decode_claims_from_cookies(keys, &cookies), &mut **tx).await?;
 
     let exp = create_new_expiry_date();
 
@@ -87,11 +86,7 @@ async fn login_anonymous(
         .context("failed to create new anonymous owner")
         .map_err(into_log_server_error!())?;
 
-    let claims = Claims {
-        owner_id,
-        user_id: None,
-        exp,
-    };
+    let claims = Claims::insert_one(&mut **tx, owner_id.as_uuid(), None, Some(exp)).await?;
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
     let cookie = create_token_cookie(token);
 
@@ -116,14 +111,10 @@ pub async fn anonymous(
 }
 
 async fn delete_owner_if_anonymous(
-    keys: &JwtKeys,
-    cookies: &Cookies,
+    claims: Option<Claims>,
     executor: impl Executor<'_, Database = DB>,
 ) -> OperationResult<()> {
-    if let Some(claims) = cookies
-        .get(COOKIE_NAME)
-        .and_then(|cookie| keys.decode(cookie.value()).ok())
-    {
+    if let Some(claims) = claims {
         if claims.user_id.is_none() {
             delete_owner(executor, claims.owner_id)
                 .await
@@ -135,14 +126,23 @@ async fn delete_owner_if_anonymous(
     Ok(())
 }
 
+async fn revoke_and_logout(claims: Claims, tx: &mut Transaction<'_, DB>) -> OperationResult<()> {
+    claims.revoke(&mut **tx).await?;
+    delete_owner_if_anonymous(Some(claims), &mut **tx).await?;
+    Ok(())
+}
+
 #[tracing::instrument(skip_all)]
 pub async fn logout(
     State(pool): State<Pool>,
     State(keys): State<JwtKeys>,
     WithErrorRejection(cookies): WithErrorRejection<Cookies>,
 ) -> OperationResult<StatusCode> {
-    // the acquire phase is not spanned here, but this avoids waiting for a connection if the user is non-anonymous
-    delete_owner_if_anonymous(&keys, &cookies, as_executor!(&pool)).await?;
+    if let Some(claims) = decode_claims_from_cookies(&keys, &cookies) {
+        let mut tx = transaction!(&pool).await?;
+        let res = revoke_and_logout(claims, &mut tx).await;
+        commit_ok(res, tx).await?;
+    }
 
     cookies.remove(create_empty_cookie());
 
