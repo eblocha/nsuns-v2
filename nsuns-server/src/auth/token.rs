@@ -81,15 +81,27 @@ impl Claims {
             .map_err(into_log_server_error!())
     }
 
+    /// Delete a session
+    /// 
+    /// This returns [`None`] if the session did not exist, or [`Some`] if it did.
     #[must_use]
-    pub async fn revoke(&self, executor: impl Executor<'_, Database = DB>) -> OperationResult<()> {
+    pub async fn revoke(
+        &self,
+        executor: impl Executor<'_, Database = DB>,
+    ) -> OperationResult<Option<()>> {
         sqlx::query(formatcp!("{DELETE_FROM} {TABLE} WHERE id = $1"))
             .bind(self.id)
             .execute(executor.instrument_executor(db_span!(DELETE_FROM, TABLE)))
             .await
             .with_context(|| format!("failed to revoke token with id={}", self.id))
             .map_err(into_log_server_error!())
-            .map(|_| ())
+            .map(|res| {
+                if res.rows_affected() > 0 {
+                    Some(())
+                } else {
+                    None
+                }
+            })
     }
 }
 

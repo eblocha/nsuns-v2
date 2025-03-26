@@ -127,8 +127,11 @@ async fn delete_owner_if_anonymous(
 }
 
 async fn revoke_and_logout(claims: Claims, tx: &mut Transaction<'_, DB>) -> OperationResult<()> {
-    claims.revoke(&mut **tx).await?;
-    delete_owner_if_anonymous(Some(claims), &mut **tx).await?;
+    if claims.revoke(&mut **tx).await?.is_some() {
+        // Only delete the owner if the token was not revoked.
+        // This prevents revoked tokens from deleting anonymous users.
+        delete_owner_if_anonymous(Some(claims), &mut **tx).await?;
+    }
     Ok(())
 }
 
