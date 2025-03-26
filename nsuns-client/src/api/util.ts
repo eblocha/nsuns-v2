@@ -42,10 +42,6 @@ const getErrorMessage = async (res: Response): Promise<string> => {
 };
 
 export const processResponse = async (res: Response): Promise<Response> => {
-  if (res.type === "opaqueredirect") {
-    window.location.href = res.url;
-  }
-
   if (!res.ok) {
     const msg = await getErrorMessage(res);
     throw new ApiError(res.status, res.statusText, msg);
@@ -68,7 +64,6 @@ const req =
   (...args: FetchParams) =>
     fetch(args[0], {
       method: method,
-      redirect: "manual",
       ...args[1],
     }).then(processResponse);
 
