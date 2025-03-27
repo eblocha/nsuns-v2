@@ -40,6 +40,7 @@ fn unauthorized() -> ErrorWithStatus<anyhow::Error> {
     ErrorWithStatus::new(StatusCode::UNAUTHORIZED, anyhow!("Unauthorized"))
 }
 
+#[tracing::instrument(skip_all)]
 async fn get_and_validate_token(
     pool: Pool,
     keys: JwtKeys,
