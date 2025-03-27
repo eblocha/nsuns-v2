@@ -2,9 +2,8 @@
 #[macro_export]
 macro_rules! log_server_error_impl {
     ($error:ident) => {
-        if $error.status.is_server_error() && !$error.logged {
+        if $error.status.is_server_error() && $error.take() {
             tracing::error!("{:?}", $error.error);
-            $error.logged = true;
         }
     };
 }
@@ -16,7 +15,7 @@ macro_rules! log_server_error_impl {
 macro_rules! log_server_error {
     () => {
         // this is a macro so the file/line numbers work correctly in error tracing
-        |mut error: $crate::error::ErrorWithStatus<_>| {
+        |error: $crate::error::ErrorWithStatus<_>| {
             $crate::log_server_error_impl!(error);
             error
         }
@@ -32,7 +31,7 @@ macro_rules! into_log_server_error {
     () => {
         // this is a macro so the file/line numbers work correctly in error tracing
         |error| {
-            let mut error: $crate::error::ErrorWithStatus<_> = error.into();
+            let error: $crate::error::ErrorWithStatus<_> = error.into();
             $crate::log_server_error_impl!(error);
             error
         }

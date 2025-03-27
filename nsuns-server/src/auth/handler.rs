@@ -39,9 +39,13 @@ async fn login_user(
     else {
         return Err(ErrorWithStatus::new(
             StatusCode::UNAUTHORIZED,
-            anyhow!("Bad credentials"),
+            anyhow!("Invalid username or password"),
         ));
     };
+
+    if let Some(claims) = decode_claims_from_cookies(keys, &cookies) {
+        revoke_and_logout(claims, tx).await?;
+    }
 
     let claims = Claims::insert_one(&mut **tx, user.owner_id, Some(user.id), None).await?;
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
@@ -77,7 +81,9 @@ async fn login_anonymous(
     keys: &JwtKeys,
     cookies: Cookies,
 ) -> OperationResult<()> {
-    delete_owner_if_anonymous(decode_claims_from_cookies(keys, &cookies), &mut **tx).await?;
+    if let Some(claims) = decode_claims_from_cookies(keys, &cookies) {
+        revoke_and_logout(claims, tx).await?;
+    }
 
     let exp = create_new_expiry_date();
 

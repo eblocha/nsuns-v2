@@ -82,7 +82,7 @@ impl Claims {
     }
 
     /// Delete a session
-    /// 
+    ///
     /// This returns [`None`] if the session did not exist, or [`Some`] if it did.
     #[must_use]
     pub async fn revoke(
