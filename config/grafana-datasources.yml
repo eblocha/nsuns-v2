@@ -26,3 +26,12 @@ datasources:
     uid: tempo
     jsonData:
       httpMethod: GET
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    orgId: 1
+    uid: jaeger
+    url: http://jaeger:16686
+    editable: false
+    basicAuth: false
+    isDefault: false

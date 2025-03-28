@@ -2,7 +2,7 @@ pub mod extract;
 pub mod macros;
 pub mod middleware;
 
-use std::fmt::{Debug, Display};
+use std::{fmt::{Debug, Display}, sync::atomic::{AtomicBool, Ordering}};
 
 use axum::{
     http::StatusCode,
@@ -16,7 +16,7 @@ pub struct ErrorWithStatus<E> {
     pub status: StatusCode,
     #[source]
     pub error: E,
-    pub logged: bool,
+    pub logged: AtomicBool,
 }
 
 impl<E> ErrorWithStatus<E> {
@@ -24,8 +24,13 @@ impl<E> ErrorWithStatus<E> {
         Self {
             status,
             error,
-            logged: false,
+            logged: AtomicBool::new(false),
         }
+    }
+
+    #[doc(hidden)]
+    pub fn take(&self) -> bool {
+        !self.logged.swap(true, Ordering::Relaxed)
     }
 }
 
@@ -34,7 +39,7 @@ impl<E> From<E> for ErrorWithStatus<E> {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,
             error,
-            logged: false,
+            logged: AtomicBool::new(false),
         }
     }
 }
@@ -42,11 +47,11 @@ impl<E> From<E> for ErrorWithStatus<E> {
 #[derive(Debug, Clone)]
 pub struct StoredErrorMessage(String);
 
-impl<E> IntoResponse for ErrorWithStatus<E>
+impl<E> IntoResponse for &ErrorWithStatus<E>
 where
     E: Display + Debug,
 {
-    fn into_response(mut self) -> Response {
+    fn into_response(self) -> Response {
         // log if it hasn't been logged
         crate::log_server_error_impl!(self);
 
@@ -67,6 +72,15 @@ where
             .insert(StoredErrorMessage(message));
 
         response
+    }
+}
+
+impl<E> IntoResponse for ErrorWithStatus<E>
+where
+    E: Display + Debug,
+{
+    fn into_response(self) -> Response {
+        (&self).into_response()
     }
 }
 

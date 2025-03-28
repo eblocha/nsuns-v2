@@ -1,0 +1,6 @@
+CREATE TABLE sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  owner_id UUID NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
+  exp TIMESTAMPTZ NOT NULL
+);
