@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use nsuns_server::{
-    log_error, observability::metrics::server as metrics_server,
+    auth, log_error, observability::metrics::server as metrics_server,
     observability::tracing::setup::setup_tracing, server, settings::Settings,
 };
 
@@ -21,7 +21,8 @@ async fn main() -> Result<()> {
 
     tokio::try_join!(
         server::run(&settings),
-        metrics_server::run(&settings.metrics)
+        metrics_server::run(&settings.metrics),
+        auth::cleanup::run(&settings)
     )
     .map_err(log_error!())?;
 

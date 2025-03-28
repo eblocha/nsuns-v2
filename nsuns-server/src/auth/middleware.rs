@@ -91,9 +91,7 @@ pub async fn manage_tokens(
 
     request
         .extensions_mut()
-        .insert::<ClaimsResult>(ClaimsResult(
-            claims_result.map_err(Arc::new),
-        ));
+        .insert::<ClaimsResult>(ClaimsResult(claims_result.map_err(Arc::new)));
 
     Ok(next.run(request).await)
 }

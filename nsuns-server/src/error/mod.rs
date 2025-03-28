@@ -2,7 +2,10 @@ pub mod extract;
 pub mod macros;
 pub mod middleware;
 
-use std::{fmt::{Debug, Display}, sync::atomic::{AtomicBool, Ordering}};
+use std::{
+    fmt::{Debug, Display},
+    sync::atomic::{AtomicBool, Ordering},
+};
 
 use axum::{
     http::StatusCode,
