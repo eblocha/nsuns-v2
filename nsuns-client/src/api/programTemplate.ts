@@ -1,6 +1,7 @@
 import { Program } from "./program";
 import { bothJson, json, post } from "./util";
 import nsuns5day from "./templates/nsuns-5day";
+import nsuns5dayWeekend from "./templates/nsuns-5day-weekend";
 
 export type SetTemplate = {
   movementIndex: number;
@@ -51,4 +52,4 @@ export const createProgramFromTemplate = async (template: ProgramTemplate): Prom
     headers: bothJson().headers,
   }).then(json());
 
-export const TEMPLATES: NewProgramTemplate[] = [nsuns5day];
+export const TEMPLATES: NewProgramTemplate[] = [nsuns5day, nsuns5dayWeekend];
