@@ -1,7 +1,7 @@
 import { createEffect, createSignal, on } from "solid-js";
 import { Day } from "../../util/days";
 
-export const today = () => new Date().getDay() as Day;
+export const [today, setToday] = createSignal(new Date().getDay() as Day);
 
 export const [day, setDay] = createSignal(today());
 export const [currentSet, setCurrentSet] = createSignal(0);
@@ -30,3 +30,8 @@ createEffect(
     setCurrentSet(0);
   })
 );
+
+setInterval(() => {
+  // Update the current day every minute
+  setToday(new Date().getDay() as Day);
+}, 60_000);

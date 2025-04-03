@@ -20,7 +20,7 @@ type StatsProps = CommonProps &
       }
   );
 
-const EditableCard: Component<EditableStatProps> = (props) => {
+export const EditableCard: Component<EditableStatProps> = (props) => {
   const { amount, onSubmit, reset, mutation } = useEditStat(props);
 
   const isUpdating = createMinimumAsyncDelay(() => mutation.isLoading, SPINNER_DELAY_MS);

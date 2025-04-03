@@ -5,7 +5,6 @@ import { SelectProfile } from "./profile/entry/SelectProfile";
 import { CreateProfile } from "./profile/entry/CreateProfile";
 import { ProfileHome } from "./profile/ProfileHome";
 import { ProgramBuilder } from "./program/builder/ProgramBuilder";
-import { ProgramRunner } from "./program/runner/ProgramRunner";
 import { NotFound } from "./NotFound";
 import { ApiError } from "./api";
 import { Login } from "./login/Login";
@@ -14,6 +13,7 @@ import { useUserInfoQuery } from "./hooks/queries/auth";
 import { Spinner } from "./icons/Spinner";
 import { DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS, createSmartAsyncDelay } from "./hooks/asymmetricDelay";
 import { useNavigateToLogin, useNavigateToProfileHome } from "./hooks/navigation";
+import { SimpleProgramRunner } from "./program/runner/simple/SimpleProgramRunner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,7 +84,7 @@ const RoutingApp: Component = () => {
         </Route>
         <Route
           path="/profile/:profileId/program/:programId/run"
-          component={ProgramRunner}
+          component={SimpleProgramRunner}
         />
         <Route
           path="*"
