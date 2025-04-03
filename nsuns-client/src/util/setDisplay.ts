@@ -13,6 +13,14 @@ export const repsDisplay = (set: ProgramSet) => {
 
 export const round = (value: number) => Math.round(value / 5) * 5;
 
+export const resolveWeight = (set: ProgramSet, max?: number) => {
+  if (set.percentageOfMax) {
+    return max === undefined ? undefined : round((set.amount / 100) * max);
+  } else {
+    return set.amount;
+  }
+}
+
 /**
  * " 55 lbs", " 1 lb", " 0 lbs" (if percent mode), "" (if 0 amount, not percent mode)
  */

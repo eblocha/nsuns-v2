@@ -32,9 +32,7 @@ export const SimpleProgramRunner: Component = () => {
             </A>
           </nav>
           <div class="p-6 flex-grow flex flex-col gap-8">
-            <div class="flex-grow overflow-auto">
-              <TitleBanner />
-            </div>
+            <TitleBanner />
           </div>
           <div class="flex-shrink-0 p-6 flex flex-col gap-4 w-60">
             <DataList />

@@ -1,10 +1,11 @@
-import { Component, Match, Show, Switch } from "solid-js";
+import { Component, createMemo, For, Match, Show, Switch } from "solid-js";
 import { Movement, ProgramSet } from "../../../api";
-import { repsDisplay, resolvedWeightDisplay } from "../../../util/setDisplay";
+import { repsDisplay, resolvedWeightDisplay, resolveWeight } from "../../../util/setDisplay";
 import { currentSet, day } from "../state";
 import { getLatestMax } from "../../../hooks/useMovementsToMaxesMap";
 import { useProgram } from "../context/ProgramProvider";
 import { createSmartAsyncDelay } from "../../../hooks/asymmetricDelay";
+import { calculatePlates } from "../../../util/plates";
 
 export const SetTitle: Component<{
   current?: ProgramSet;
@@ -69,6 +70,17 @@ export const TitleBanner: Component = () => {
     const set = currentProgramSet();
     return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
+  const plates = createMemo(() => {
+    const set = currentProgramSet();
+    const max = currentMax();
+    const weight = set && max && resolveWeight(set, max);
+
+    if (weight) {
+      return calculatePlates(weight, 45, [45, 25, 10, 5, 2.5]);
+    }
+
+    return [];
+  });
 
   const isLoading = createSmartAsyncDelay(queryState.isLoading);
 
@@ -83,6 +95,18 @@ export const TitleBanner: Component = () => {
           currentMovement={currentMovement()}
           currentMax={currentMax()}
         />
+        <Show when={plates().length}>
+          <div class="flex flex-row gap-4 text-4xl">
+            <span>Plates:</span>
+            <For each={plates()}>
+              {(plate) => (
+                <span>
+                  {plate.count} x {plate.weight}
+                </span>
+              )}
+            </For>
+          </div>
+        </Show>
         <Show when={getSets(day()).length}>
           <div class="text-6xl text-gray-400">
             Set {currentSet() + 1} of {getSets(day()).length}
