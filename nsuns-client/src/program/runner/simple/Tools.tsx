@@ -74,13 +74,6 @@ export const Tools: Component = () => {
       <NextSet nSets={getSets(day()).length} />
       <SwitchProfile />
       <div class="ml-auto flex flex-row items-center gap-8">
-        <div class="text-2xl">{dayNames[day()]}</div>
-        <button
-          class="w-20 h-20 circle-text-button flex flex-row items-center justify-center"
-          onClick={decrementDay}
-        >
-          <ArrowRight class="rotate-180" />
-        </button>
         <button
           class="text-button"
           onClick={goToToday}
@@ -88,6 +81,13 @@ export const Tools: Component = () => {
         >
           Go To Today
         </button>
+        <button
+          class="w-20 h-20 circle-text-button flex flex-row items-center justify-center"
+          onClick={decrementDay}
+        >
+          <ArrowRight class="rotate-180" />
+        </button>
+        <div class="text-2xl w-36 flex justify-center">{dayNames[day()]}</div>
         <button
           class="w-20 h-20 circle-text-button flex flex-row items-center justify-center"
           onClick={incrementDay}
