@@ -1,4 +1,4 @@
-import { Component } from "solid-js";
+import { Component, Show } from "solid-js";
 import { Forward } from "../../../icons/Forward";
 import { currentSet, day, decrementDay, goToToday, incrementDay, setCurrentSet, today } from "../state";
 import { useProgram } from "../context/ProgramProvider";
@@ -71,6 +71,11 @@ export const Tools: Component = () => {
   return (
     <div class="flex flex-row items-center gap-8">
       <PrevSet />
+      <Show when={getSets(day()).length}>
+        <div class="text-6xl text-gray-400">
+          Set {currentSet() + 1} of {getSets(day()).length}
+        </div>
+      </Show>
       <NextSet nSets={getSets(day()).length} />
       <SwitchProfile />
       <div class="ml-auto flex flex-row items-center gap-8">

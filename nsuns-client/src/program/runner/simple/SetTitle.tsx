@@ -1,11 +1,11 @@
-import { Component, createMemo, For, Match, Show, Switch } from "solid-js";
+import { Component, Match, Show, Switch } from "solid-js";
 import { Movement, ProgramSet } from "../../../api";
 import { repsDisplay, resolvedWeightDisplay, resolveWeight } from "../../../util/setDisplay";
 import { currentSet, day } from "../state";
 import { getLatestMax } from "../../../hooks/useMovementsToMaxesMap";
 import { useProgram } from "../context/ProgramProvider";
 import { createSmartAsyncDelay } from "../../../hooks/asymmetricDelay";
-import { calculatePlates } from "../../../util/plates";
+import { PlateGraphic } from "../PlateGraphic";
 
 export const SetTitle: Component<{
   current?: ProgramSet;
@@ -22,26 +22,26 @@ export const SetTitle: Component<{
   };
 
   return (
-    <>
-      <h1 class="text-9xl mb-4">
-        <Show
-          when={props.current && props.currentMovement}
-          fallback="Rest"
-        >
-          {props.currentMovement?.name}
+    <h1 class="text-9xl overflow-auto flex-grow">
+      <Show
+        when={props.current && props.currentMovement}
+        fallback="Rest"
+      >
+        {props.currentMovement?.name}
+        <Show when={weightDisplay()}>
           <br />
-          <Show when={weightDisplay()}>
-            {weightDisplay()}
-            <br />
-          </Show>
-          <Show when={repDisplay()}>
-            {repDisplay()}
-            <br />
-          </Show>
-          <Show when={props.current?.description}>{props.current?.description}</Show>
+          {weightDisplay()}
         </Show>
-      </h1>
-    </>
+        <Show when={repDisplay()}>
+          <br />
+          {repDisplay()}
+        </Show>
+        <Show when={props.current?.description}>
+          <br />
+          {props.current?.description}
+        </Show>
+      </Show>
+    </h1>
   );
 };
 
@@ -70,17 +70,11 @@ export const TitleBanner: Component = () => {
     const set = currentProgramSet();
     return set ? getLatestMax(movementsToMaxesMap(), set)?.amount : undefined;
   };
-  const plates = createMemo(() => {
+  const currentWeight = () => {
     const set = currentProgramSet();
     const max = currentMax();
-    const weight = set && max && resolveWeight(set, max);
-
-    if (weight) {
-      return calculatePlates(weight, 45, [45, 25, 10, 5, 2.5]);
-    }
-
-    return [];
-  });
+    return set && max && resolveWeight(set, max);
+  };
 
   const isLoading = createSmartAsyncDelay(queryState.isLoading);
 
@@ -95,23 +89,7 @@ export const TitleBanner: Component = () => {
           currentMovement={currentMovement()}
           currentMax={currentMax()}
         />
-        <Show when={plates().length}>
-          <div class="flex flex-row gap-4 text-4xl">
-            <span>Plates:</span>
-            <For each={plates()}>
-              {(plate) => (
-                <span>
-                  {plate.count} x {plate.weight}
-                </span>
-              )}
-            </For>
-          </div>
-        </Show>
-        <Show when={getSets(day()).length}>
-          <div class="text-6xl text-gray-400">
-            Set {currentSet() + 1} of {getSets(day()).length}
-          </div>
-        </Show>
+        <PlateGraphic weight={currentWeight()} />
       </Match>
     </Switch>
   );

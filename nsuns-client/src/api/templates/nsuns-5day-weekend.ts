@@ -18,7 +18,7 @@ export default {
           description: null,
           movementIndex: 0,
           percentageOfMaxIndex: 0,
-          reps: 6,
+          reps: 3,
           repsIsMinimum: false,
         },
         {
@@ -320,7 +320,7 @@ export default {
           description: null,
           movementIndex: 1,
           percentageOfMaxIndex: 1,
-          reps: 6,
+          reps: 3,
           repsIsMinimum: false,
         },
         {
@@ -468,7 +468,7 @@ export default {
           description: null,
           movementIndex: 2,
           percentageOfMaxIndex: 2,
-          reps: 6,
+          reps: 3,
           repsIsMinimum: false,
         },
         {
@@ -616,7 +616,7 @@ export default {
           description: null,
           movementIndex: 3,
           percentageOfMaxIndex: 3,
-          reps: 6,
+          reps: 3,
           repsIsMinimum: false,
         },
         {

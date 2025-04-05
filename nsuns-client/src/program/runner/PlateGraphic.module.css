@@ -1,0 +1,11 @@
+.barbell::before {
+  content: '';
+  width: 100%;
+  height: 0.75rem;
+  background: rgb(75 85 99);
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  z-index: -1;
+}
