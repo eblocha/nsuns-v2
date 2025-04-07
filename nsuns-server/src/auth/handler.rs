@@ -4,6 +4,7 @@ use axum_extra::{
     headers::{authorization::Basic, Authorization},
     TypedHeader,
 };
+use chrono::{Months, Utc};
 use http::StatusCode;
 use sqlx::{Executor, Transaction};
 use tower_cookies::Cookies;
@@ -47,7 +48,17 @@ async fn login_user(
         revoke_and_logout(claims, tx).await?;
     }
 
-    let claims = Claims::insert_one(&mut **tx, user.owner_id, Some(user.id), None).await?;
+    let claims = Claims::insert_one(
+        &mut **tx,
+        user.owner_id,
+        Some(user.id),
+        Some(
+            Utc::now()
+                .checked_add_months(Months::new(120))
+                .expect("future timestamp does not overflow"),
+        ),
+    )
+    .await?;
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
     let cookie = create_token_cookie(token);
 
