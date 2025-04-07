@@ -182,10 +182,10 @@ impl From<Error> for ErrorWithStatus<anyhow::Error> {
 
 /// Create a cookie for the JWT
 #[must_use]
-pub fn create_token_cookie<'c>(token: String) -> Cookie<'c> {
+pub fn create_token_cookie<'c>(token: String, max_age: Duration) -> Cookie<'c> {
     CookieBuilder::new(COOKIE_NAME, token)
         .path("/")
-        .max_age(Duration::days(2))
+        .max_age(max_age)
         .http_only(true)
         .same_site(SameSite::Lax)
         .build()

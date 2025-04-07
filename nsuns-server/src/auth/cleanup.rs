@@ -16,7 +16,7 @@ use crate::{
 pub async fn run(settings: &Settings) -> anyhow::Result<()> {
     tracing::info!("starting background cleanup task");
 
-    let mut interval = tokio::time::interval(Duration::from_secs(60));
+    let mut interval = tokio::time::interval(Duration::from_secs(3600));
     interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
     let cancellation_token = CancellationToken::new();

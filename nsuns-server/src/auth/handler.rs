@@ -1,12 +1,14 @@
+
 use anyhow::{anyhow, Context};
 use axum::{extract::State, response::IntoResponse, Json};
 use axum_extra::{
     headers::{authorization::Basic, Authorization},
     TypedHeader,
 };
-use chrono::{Months, Utc};
+use chrono::{Days, Utc};
 use http::StatusCode;
 use sqlx::{Executor, Transaction};
+use time::Duration;
 use tower_cookies::Cookies;
 
 use crate::{
@@ -54,13 +56,13 @@ async fn login_user(
         Some(user.id),
         Some(
             Utc::now()
-                .checked_add_months(Months::new(120))
+                .checked_add_days(Days::new(30))
                 .expect("future timestamp does not overflow"),
         ),
     )
     .await?;
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
-    let cookie = create_token_cookie(token);
+    let cookie = create_token_cookie(token, Duration::days(30));
 
     delete_owner_if_anonymous(Some(claims), &mut **tx).await?;
 
@@ -105,7 +107,7 @@ async fn login_anonymous(
 
     let claims = Claims::insert_one(&mut **tx, owner_id.as_uuid(), None, Some(exp)).await?;
     let token = keys.encode(&claims).map_err(into_log_server_error!())?;
-    let cookie = create_token_cookie(token);
+    let cookie = create_token_cookie(token, Duration::days(2));
 
     cookies.add(cookie);
 
