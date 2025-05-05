@@ -14,7 +14,7 @@ Tailor a program to your preferences:
 
 Run a program you have built
 
-![Program Runner](images/program-runner.jpg)
+![Program Runner](images/program-runner.png)
 
 ## The Stack
 
