@@ -17,7 +17,7 @@ export const Login: Component = () => {
       case "user":
         return userInfo.data.username;
       default:
-        "no-one";
+        return "no-one";
     }
   };
 

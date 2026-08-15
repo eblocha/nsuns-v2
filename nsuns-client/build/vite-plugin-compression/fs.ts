@@ -23,6 +23,7 @@ export async function* files(p: string): AsyncGenerator<FileInfo, void, void> {
 
   if (stats.isDirectory()) {
     for (const dirent of await fs.promises.readdir(p, { withFileTypes: true })) {
+      // oxlint-disable-next-line no-await-in-loop
       for await (const result of files(path.join(p, dirent.name))) {
         yield result;
       }

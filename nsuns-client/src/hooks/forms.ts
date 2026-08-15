@@ -112,7 +112,7 @@ export type ControlGroup<R extends Record<string, Control<any>>> = {
   hasErrors: Accessor<boolean>;
   showErrors: Accessor<boolean>;
   value: () => ControlValues<R>;
-  reset: (values?: Partial<ControlValues<R>> | undefined) => void;
+  reset: (values?: Partial<ControlValues<R>>) => void;
 };
 
 export const createControlGroup = <R extends Record<string, Control<any>>>(controls: R): ControlGroup<R> => {

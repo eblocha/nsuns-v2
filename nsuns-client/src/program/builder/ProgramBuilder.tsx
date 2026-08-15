@@ -35,6 +35,7 @@ export const ProgramBuilder: Component = () => {
 
   const query = useProgramSummaryQuery(() => params.programId);
 
+  // oxlint-disable-next-line no-unassigned-vars
   let view: HTMLDivElement | undefined;
 
   createEffect(() => {

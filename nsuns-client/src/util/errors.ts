@@ -1,5 +1,5 @@
 export const displayError = (err: unknown, action: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  // oxlint-disable-next-line typescript/no-base-to-string typescript/restrict-template-expressions
   const errString = err ? `: ${err}` : "";
 
   return `Failed to ${action}${errString}`;

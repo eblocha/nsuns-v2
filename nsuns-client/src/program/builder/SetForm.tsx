@@ -79,8 +79,7 @@ export const SetForm: Component<{
   );
 
   const onDelete = () => {
-    !isDeleting() &&
-      props.id &&
+    if (!isDeleting() && props.id) {
       props.mutationDelete?.mutate({
         id: props.id,
         meta: {
@@ -88,6 +87,7 @@ export const SetForm: Component<{
           programId: props.programId,
         },
       });
+    }
   };
 
   return (

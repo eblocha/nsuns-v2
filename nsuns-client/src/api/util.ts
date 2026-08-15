@@ -44,6 +44,7 @@ const getErrorMessage = async (res: Response): Promise<string> => {
 export const processResponse = async (res: Response): Promise<Response> => {
   if (!res.ok) {
     const msg = await getErrorMessage(res);
+    // oxlint-disable-next-line typescript/only-throw-error
     throw new ApiError(res.status, res.statusText, msg);
   }
 

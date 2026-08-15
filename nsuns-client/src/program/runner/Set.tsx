@@ -5,6 +5,7 @@ export const SetComponent: Component<{
   isActive: boolean;
   children: JSX.Element;
 }> = (props) => {
+  // oxlint-disable-next-line no-unassigned-vars
   let btn: HTMLButtonElement | undefined;
 
   createEffect(() => {
