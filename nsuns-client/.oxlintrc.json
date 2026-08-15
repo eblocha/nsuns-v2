@@ -8,7 +8,7 @@
   },
   "categories": {
     "correctness": "deny",
-    "perf": "warn",
+    "perf": "warn"
   },
   "rules": {
     "no-plusplus": "off",
