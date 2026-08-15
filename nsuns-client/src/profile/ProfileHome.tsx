@@ -1,5 +1,5 @@
-import { A, Outlet, useParams } from "@solidjs/router";
-import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
+import { A, useParams } from "@solidjs/router";
+import { ParentComponent, For, Match, Show, Switch, createSignal } from "solid-js";
 import { LoadingProgram, ProgramItem } from "./Program";
 import { ProfileGreeting } from "./ProfileGreeting";
 import { createMinimumAsyncDelay } from "../hooks/asymmetricDelay";
@@ -7,21 +7,21 @@ import { RefreshButton } from "../components/RefreshButton";
 import { useProgramsQuery } from "../hooks/queries/programs";
 import { MovementList } from "../movements/MovementList";
 import { StatsProvider } from "../stats/StatsProvider";
-import { createQuery } from "@tanstack/solid-query";
+import { useQuery } from "@tanstack/solid-query";
 import { getProfile, isNotFound } from "../api";
 import { Plus } from "../icons/Plus";
 import { NewProgram } from "../program/NewProgram";
 
-export const ProfileHome: Component = () => {
+export const ProfileHome: ParentComponent = (props) => {
   const params = useParams<{ profileId: string; programId?: string }>();
   const programsQuery = useProgramsQuery(() => params.profileId);
   const [isAddingProgram, setIsAddingProgram] = createSignal(false);
 
-  const profileQuery = createQuery({
-    queryKey: () => ["profiles", params.profileId],
+  const profileQuery = useQuery(() => ({
+    queryKey: ["profiles", params.profileId],
     queryFn: () => getProfile(params.profileId),
     enabled: !!params.profileId,
-  });
+  }));
 
   const isFetching = createMinimumAsyncDelay(() => programsQuery.isFetching);
 
@@ -105,7 +105,7 @@ export const ProfileHome: Component = () => {
         </StatsProvider>
       </div>
       <div class="2xl:h-full 2xl:col-span-5 2xl:overflow-auto">
-        <Outlet />
+        {props.children}
       </div>
     </div>
   );

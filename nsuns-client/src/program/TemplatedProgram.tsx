@@ -113,7 +113,7 @@ export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: 
     },
   });
 
-  const isCreating = createSmartAsyncDelay(() => mutation.isLoading);
+  const isCreating = createSmartAsyncDelay(() => mutation.isPending);
 
   const movementList = () => movementQuery.data ?? [];
 
@@ -149,7 +149,7 @@ export const TemplatedProgram: Component<{ template: NewProgramTemplate; close: 
   const onSubmit = (event: SubmitEvent) => {
     event.preventDefault();
 
-    if (mutation.isLoading) {
+    if (mutation.isPending) {
       return;
     }
 

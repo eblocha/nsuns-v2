@@ -9,7 +9,7 @@ export const UpdateMaxes: Component<{
   const mutation = createRunUpdatesMutation();
 
   const run = () => {
-    if (mutation.isLoading) return;
+    if (mutation.isPending) return;
     mutation.mutate({
       movementIds: [props.movementId],
       profileId: props.profileId,
@@ -20,15 +20,15 @@ export const UpdateMaxes: Component<{
     <button
       class="text-button flex flex-row items-center gap-2"
       onClick={run}
-      disabled={mutation.isLoading}
+      disabled={mutation.isPending}
     >
       <Rotate
         classList={{
-          "animate-spin": mutation.isLoading,
+          "animate-spin": mutation.isPending,
         }}
       />
       <Show
-        when={mutation.isLoading}
+        when={mutation.isPending}
         fallback={"Run Updates"}
       >
         Updating...

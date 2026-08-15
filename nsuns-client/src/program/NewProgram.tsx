@@ -25,7 +25,7 @@ export const NewProgram: Component<{ close: () => void }> = (props) => {
   });
 
   const onSubmit = () => {
-    if (mutation.isLoading || name.hasErrors()) return;
+    if (mutation.isPending || name.hasErrors()) return;
 
     mutation.mutate({
       name: name.value(),
@@ -50,7 +50,7 @@ export const NewProgram: Component<{ close: () => void }> = (props) => {
           </label>
           <Input
             control={name}
-            class="input flex-grow"
+            class="input grow"
             name="program-name"
             required={true}
             autofocus={true}
@@ -64,10 +64,10 @@ export const NewProgram: Component<{ close: () => void }> = (props) => {
           </button>
           <button
             class="primary-button flex flex-row items-center justify-center w-20"
-            disabled={mutation.isLoading || name.hasErrors()}
+            disabled={mutation.isPending || name.hasErrors()}
           >
             <Show
-              when={!mutation.isLoading}
+              when={!mutation.isPending}
               fallback={<Spinner class="animate-spin my-1" />}
             >
               Create

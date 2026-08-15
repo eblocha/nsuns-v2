@@ -23,12 +23,12 @@ type StatsProps = CommonProps &
 export const EditableCard: Component<EditableStatProps> = (props) => {
   const { amount, onSubmit, reset, mutation } = useEditStat(props);
 
-  const isUpdating = createMinimumAsyncDelay(() => mutation.isLoading, SPINNER_DELAY_MS);
+  const isUpdating = createMinimumAsyncDelay(() => mutation.isPending, SPINNER_DELAY_MS);
 
   return (
     <div class="rounded flex flex-col border border-gray-600 text-xl">
-      <div class="text-center flex-shrink-0 p-3 border-b border-gray-600 bg-gray-900">{props.movement?.name}</div>
-      <div class="flex-grow flex flex-col items-center justify-center p-3 text-4xl">
+      <div class="text-center shrink-0 p-3 border-b border-gray-600 bg-gray-900">{props.movement?.name}</div>
+      <div class="grow flex flex-col items-center justify-center p-3 text-4xl">
         <Show
           when={!isUpdating()}
           fallback={
@@ -116,7 +116,7 @@ export const DataList: Component = () => {
         <Loading />
       </Match>
       <Match when={isSuccess()}>
-        <div class="flex-grow overflow-auto grid grid-cols-1 2xl:grid-cols-2 mx-14 lg:mx-0 mt-4 lg:mt-0">
+        <div class="grow overflow-auto grid grid-cols-1 2xl:grid-cols-2 mx-14 lg:mx-0 mt-4 lg:mt-0">
           <div>
             <div class="text-3xl">Maxes</div>
             <ul>

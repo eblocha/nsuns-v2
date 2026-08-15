@@ -21,7 +21,7 @@ export const CreateProfile: Component = () => {
   const name = createControl<string>("", { validators: [required()] });
 
   const onSubmit = () => {
-    if (mutation.isLoading || name.hasErrors()) return;
+    if (mutation.isPending || name.hasErrors()) return;
 
     mutation.mutate({
       name: name.value(),
@@ -46,7 +46,7 @@ export const CreateProfile: Component = () => {
             <div>
               <span class="text-red-500">*</span>Name
             </div>
-            <div class="flex-grow">
+            <div class="grow">
               <Input
                 control={name}
                 class="input w-full"
@@ -71,17 +71,17 @@ export const CreateProfile: Component = () => {
             type="button"
             onClick={() => name.reset()}
             class="secondary-button"
-            disabled={!name.dirty() || mutation.isLoading}
+            disabled={!name.dirty() || mutation.isPending}
           >
             Reset
           </button>
           <button
             type="submit"
             class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-400 w-32 flex flex-row items-center justify-center"
-            disabled={mutation.isLoading || name.hasErrors()}
+            disabled={mutation.isPending || name.hasErrors()}
           >
             <Show
-              when={!mutation.isLoading}
+              when={!mutation.isPending}
               fallback={<Spinner class="animate-spin my-1" />}
             >
               Create Profile

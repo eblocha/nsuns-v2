@@ -40,20 +40,20 @@ const DeleteProgram: Component<{
         <div class="grid grid-cols-2 mt-4 ml-auto">
           <button
             class="secondary-button"
-            disabled={mutation.isLoading}
+            disabled={mutation.isPending}
             onClick={props.close}
           >
             Cancel
           </button>
           <button
             class="danger-button ml-2 flex flex-row items-center justify-center"
-            disabled={mutation.isLoading}
+            disabled={mutation.isPending}
             onClick={() => {
               mutation.mutate(props.program.id);
             }}
           >
             <Show
-              when={!mutation.isLoading}
+              when={!mutation.isPending}
               fallback={<Spinner class="animate-spin" />}
             >
               Delete
@@ -80,7 +80,7 @@ export const ProgramItem: Component<{
         class={`w-full ${styles.program} hover:bg-gray-900 flex flex-row`}
       >
         <div class="w-full flex flex-row justify-between items-center">
-          <span class="flex-grow">{props.program.name ?? `Program ${props.index}`}</span>
+          <span class="grow">{props.program.name ?? `Program ${props.index}`}</span>
           <button
             class="text-button mr-2 hover:text-red-500 focus:text-red-500 hover:transition-colors focus:transition-colors"
             onClick={(e) => {

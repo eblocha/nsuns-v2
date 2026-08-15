@@ -32,20 +32,20 @@ export const DeleteProfile: Component<{
         <div class="grid grid-cols-2 mt-4 ml-auto">
           <button
             class="secondary-button"
-            disabled={mutation.isLoading}
+            disabled={mutation.isPending}
             onClick={props.close}
           >
             Cancel
           </button>
           <button
             class="danger-button ml-2 flex flex-row items-center justify-center"
-            disabled={mutation.isLoading}
+            disabled={mutation.isPending}
             onClick={() => {
               mutation.mutate(props.profile.id);
             }}
           >
             <Show
-              when={!mutation.isLoading}
+              when={!mutation.isPending}
               fallback={<Spinner class="animate-spin" />}
             >
               Delete

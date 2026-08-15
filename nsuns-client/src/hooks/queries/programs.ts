@@ -1,4 +1,4 @@
-import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
 import {
   CreateProgram,
   Program,
@@ -20,19 +20,19 @@ import { ProgramTemplate, createProgramFromTemplate } from "../../api/programTem
 export type ProgramsQueryData = QueryData<ReturnType<typeof useProgramsQuery>>;
 
 export const useProgramsQuery = (profileId: Accessor<string>) => {
-  const programsQuery = createQuery({
-    queryKey: () => QueryKeys.programs.list(profileId()),
+  const programsQuery = useQuery(() => ({
+    queryKey: QueryKeys.programs.list(profileId()),
     queryFn: () => getProfilePrograms(profileId()),
     enabled: !!profileId,
-  });
+  }));
   return programsQuery;
 };
 
 export const useCreateProgram = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<Program, TError, CreateProgram, TContext>>
+  options?: Partial<MutationOptions<Program, TError, CreateProgram, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: createProgram,
     onSuccess: (program, ...args) => {
@@ -41,15 +41,15 @@ export const useCreateProgram = <TError = unknown, TContext = unknown>(
         programs ? [...programs, program] : undefined
       );
     },
-  });
+  }));
   return mutation;
 };
 
 export const useCreateProgramFromTemplate = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<Program, TError, ProgramTemplate, TContext>>
+  options?: Partial<MutationOptions<Program, TError, ProgramTemplate, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: createProgramFromTemplate,
     onSuccess: async (program, ...args) => {
@@ -61,15 +61,15 @@ export const useCreateProgramFromTemplate = <TError = unknown, TContext = unknow
         queryKey: QueryKeys.movements(),
       });
     },
-  });
+  }));
   return mutation;
 };
 
 export const useUpdateProgram = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<Program, TError, UpdateProgram, TContext>>
+  options?: Partial<MutationOptions<Program, TError, UpdateProgram, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: updateProgram,
     onSuccess: (program, ...args) => {
@@ -86,15 +86,15 @@ export const useUpdateProgram = <TError = unknown, TContext = unknown>(
           }
       );
     },
-  });
+  }));
   return mutation;
 };
 
 export const useDeleteProgram = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<Program, TError, string, TContext>>
+  options?: Partial<MutationOptions<Program, TError, string, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: deleteProgram,
     onSuccess: (program, id, ...args) => {
@@ -104,15 +104,15 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
         (programs?: ProgramsQueryData) => programs?.filter((p) => p.id !== id)
       );
     },
-  });
+  }));
   return mutation;
 };
 
-export const useReorderSets = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<string[], TError, ReorderSets, TContext>>
+export const useReorderSets = <TError = unknown>(
+  options?: Partial<MutationOptions<string[], TError, ReorderSets, string[]>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: reorderSets,
     onMutate: (reorder, ...args) => {
@@ -132,9 +132,9 @@ export const useReorderSets = <TError = unknown, TContext = unknown>(
           };
         }
 
-        return undefined;
+        return [];
       });
-      return options?.onMutate?.(reorder, ...args);
+      return options?.onMutate?.(reorder, ...args) ?? [];
     },
     onError: async (error, reorder, ...args) => {
       // refetch if the reorder failed
@@ -154,6 +154,6 @@ export const useReorderSets = <TError = unknown, TContext = unknown>(
         );
       });
     },
-  });
+  }));
   return mutation;
 };

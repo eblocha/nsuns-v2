@@ -22,7 +22,7 @@ export const SetTitle: Component<{
   };
 
   return (
-    <h1 class="text-9xl overflow-auto flex-grow">
+    <h1 class="text-9xl overflow-auto grow">
       <Show
         when={props.current && props.currentMovement}
         fallback="Rest"

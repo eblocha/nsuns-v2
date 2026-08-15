@@ -12,7 +12,8 @@
     "noEmit": true,
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
-    "incremental": true
+    "incremental": true,
+    "rewriteRelativeImportExtensions": true
   },
   "include": ["**/*.ts", "**/*.mts", "**/*.tsx"]
 }

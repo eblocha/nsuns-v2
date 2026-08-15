@@ -43,7 +43,7 @@ export const SetList: Component<{
           Go To Today
         </button>
       </div>
-      <div class="overflow-hidden flex-grow">
+      <div class="overflow-hidden grow">
         <div class="h-full w-full overflow-auto">
           <ul class="p-2">
             <For

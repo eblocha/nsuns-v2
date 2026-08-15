@@ -5,7 +5,7 @@ import { Reps } from "../api/reps";
 import { createControl } from "./forms";
 import { useCreateMaxMutation, useUpdateMaxMutation } from "./queries/maxes";
 import { useCreateRepsMutation, useUpdateRepsMutation } from "./queries/reps";
-import { createMutation } from "@tanstack/solid-query";
+import { useMutation } from "@tanstack/solid-query";
 
 export type CommonProps = {
   movement?: Movement;
@@ -43,7 +43,7 @@ export const useEditStat = (props: EditableStatProps) => {
   const updateReps = useUpdateRepsMutation(options);
   const createReps = useCreateRepsMutation(options);
 
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     mutationFn: async ({ amount, movement }: { amount: number | null; movement: Movement }) => {
       if (props.stat && props.type === "max" && amount !== null) {
         await updateMax.mutateAsync({
@@ -69,11 +69,11 @@ export const useEditStat = (props: EditableStatProps) => {
         });
       }
     },
-  });
+  }));
 
   const onSubmit = () => {
     const amt = amount.value();
-    if (mutation.isLoading || !props.movement) return;
+    if (mutation.isPending || !props.movement) return;
 
     const parsed = amt ? parseInt(amt) : null;
 

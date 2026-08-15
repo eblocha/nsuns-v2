@@ -1,4 +1,4 @@
-import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
 import { CreateMax, Max, UpdateMax, createMax, getMaxes, updateMax } from "../../api/maxes";
 import { Accessor } from "solid-js";
 import { QueryData, updateInArray } from "./util";
@@ -7,18 +7,18 @@ import { QueryKeys } from "./keys";
 export type MaxesQueryData = QueryData<ReturnType<typeof useMaxesQuery>>;
 
 export const useMaxesQuery = (profileId: Accessor<string>) => {
-  return createQuery({
-    queryKey: () => QueryKeys.maxes(profileId()),
+  return useQuery(() => ({
+    queryKey: QueryKeys.maxes(profileId()),
     queryFn: () => getMaxes(profileId()),
     enabled: !!profileId(),
-  });
+  }));
 };
 
 export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<Max, TError, CreateMax, TContext>>
+  options?: Partial<MutationOptions<Max, TError, CreateMax, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: createMax,
     onSuccess: (max, ...args) => {
@@ -27,15 +27,15 @@ export const useCreateMaxMutation = <TError = unknown, TContext = unknown>(
         return maxes && [...maxes, max];
       });
     },
-  });
+  }));
   return mutation;
 };
 
 export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<Max, TError, UpdateMax, TContext>>
+  options?: Partial<MutationOptions<Max, TError, UpdateMax, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: updateMax,
     onSuccess: (max, ...args) => {
@@ -44,6 +44,6 @@ export const useUpdateMaxMutation = <TError = unknown, TContext = unknown>(
         updateInArray(maxes, max, (m) => m.id === max.id)
       );
     },
-  });
+  }));
   return mutation;
 };

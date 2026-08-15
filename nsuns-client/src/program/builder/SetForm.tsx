@@ -35,9 +35,9 @@ export const SetForm: Component<{
   dayIndex: Day;
   movements?: Movement[];
 }> = (props) => {
-  const isLoading = createSmartAsyncDelay(() => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading);
+  const isLoading = createSmartAsyncDelay(() => props.mutationCreate?.isPending || !!props.mutationUpdate?.isPending);
 
-  const isDeleting = createSmartAsyncDelay(() => !!props.mutationDelete?.isLoading);
+  const isDeleting = createSmartAsyncDelay(() => !!props.mutationDelete?.isPending);
 
   const isError = () => props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
 

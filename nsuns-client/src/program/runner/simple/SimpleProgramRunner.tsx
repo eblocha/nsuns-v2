@@ -29,9 +29,9 @@ export const SimpleProgramRunner: Component = () => {
       profileId={params.profileId}
       programId={params.programId}
     >
-      <div class="w-full h-full flex-shrink-0 flex flex-col gap-2">
-        <div class="w-full flex-grow flex flex-row overflow-auto">
-          <nav class="flex flex-col items-center p-2 flex-shrink-0 gap-2">
+      <div class="w-full h-full shrink-0 flex flex-col gap-2">
+        <div class="w-full grow flex flex-row overflow-auto">
+          <nav class="flex flex-col items-center p-2 shrink-0 gap-2">
             <A
               href="/"
               class="text-button text-2xl"
@@ -56,10 +56,10 @@ export const SimpleProgramRunner: Component = () => {
               </Show>
             </button>
           </nav>
-          <div class="p-4 flex-grow flex flex-col gap-4">
+          <div class="p-4 grow flex flex-col gap-4">
             <TitleBanner />
           </div>
-          <div class="flex-shrink-0 p-4 flex flex-col gap-4 w-60">
+          <div class="shrink-0 p-4 flex flex-col gap-4 w-60">
             <DataList />
           </div>
         </div>

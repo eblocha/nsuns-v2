@@ -24,7 +24,7 @@ export const MovementForm: Component<{
   onSubmit?: () => void;
   onClose: () => void;
 }> = (props) => {
-  const isLoading = createSmartAsyncDelay(() => props.mutationCreate?.isLoading || !!props.mutationUpdate?.isLoading);
+  const isLoading = createSmartAsyncDelay(() => props.mutationCreate?.isPending || !!props.mutationUpdate?.isPending);
 
   const isError = () => props.mutationCreate?.isError || !!props.mutationUpdate?.isError;
   const error = () => props.mutationCreate?.error || props.mutationUpdate?.error;

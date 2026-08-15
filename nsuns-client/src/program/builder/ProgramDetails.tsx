@@ -22,7 +22,7 @@ export const ProgramDetails: Component<{
   });
 
   const onSubmit = () => {
-    if (mutation.isLoading || name.hasErrors()) return;
+    if (mutation.isPending || name.hasErrors()) return;
 
     mutation.mutate({
       id: props.program.id,
@@ -33,7 +33,7 @@ export const ProgramDetails: Component<{
 
   createRenderEffect(reset);
 
-  const isLoading = createSmartAsyncDelay(() => mutation.isLoading);
+  const isLoading = createSmartAsyncDelay(() => mutation.isPending);
 
   return (
     <form

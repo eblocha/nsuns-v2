@@ -61,14 +61,14 @@ export const ProgramBuilder: Component = () => {
             <Error message={`${query.error}`} />
           </Match>
           <Match when={query.isSuccess}>
-            <div class="mb-8 pb-2 border-b border-gray-700 flex-shrink-0 flex flex-row items-center gap-2">
-              <div class="flex-grow">
+            <div class="mb-8 pb-2 border-b border-gray-700 shrink-0 flex flex-row items-center gap-2">
+              <div class="grow">
                 <ProgramDetails
                   program={query.data!.program}
                   profileId={params.profileId}
                 />
               </div>
-              <div class="flex-shrink-0">
+              <div class="shrink-0">
                 <A
                   href={`/profile/${params.profileId}`}
                   class="text-button"
@@ -77,7 +77,7 @@ export const ProgramBuilder: Component = () => {
                 </A>
               </div>
             </div>
-            <div class="flex-grow overflow-visible">
+            <div class="grow overflow-visible">
               <Days summary={query.data!} />
             </div>
           </Match>

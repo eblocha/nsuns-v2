@@ -28,10 +28,10 @@ export const LogoutButton: Component<{ children?: JSX.Element }> = (props) => {
         title="Log out"
         aria-label="Log out"
         onClick={() => onClick()}
-        disabled={userInfo.isLoading || mutation.isLoading}
+        disabled={userInfo.isLoading || mutation.isPending}
       >
         <Show
-          when={!userInfo.isLoading && !mutation.isLoading}
+          when={!userInfo.isLoading && !mutation.isPending}
           fallback={<Spinner class="animate-spin" />}
         >
           <Logout class="text-white" />
@@ -64,18 +64,18 @@ export const LogoutButton: Component<{ children?: JSX.Element }> = (props) => {
           <div class="grid grid-cols-2 mt-4 ml-auto">
             <button
               class="secondary-button"
-              disabled={mutation.isLoading}
+              disabled={mutation.isPending}
               onClick={() => setModalOpen(false)}
             >
               Cancel
             </button>
             <button
               class="danger-button ml-2 flex flex-row items-center justify-center"
-              disabled={mutation.isLoading}
+              disabled={mutation.isPending}
               onClick={() => mutation.mutate()}
             >
               <Show
-                when={!mutation.isLoading}
+                when={!mutation.isPending}
                 fallback={<Spinner class="animate-spin" />}
               >
                 Yes, delete my data

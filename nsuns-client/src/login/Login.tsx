@@ -43,11 +43,11 @@ export const Login: Component = () => {
           </Show>
           <button
             class="primary-button"
-            disabled={loginAnonymousMutation.isLoading}
+            disabled={loginAnonymousMutation.isPending}
             onClick={() => loginAnonymousMutation.mutate()}
           >
             <Show
-              when={!loginAnonymousMutation.isLoading}
+              when={!loginAnonymousMutation.isPending}
               fallback={<Spinner class="animate-spin my-1" />}
             >
               Continue

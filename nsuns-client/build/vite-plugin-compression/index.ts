@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as zlib from "zlib";
 import chalk from "chalk";
 import { Plugin, ResolvedConfig, normalizePath } from "vite";
-import { FileInfo, files } from "./fs";
+import { FileInfo, files } from "./fs.ts";
 import { Transform } from "stream";
 
 export type FileTestFn = (info: FileInfo) => boolean;

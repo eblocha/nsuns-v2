@@ -1,6 +1,6 @@
 import { Component, Match, Show, Switch, createRenderEffect, createSignal } from "solid-js";
 import { Profile, getProfile, isNotFound } from "../api";
-import { createQuery } from "@tanstack/solid-query";
+import { useQuery } from "@tanstack/solid-query";
 import { Input } from "../forms/Input";
 import { createControl, required } from "../hooks/forms";
 import { createUpdateProfileMutation } from "../hooks/queries/profiles";
@@ -20,7 +20,7 @@ const EditProfileName: Component<{ profile: Profile }> = (props) => {
     },
   });
 
-  const disableSubmit = () => mutation.isLoading || name.hasErrors() || !name.isChanged();
+  const disableSubmit = () => mutation.isPending || name.hasErrors() || !name.isChanged();
 
   const onSubmit = () => {
     if (disableSubmit()) return;
@@ -33,7 +33,7 @@ const EditProfileName: Component<{ profile: Profile }> = (props) => {
 
   return (
     <form
-      class="flex flex-row items-center gap-2 flex-grow"
+      class="flex flex-row items-center gap-2 grow"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -41,7 +41,7 @@ const EditProfileName: Component<{ profile: Profile }> = (props) => {
     >
       <Input
         control={name}
-        class="ghost-input flex-grow"
+        class="ghost-input grow"
         required={true}
       />
       <Show when={name.isChanged()}>
@@ -62,11 +62,11 @@ const Pending: Component = () => {
 
 export const ProfileGreeting: Component<{ id: string }> = (props) => {
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
-  const query = createQuery({
-    queryKey: () => ["profiles", props.id],
+  const query = useQuery(() => ({
+    queryKey: ["profiles", props.id],
     queryFn: () => getProfile(props.id),
     enabled: !!props.id,
-  });
+  }));
 
   return (
     <Switch>

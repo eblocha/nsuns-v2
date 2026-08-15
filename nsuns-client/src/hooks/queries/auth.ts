@@ -1,25 +1,25 @@
-import { createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
 import { QueryKeys } from "./keys";
 import { login, loginAnonymous, logout, userInfo } from "../../api/auth";
 
 export const useUserInfoQuery = () => {
-  return createQuery({
-    queryKey: QueryKeys.auth,
+  return useQuery(() => ({
+    queryKey: QueryKeys.auth(),
     queryFn: userInfo,
     cacheTime: Infinity,
     staleTime: Infinity,
-  });
+  }));
 };
 
 export const useLogoutMutation = () => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     mutationFn: logout,
     onSuccess: () => {
       queryClient.clear();
       window.location.replace("/login");
     },
-  });
+  }));
 
   return mutation;
 };
@@ -36,16 +36,16 @@ const useInvalidateAfterLogin = () => {
 export const useLoginMutation = () => {
   const invalidate = useInvalidateAfterLogin();
 
-  return createMutation({
+  return useMutation(() => ({
     mutationFn: login,
     onSuccess: invalidate,
-  });
+  }));
 };
 
 export const useLoginAnonymousMutation = () => {
   const invalidate = useInvalidateAfterLogin();
-  return createMutation({
+  return useMutation(() => ({
     mutationFn: loginAnonymous,
     onSuccess: invalidate,
-  });
+  }));
 };

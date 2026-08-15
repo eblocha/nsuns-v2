@@ -16,7 +16,7 @@ export const NewRepsForm: Component<{
 
   const amount = createControl<string>("", { validators: [required()] });
 
-  const disableSubmit = () => mutation.isLoading || amount.hasErrors();
+  const disableSubmit = () => mutation.isPending || amount.hasErrors();
 
   const onSubmit = () => {
     if (disableSubmit()) return;
@@ -36,8 +36,8 @@ export const NewRepsForm: Component<{
         onSubmit();
       }}
     >
-      <div class="flex-grow flex flex-row items-center gap-2">
-        <div class="flex-grow">
+      <div class="grow flex flex-row items-center gap-2">
+        <div class="grow">
           <Input
             control={amount}
             name="max-amount"

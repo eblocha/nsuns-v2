@@ -1,15 +1,15 @@
-import { CreateMutationOptions, createMutation, useQueryClient } from "@tanstack/solid-query";
+import { MutationOptions, useMutation, useQueryClient } from "@tanstack/solid-query";
 import { UndoResponse, UpdateRequest, UpdateResponse, runUpdates, undoUpdates } from "../../api/updates";
 import { QueryKeys } from "./keys";
 import { RepsQueryData } from "./reps";
 import { MaxesQueryData } from "./maxes";
 
 export const createRunUpdatesMutation = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<UpdateResponse, TError, UpdateRequest, TContext>>
+  options?: Partial<MutationOptions<UpdateResponse, TError, UpdateRequest, TContext>>
 ) => {
   const queryClient = useQueryClient();
 
-  return createMutation({
+  return useMutation(() => ({
     mutationFn: runUpdates,
     ...options,
     onSuccess: (updates, payload, ...args) => {
@@ -25,15 +25,15 @@ export const createRunUpdatesMutation = <TError = unknown, TContext = unknown>(
         (maxes?: MaxesQueryData) => maxes && maxes.concat(updates.maxes)
       );
     },
-  });
+  }));
 };
 
 export const createUndoUpdatesMutation = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<UndoResponse, TError, UpdateRequest, TContext>>
+  options?: Partial<MutationOptions<UndoResponse, TError, UpdateRequest, TContext>>
 ) => {
   const queryClient = useQueryClient();
 
-  return createMutation({
+  return useMutation(() => ({
     mutationFn: undoUpdates,
     ...options,
     onSuccess: (res, payload, ...args) => {
@@ -49,5 +49,5 @@ export const createUndoUpdatesMutation = <TError = unknown, TContext = unknown>(
         (maxes?: MaxesQueryData) => maxes && maxes.filter((m) => !res.maxes.includes(m.id))
       );
     },
-  });
+  }));
 };

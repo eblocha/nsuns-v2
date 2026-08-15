@@ -9,7 +9,7 @@ export const UndoUpdate: Component<{
   const mutation = createUndoUpdatesMutation();
 
   const run = () => {
-    if (mutation.isLoading) return;
+    if (mutation.isPending) return;
     mutation.mutate({
       movementIds: [props.movementId],
       profileId: props.profileId,
@@ -20,11 +20,11 @@ export const UndoUpdate: Component<{
     <button
       class="text-button flex flex-row items-center gap-2"
       onClick={run}
-      disabled={mutation.isLoading}
+      disabled={mutation.isPending}
     >
       <RotateLeft />
       <Show
-        when={mutation.isLoading}
+        when={mutation.isPending}
         fallback={"Undo Update"}
       >
         Undoing...

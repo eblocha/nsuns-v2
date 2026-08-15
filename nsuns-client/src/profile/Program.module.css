@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .program {
   @apply p-2 rounded border inline-block;
 }

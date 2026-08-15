@@ -17,7 +17,7 @@ import { Spinner } from "../icons/Spinner";
 
 const EditableStat: Component<EditableStatProps> = (props) => {
   const { amount, onSubmit, mutation, reset } = useEditStat(props);
-  const isLoading = createSmartAsyncDelay(() => mutation.isLoading, DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS);
+  const isLoading = createSmartAsyncDelay(() => mutation.isPending, DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS);
 
   const isSuccess = () => !isLoading() && mutation.isSuccess;
 
@@ -36,8 +36,8 @@ const EditableStat: Component<EditableStatProps> = (props) => {
         onSubmit();
       }}
     >
-      <div class="flex-shrink-0">{props.type === "max" ? "Max:" : "Reps:"}</div>
-      <div class="flex-grow">
+      <div class="shrink-0">{props.type === "max" ? "Max:" : "Reps:"}</div>
+      <div class="grow">
         <Input
           control={amount}
           type="number"
@@ -51,11 +51,11 @@ const EditableStat: Component<EditableStatProps> = (props) => {
       </div>
       <Switch>
         <Match when={isLoading()}>
-          <Spinner class="animate-spin flex-shrink-0 ml-2" />
+          <Spinner class="animate-spin shrink-0 ml-2" />
         </Match>
         <Match when={isSuccess()}>
           <Check
-            class="text-green-500 flex-shrink-0 ml-2"
+            class="text-green-500 shrink-0 ml-2"
             classList={{
               [styles["fade-out"]!]: true,
             }}

@@ -1,4 +1,4 @@
-import { CreateMutationOptions, createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
 import {
   CreateProgramSet,
   ProgramSet,
@@ -17,18 +17,18 @@ import { Day } from "../../util/days";
 export type ProgramSummaryQueryData = QueryData<ReturnType<typeof useProgramSummaryQuery>>;
 
 export const useProgramSummaryQuery = (programId: Accessor<string>) => {
-  return createQuery({
-    queryKey: () => QueryKeys.programs.summary(programId()),
+  return useQuery(() => ({
+    queryKey: QueryKeys.programs.summary(programId()),
     queryFn: () => getProgramSummary(programId()),
     enabled: !!programId(),
-  });
+  }));
 };
 
 export const useCreateSet = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<ProgramSet, TError, CreateProgramSet, TContext>>
+  options?: Partial<MutationOptions<ProgramSet, TError, CreateProgramSet, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: createSet,
     onSuccess: (set, vars, ...args) => {
@@ -44,18 +44,18 @@ export const useCreateSet = <TError = unknown, TContext = unknown>(
         }
       );
     },
-  });
+  }));
 
   return mutation;
 };
 
 export const useEditSet = <TError = unknown, TContext = unknown>(
   options?: Partial<
-    CreateMutationOptions<ProgramSet, TError, UpdateProgramSet & { programId: string; day: Day }, TContext>
+    MutationOptions<ProgramSet, TError, UpdateProgramSet & { programId: string; day: Day }, TContext>
   >
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: updateSet,
     onSuccess: (set, variables, ...args) => {
@@ -70,7 +70,7 @@ export const useEditSet = <TError = unknown, TContext = unknown>(
         );
       });
     },
-  });
+  }));
 
   return mutation;
 };
@@ -81,10 +81,10 @@ export type DeleteSetMeta = {
 };
 
 export const useDeleteSet = <TError = unknown, TContext = unknown>(
-  options?: Partial<CreateMutationOptions<void, TError, { id: string; meta: DeleteSetMeta }, TContext>>
+  options?: Partial<MutationOptions<void, TError, { id: string; meta: DeleteSetMeta }, TContext>>
 ) => {
   const queryClient = useQueryClient();
-  const mutation = createMutation({
+  const mutation = useMutation(() => ({
     ...options,
     mutationFn: ({ id }) => deleteSet(id),
     onSuccess: (v, vars, ...args) => {
@@ -99,6 +99,6 @@ export const useDeleteSet = <TError = unknown, TContext = unknown>(
         );
       });
     },
-  });
+  }));
   return mutation;
 };

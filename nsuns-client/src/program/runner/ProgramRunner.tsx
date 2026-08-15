@@ -19,8 +19,8 @@ export const ProgramRunner: Component = () => {
       programId={params.programId}
     >
       <div class="w-full h-full overflow-hidden flex flex-col">
-        <div class="w-full flex-shrink-0 flex flex-row">
-          <nav class="flex flex-col items-center p-2 flex-shrink-0 gap-2">
+        <div class="w-full shrink-0 flex flex-row">
+          <nav class="flex flex-col items-center p-2 shrink-0 gap-2">
             <A
               href="/"
               class="text-button"
@@ -34,11 +34,11 @@ export const ProgramRunner: Component = () => {
               <Edit />
             </A>
           </nav>
-          <div class="px-6 flex-grow">
+          <div class="px-6 grow">
             <TitleBanner />
           </div>
         </div>
-        <div class="flex-grow p-5 overflow-hidden grid grid-rows-2 lg:grid-rows-1 lg:grid-cols-7 2xl:grid-cols-3">
+        <div class="grow p-5 overflow-hidden grid grid-rows-2 lg:grid-rows-1 lg:grid-cols-7 2xl:grid-cols-3">
           <div class="w-full lg:h-full overflow-hidden flex flex-row items-center lg:col-span-3 2xl:col-span-1">
             <button
               class="w-10 h-10 m-2 circle-text-button flex flex-row items-center justify-center"
@@ -46,7 +46,7 @@ export const ProgramRunner: Component = () => {
             >
               <ArrowRight class="rotate-180" />
             </button>
-            <div class="flex-grow overflow-hidden h-full relative">
+            <div class="grow overflow-hidden h-full relative">
               <AnimatedSetList />
             </div>
             <button

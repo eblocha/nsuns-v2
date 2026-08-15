@@ -47,7 +47,7 @@ export const MovementList: Component = () => {
           <CircleInfo ref={setTooltipAnchor} />
         </span>
       </h2>
-      <div class="flex-grow">
+      <div class="grow">
         <Switch>
           <Match when={queryState.isLoading()}>
             <Loading />
@@ -71,11 +71,11 @@ export const MovementList: Component = () => {
                   </button>
                 }
               >
-                <div class="flex-shrink-0 mb-2">
+                <div class="shrink-0 mb-2">
                   <CreateMovement cancel={() => setShowForm(false)} />
                 </div>
               </Show>
-              <ul class="flex-grow">
+              <ul class="grow">
                 <For each={Object.values(movementMap())}>
                   {(movement) => (
                     <MovementItem

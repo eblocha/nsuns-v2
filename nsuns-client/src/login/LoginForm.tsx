@@ -40,7 +40,7 @@ export const LoginForm: Component<{ isAuthed: boolean }> = (props) => {
         >
           <span class="text-red-500">*</span>Username
         </label>
-        <div class="flex flex-col items-end flex-grow">
+        <div class="flex flex-col items-end grow">
           <Input
             control={form.controls.username}
             class="ml-3 input w-full"
@@ -57,7 +57,7 @@ export const LoginForm: Component<{ isAuthed: boolean }> = (props) => {
         >
           <span class="text-red-500">*</span>Password
         </label>
-        <div class="flex flex-col items-end flex-grow">
+        <div class="flex flex-col items-end grow">
           <Input
             control={form.controls.password}
             class="ml-3 input w-full"
@@ -94,10 +94,10 @@ export const LoginForm: Component<{ isAuthed: boolean }> = (props) => {
         <button
           type="submit"
           class="primary-button"
-          disabled={mutation.isLoading}
+          disabled={mutation.isPending}
         >
           <Show
-            when={!mutation.isLoading}
+            when={!mutation.isPending}
             fallback={<Spinner class="animate-spin my-1" />}
           >
             Log In

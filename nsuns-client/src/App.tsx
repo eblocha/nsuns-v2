@@ -1,6 +1,6 @@
-import { Route, Router, Routes, useLocation } from "@solidjs/router";
+import { Route, Router, useLocation } from "@solidjs/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
-import { Component, Show, createEffect } from "solid-js";
+import { Component, ParentComponent, Show, createEffect } from "solid-js";
 import { SelectProfile } from "./profile/entry/SelectProfile";
 import { CreateProfile } from "./profile/entry/CreateProfile";
 import { ProfileHome } from "./profile/ProfileHome";
@@ -34,7 +34,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const RoutingApp: Component = () => {
+const AppLayout: ParentComponent = (props) => {
   const userInfo = useUserInfoQuery();
   const navigateToLogin = useNavigateToLogin();
   const navigateToProfileHome = useNavigateToProfileHome();
@@ -59,49 +59,53 @@ const RoutingApp: Component = () => {
         </div>
       }
     >
-      <Routes>
-        <Route
-          path="/"
-          component={SelectProfile}
-        />
-        <Route
-          path="/login"
-          component={Login}
-        />
-        <Route
-          path="/profile/new"
-          component={CreateProfile}
-        />
-        <Route
-          path="/profile/:profileId"
-          component={ProfileHome}
-        >
-          <Route path="/" />
-          <Route
-            path="program/:programId"
-            component={ProgramBuilder}
-          />
-        </Route>
-        <Route
-          path="/profile/:profileId/program/:programId/run"
-          component={SimpleProgramRunner}
-        />
-        <Route
-          path="*"
-          component={NotFound}
-        />
-      </Routes>
+      {props.children}
+      <ExpiryWarning />
     </Show>
+  );
+};
+
+const RoutingApp: Component = () => {
+  return (
+    <Router root={AppLayout}>
+      <Route
+        path="/"
+        component={SelectProfile}
+      />
+      <Route
+        path="/login"
+        component={Login}
+      />
+      <Route
+        path="/profile/new"
+        component={CreateProfile}
+      />
+      <Route
+        path="/profile/:profileId"
+        component={ProfileHome}
+      >
+        <Route path="/" />
+        <Route
+          path="program/:programId"
+          component={ProgramBuilder}
+        />
+      </Route>
+      <Route
+        path="/profile/:profileId/program/:programId/run"
+        component={SimpleProgramRunner}
+      />
+      <Route
+        path="*"
+        component={NotFound}
+      />
+    </Router>
   );
 };
 
 export const App: Component = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <RoutingApp />
-        <ExpiryWarning />
-      </Router>
+      <RoutingApp />
     </QueryClientProvider>
   );
 };
