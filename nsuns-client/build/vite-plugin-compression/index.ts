@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { Transform } from "stream";
+import { styleText } from "util";
 import * as zlib from "zlib";
 
-import chalk from "chalk";
 import { Plugin, ResolvedConfig, normalizePath } from "vite";
 
 import { FileInfo, files } from "./fs.ts";
@@ -71,11 +71,11 @@ const highlightFileName = (name: string, ignoreExt?: string): string => {
 
   switch (ext.toLowerCase()) {
     case ".css":
-      return chalk.magenta(name);
+      return styleText("magenta", name);
     case ".js":
-      return chalk.cyan(name);
+      return styleText("cyan", name);
     default:
-      return chalk.green(name);
+      return styleText("green", name);
   }
 };
 
@@ -113,7 +113,7 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
     },
     closeBundle: async () => {
       if (opts.verbose) {
-        config.logger.info(chalk.cyan(name) + " " + chalk.green(opts.algorithm));
+        config.logger.info(styleText("cyan", name) + " " + styleText("green", opts.algorithm));
       }
 
       const toCompress: FileInfo[] = [];
@@ -157,8 +157,8 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
         const assetDir = path.dirname(asset);
         const assetName = path.basename(asset);
 
-        const prettifiedPath = chalk.dim(normalizePath(assetDir) + "/") + highlightFileName(assetName, ext);
-        const size = chalk.dim.bold(displaySize(result.compressedBytes));
+        const prettifiedPath = styleText("dim", normalizePath(assetDir) + "/") + highlightFileName(assetName, ext);
+        const size = styleText(["dim", "bold"], displaySize(result.compressedBytes));
 
         return {
           path: prettifiedPath,
@@ -174,7 +174,7 @@ export default function compression(options: Partial<PluginOptions>): Plugin {
         config.logger.info(`${result.path}${spacing}  ${result.size}`);
       }
 
-      const check = chalk.green("✓");
+      const check = styleText("green", "✓");
 
       config.logger.info(`${check} compressed assets.`);
     },
