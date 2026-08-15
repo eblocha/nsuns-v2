@@ -23,7 +23,7 @@ export async function* files(p: string): AsyncGenerator<FileInfo, void, void> {
 
   if (stats.isDirectory()) {
     for (const dirent of await fs.promises.readdir(p, { withFileTypes: true })) {
-      for await (const result of files(path.join(dirent.path, dirent.name))) {
+      for await (const result of files(path.join(p, dirent.name))) {
         yield result;
       }
     }

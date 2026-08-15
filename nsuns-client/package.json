@@ -36,5 +36,15 @@
     "solid-js": "^1.7.6",
     "solid-tippy": "^0.2.1",
     "tippy.js": "^6.3.7"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.21.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "24.19.0"
+    }
   }
 }

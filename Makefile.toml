@@ -38,7 +38,7 @@ script = 'rm -rf "${DIST}"'
 category = "Build"
 description = "Bundles client assets."
 cwd = "${CLIENT_DIR}"
-command = "yarn"
+command = "pnpm"
 args = ["build", "--assetsDir=.", "--outDir=../${DIST}/assets", "--emptyOutDir"]
 
 [tasks.build-server]
@@ -75,7 +75,7 @@ dependencies = ["build"]
 category = "CI"
 description = "Check client formatting."
 cwd = "${CLIENT_DIR}"
-command = "yarn"
+command = "pnpm"
 args = ["fmt-check"]
 
 [tasks.fmt-check-server]
@@ -93,7 +93,7 @@ dependencies = ["fmt-check-client", "fmt-check-server"]
 category = "CI"
 description = "Lint client code."
 cwd = "${CLIENT_DIR}"
-command = "yarn"
+command = "pnpm"
 args = ["lint"]
 
 [tasks.lint-server]
@@ -111,7 +111,7 @@ dependencies = ["lint-client", "lint-server"]
 category = "CI"
 description = "Run client tests."
 cwd = "${CLIENT_DIR}"
-command = "yarn"
+command = "pnpm"
 args = ["test"]
 
 [tasks.start-test-db]
@@ -162,7 +162,7 @@ dependencies = ["fmt-check", "lint", "test", "build"]
 category = "Run"
 description = "Run the client locally in dev mode."
 cwd = "${CLIENT_DIR}"
-command = "yarn"
+command = "pnpm"
 args = ["dev"]
 
 [tasks.run-server]
