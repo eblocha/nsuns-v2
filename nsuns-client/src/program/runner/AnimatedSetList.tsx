@@ -1,8 +1,10 @@
 import { Component, Show, createEffect, on, onCleanup } from "solid-js";
-import { currentSet, day, direction, nextDay, prevDay, setCurrentSet, setDirection } from "./state";
-import { SetList } from "./SetList";
-import style from "./AnimatedSetList.module.css";
+
 import { useProgram } from "./context/ProgramProvider";
+import { SetList } from "./SetList";
+import { currentSet, day, direction, nextDay, prevDay, setCurrentSet, setDirection } from "./state";
+
+import style from "./AnimatedSetList.module.css";
 
 const dayOut = () => (direction() < 0 ? nextDay(day()) : prevDay(day()));
 

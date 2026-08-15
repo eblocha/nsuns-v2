@@ -1,7 +1,8 @@
 import { Component, Show } from "solid-js";
-import { useCreateRepsMutation } from "../../hooks/queries/reps";
-import { createControl, required } from "../../hooks/forms";
+
 import { Input } from "../../forms/Input";
+import { createControl, required } from "../../hooks/forms";
+import { useCreateRepsMutation } from "../../hooks/queries/reps";
 import { Warning } from "../../icons/Warning";
 import { displayError } from "../../util/errors";
 

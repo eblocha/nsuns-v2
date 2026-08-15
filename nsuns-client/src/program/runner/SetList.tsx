@@ -1,12 +1,13 @@
 import { Component, For, JSX, Setter, Show, createMemo } from "solid-js";
+
 import { Movement, ProgramSet } from "../../api";
-import { getSections, plural, resolvedWeightDisplay } from "../../util/setDisplay";
 import { Max } from "../../api/maxes";
-import { day, goToToday, today } from "./state";
 import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
 import { Moon } from "../../icons/Moon";
 import { Day, dayNames } from "../../util/days";
+import { getSections, plural, resolvedWeightDisplay } from "../../util/setDisplay";
 import { SetComponent } from "./Set";
+import { day, goToToday, today } from "./state";
 
 export const displaySet = (set: ProgramSet, max?: number): JSX.Element => {
   const repsComponent =

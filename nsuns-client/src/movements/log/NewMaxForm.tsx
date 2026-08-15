@@ -1,9 +1,10 @@
 import { Component, Show } from "solid-js";
-import { useCreateMaxMutation } from "../../hooks/queries/maxes";
+
+import { Input } from "../../forms/Input";
 import { createControl, required } from "../../hooks/forms";
+import { useCreateMaxMutation } from "../../hooks/queries/maxes";
 import { Warning } from "../../icons/Warning";
 import { displayError } from "../../util/errors";
-import { Input } from "../../forms/Input";
 
 export const NewMaxForm: Component<{
   profileId: string;

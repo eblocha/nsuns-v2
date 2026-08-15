@@ -1,13 +1,14 @@
 import { A, useParams } from "@solidjs/router";
 import { Component, createSignal, Show } from "solid-js";
-import { ProgramProvider } from "../context/ProgramProvider";
-import { User } from "../../../icons/User";
+
 import { Edit } from "../../../icons/Edit";
-import { TitleBanner } from "./SetTitle";
-import { Tools } from "./Tools";
-import { DataList } from "./data/DataList";
 import { Maximize } from "../../../icons/Maximize";
 import { Minimize } from "../../../icons/Minimize";
+import { User } from "../../../icons/User";
+import { ProgramProvider } from "../context/ProgramProvider";
+import { DataList } from "./data/DataList";
+import { TitleBanner } from "./SetTitle";
+import { Tools } from "./Tools";
 
 const [isFullscreen, setIsFullscreen] = createSignal(!!document.fullscreenElement);
 

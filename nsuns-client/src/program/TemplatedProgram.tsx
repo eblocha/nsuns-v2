@@ -1,18 +1,19 @@
+import { useParams } from "@solidjs/router";
 import { Component, For, Setter, Show, createMemo, createRenderEffect, createSignal } from "solid-js";
-import { MovementTemplate, NewProgramTemplate, ProgramTemplate, TEMPLATES } from "../api/programTemplate";
-import { useMovementsQuery } from "../hooks/queries/movements";
-import { Select, SelectOption } from "../forms/Select";
-import { createControl, required } from "../hooks/forms";
+import { createStore, produce } from "solid-js/store";
+
 import { Movement } from "../api";
-import { useCreateProgramFromTemplate } from "../hooks/queries/programs";
+import { MovementTemplate, NewProgramTemplate, ProgramTemplate, TEMPLATES } from "../api/programTemplate";
+import { Input } from "../forms/Input";
+import { Select, SelectOption } from "../forms/Select";
 import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
+import { createControl, required } from "../hooks/forms";
+import { useNavigateToProgram } from "../hooks/navigation";
+import { useMovementsQuery } from "../hooks/queries/movements";
+import { useCreateProgramFromTemplate } from "../hooks/queries/programs";
 import { Spinner } from "../icons/Spinner";
 import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
-import { useNavigateToProgram } from "../hooks/navigation";
-import { useParams } from "@solidjs/router";
-import { Input } from "../forms/Input";
-import { createStore, produce } from "solid-js/store";
 
 type TranslatedMovement = {
   id?: string;

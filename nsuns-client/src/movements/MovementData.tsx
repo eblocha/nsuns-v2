@@ -1,19 +1,21 @@
 import { Component, Match, Switch, createEffect, createSignal, onCleanup } from "solid-js";
+
+import { Movement } from "../api";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
-import { Movement } from "../api";
-import { Plus } from "../icons/Plus";
+import { Input } from "../forms/Input";
 import { Graph } from "../graph/Graph";
-import { UpdateMaxes } from "./UpdateMaxes";
-import { UndoUpdate } from "./UndoUpdate";
+import { DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS, createSmartAsyncDelay } from "../hooks/asymmetricDelay";
+import { EditableStatProps, useEditStat } from "../hooks/useEditStat";
+import { Check } from "../icons/Check";
+import { Plus } from "../icons/Plus";
+import { Spinner } from "../icons/Spinner";
 import { NewMaxForm } from "./log/NewMaxForm";
 import { NewRepsForm } from "./log/NewRepsForm";
-import { EditableStatProps, useEditStat } from "../hooks/useEditStat";
-import { Input } from "../forms/Input";
-import { Check } from "../icons/Check";
+import { UndoUpdate } from "./UndoUpdate";
+import { UpdateMaxes } from "./UpdateMaxes";
+
 import styles from "./MovementData.module.css";
-import { DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS, createSmartAsyncDelay } from "../hooks/asymmetricDelay";
-import { Spinner } from "../icons/Spinner";
 
 const EditableStat: Component<EditableStatProps> = (props) => {
   const { amount, onSubmit, mutation, reset } = useEditStat(props);

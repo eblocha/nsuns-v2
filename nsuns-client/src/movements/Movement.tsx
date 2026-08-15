@@ -1,12 +1,13 @@
 import { Component, Show, createSignal, mergeProps } from "solid-js";
-import { Edit } from "../icons/Edit";
-import { UpdateMovement } from "./UpdateMovement";
+
 import { Movement } from "../api";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
 import { ChevronDown } from "../icons/ChevronDown";
-import { MovementData } from "./MovementData";
+import { Edit } from "../icons/Edit";
 import { plural } from "../util/setDisplay";
+import { MovementData } from "./MovementData";
+import { UpdateMovement } from "./UpdateMovement";
 
 const maxSummary = (amount?: number) => (amount === undefined ? "" : `max ${amount} lb${plural(amount)}`);
 

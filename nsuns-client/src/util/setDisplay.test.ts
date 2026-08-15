@@ -1,6 +1,7 @@
 import { it, expect, describe } from "vitest";
-import { Section, getSections, plural, repsDisplay, resolvedWeightDisplay, round } from "./setDisplay";
+
 import { Movement, ProgramSet } from "../api";
+import { Section, getSections, plural, repsDisplay, resolvedWeightDisplay, round } from "./setDisplay";
 
 const baseProgramSet: ProgramSet = {
   id: "",

@@ -1,10 +1,11 @@
 import { Component, Match, Switch } from "solid-js";
+
 import { Movement, ProgramSet } from "../../api";
-import { repsDisplay, resolvedWeightDisplay } from "../../util/setDisplay";
-import { currentSet, day } from "./state";
-import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
-import { useProgram } from "./context/ProgramProvider";
 import { createSmartAsyncDelay } from "../../hooks/asymmetricDelay";
+import { getLatestMax } from "../../hooks/useMovementsToMaxesMap";
+import { repsDisplay, resolvedWeightDisplay } from "../../util/setDisplay";
+import { useProgram } from "./context/ProgramProvider";
+import { currentSet, day } from "./state";
 
 const displaySet = (set: ProgramSet, movement: Movement, max?: number) => {
   const weightComponent = resolvedWeightDisplay(set, max);

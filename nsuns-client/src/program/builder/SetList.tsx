@@ -1,10 +1,11 @@
-import { Component, For, createSignal } from "solid-js";
 import { DragEventHandler } from "@thisbeyond/solid-dnd";
 import { DragDropProvider, DragDropSensors, DragOverlay, SortableProvider, closestCenter } from "@thisbeyond/solid-dnd";
+import { Component, For, createSignal } from "solid-js";
+
 import { Movement, ProgramSet } from "../../api";
-import { SetComponent, SetInner, displaySet } from "./Set";
-import { Day } from "../../util/days";
 import { useReorderSets } from "../../hooks/queries/programs";
+import { Day } from "../../util/days";
+import { SetComponent, SetInner, displaySet } from "./Set";
 
 export const SetList: Component<{
   sets: ProgramSet[];

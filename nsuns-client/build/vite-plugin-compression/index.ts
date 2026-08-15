@@ -1,10 +1,12 @@
-import * as path from "path";
 import * as fs from "fs";
+import * as path from "path";
+import { Transform } from "stream";
 import * as zlib from "zlib";
+
 import chalk from "chalk";
 import { Plugin, ResolvedConfig, normalizePath } from "vite";
+
 import { FileInfo, files } from "./fs.ts";
-import { Transform } from "stream";
 
 export type FileTestFn = (info: FileInfo) => boolean;
 

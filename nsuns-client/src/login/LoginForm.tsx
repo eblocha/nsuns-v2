@@ -1,13 +1,15 @@
-import { Component, Show } from "solid-js";
-import { createControl, createControlGroup, required } from "../hooks/forms";
-import { displayError } from "../util/errors";
-import { Warning } from "../icons/Warning";
-import { Spinner } from "../icons/Spinner";
 import { A } from "@solidjs/router";
+import { Component, Show } from "solid-js";
+
 import { ErrorMessages } from "../forms/ErrorMessages";
 import { Input } from "../forms/Input";
-import styles from "./LoginForm.module.css";
+import { createControl, createControlGroup, required } from "../hooks/forms";
 import { useLoginMutation } from "../hooks/queries/auth";
+import { Spinner } from "../icons/Spinner";
+import { Warning } from "../icons/Warning";
+import { displayError } from "../util/errors";
+
+import styles from "./LoginForm.module.css";
 
 export const LoginForm: Component<{ isAuthed: boolean }> = (props) => {
   const form = createControlGroup({

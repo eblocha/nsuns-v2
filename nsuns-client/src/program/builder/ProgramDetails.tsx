@@ -1,10 +1,11 @@
 import { Component, Show, createRenderEffect } from "solid-js";
-import { Input } from "../../forms/Input";
+
 import { Program } from "../../api";
-import { Spinner } from "../../icons/Spinner";
+import { Input } from "../../forms/Input";
 import { createSmartAsyncDelay } from "../../hooks/asymmetricDelay";
-import { useUpdateProgram } from "../../hooks/queries/programs";
 import { createControl, required } from "../../hooks/forms";
+import { useUpdateProgram } from "../../hooks/queries/programs";
+import { Spinner } from "../../icons/Spinner";
 import { Warning } from "../../icons/Warning";
 import { displayError } from "../../util/errors";
 

@@ -1,8 +1,10 @@
-import { Component } from "solid-js";
-import { Profile } from "../../api";
 import { A } from "@solidjs/router";
-import style from "./ProfileCard.module.css";
+import { Component } from "solid-js";
+
+import { Profile } from "../../api";
 import { Plus } from "../../icons/Plus";
+
+import style from "./ProfileCard.module.css";
 
 export const ProfileCard: Component<Profile> = (props) => {
   return (

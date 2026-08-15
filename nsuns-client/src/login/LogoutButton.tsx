@@ -1,8 +1,9 @@
 import { Component, JSX, Show, createSignal } from "solid-js";
-import { Logout } from "../icons/Logout";
-import { Modal } from "../modal/Modal";
-import { Spinner } from "../icons/Spinner";
+
 import { useLogoutMutation, useUserInfoQuery } from "../hooks/queries/auth";
+import { Logout } from "../icons/Logout";
+import { Spinner } from "../icons/Spinner";
+import { Modal } from "../modal/Modal";
 
 export const LogoutButton: Component<{ children?: JSX.Element }> = (props) => {
   const [modalOpen, setModalOpen] = createSignal(false);

@@ -1,10 +1,11 @@
-import { Component, Show, createSignal } from "solid-js";
-import { Movement, ProgramSet } from "../../api";
-import { EditSet } from "./EditSet";
-import { plural, repsDisplay } from "../../util/setDisplay";
-import { Day } from "../../util/days";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
+import { Component, Show, createSignal } from "solid-js";
+
+import { Movement, ProgramSet } from "../../api";
 import { Grip } from "../../icons/Grip";
+import { Day } from "../../util/days";
+import { plural, repsDisplay } from "../../util/setDisplay";
+import { EditSet } from "./EditSet";
 
 export const displaySet = (set: ProgramSet, movements: Movement[]) => {
   const movement = movements.find((m) => m.id === set.movementId);

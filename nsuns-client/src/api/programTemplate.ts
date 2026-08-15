@@ -1,7 +1,7 @@
 import { Program } from "./program";
-import { bothJson, json, post } from "./util";
 import nsuns5day from "./templates/nsuns-5day";
 import nsuns5dayWeekend from "./templates/nsuns-5day-weekend";
+import { bothJson, json, post } from "./util";
 
 export type SetTemplate = {
   movementIndex: number;

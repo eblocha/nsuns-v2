@@ -1,4 +1,5 @@
 import { Component, JSX } from "solid-js";
+
 import { Spinner } from "../icons/Spinner";
 
 export const RefreshButton: Component<

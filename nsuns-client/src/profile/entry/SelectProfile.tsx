@@ -1,9 +1,10 @@
 import { Component, For, Match, Switch } from "solid-js";
-import { AddProfileCard, LoadingProfileCard, ProfileCard } from "./ProfileCard";
-import { createMinimumAsyncDelay } from "../../hooks/asymmetricDelay";
+
 import { RefreshButton } from "../../components/RefreshButton";
+import { createMinimumAsyncDelay } from "../../hooks/asymmetricDelay";
 import { createProfileQuery } from "../../hooks/queries/profiles";
 import { LogoutButton } from "../../login/LogoutButton";
+import { AddProfileCard, LoadingProfileCard, ProfileCard } from "./ProfileCard";
 
 export const SelectProfile: Component = () => {
   const query = createProfileQuery();

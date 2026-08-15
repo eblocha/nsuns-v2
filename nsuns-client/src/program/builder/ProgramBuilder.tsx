@@ -1,8 +1,9 @@
 import { A, useParams } from "@solidjs/router";
 import { Component, Match, Switch, createEffect, onCleanup } from "solid-js";
+
+import { useProgramSummaryQuery } from "../../hooks/queries/sets";
 import { Days } from "./Days";
 import { ProgramDetails } from "./ProgramDetails";
-import { useProgramSummaryQuery } from "../../hooks/queries/sets";
 
 const Loading: Component = () => {
   return (

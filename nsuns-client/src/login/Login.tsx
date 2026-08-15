@@ -1,9 +1,10 @@
 import { Component, Show } from "solid-js";
-import { LoginForm } from "./LoginForm";
-import { displayError } from "../util/errors";
-import { Warning } from "../icons/Warning";
-import { Spinner } from "../icons/Spinner";
+
 import { useLoginAnonymousMutation, useUserInfoQuery } from "../hooks/queries/auth";
+import { Spinner } from "../icons/Spinner";
+import { Warning } from "../icons/Warning";
+import { displayError } from "../util/errors";
+import { LoginForm } from "./LoginForm";
 
 export const Login: Component = () => {
   const userInfo = useUserInfoQuery();

@@ -1,12 +1,13 @@
 import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
 import { useTippy } from "solid-tippy";
-import { CreateMovement } from "./CreateMovement";
-import { Plus } from "../icons/Plus";
-import { MovementItem } from "./Movement";
-import { useStats } from "../stats/StatsProvider";
-import { displayError } from "../util/errors";
+
 import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
 import { CircleInfo } from "../icons/CircleInfo";
+import { Plus } from "../icons/Plus";
+import { useStats } from "../stats/StatsProvider";
+import { displayError } from "../util/errors";
+import { CreateMovement } from "./CreateMovement";
+import { MovementItem } from "./Movement";
 
 const Loading: Component = () => {
   return (

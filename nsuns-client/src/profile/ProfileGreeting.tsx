@@ -1,13 +1,14 @@
-import { Component, Match, Show, Switch, createRenderEffect, createSignal } from "solid-js";
-import { Profile, getProfile, isNotFound } from "../api";
+import { A } from "@solidjs/router";
 import { useQuery } from "@tanstack/solid-query";
+import { Component, Match, Show, Switch, createRenderEffect, createSignal } from "solid-js";
+
+import { Profile, getProfile, isNotFound } from "../api";
 import { Input } from "../forms/Input";
 import { createControl, required } from "../hooks/forms";
 import { createUpdateProfileMutation } from "../hooks/queries/profiles";
 import { Trash } from "../icons/Trash";
-import { DeleteProfile } from "./DeleteProfile";
-import { A } from "@solidjs/router";
 import { Warning } from "../icons/Warning";
+import { DeleteProfile } from "./DeleteProfile";
 
 const EditProfileName: Component<{ profile: Profile }> = (props) => {
   const name = createControl(props.profile.name, { validators: [required()] });

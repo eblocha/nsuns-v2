@@ -1,7 +1,8 @@
 import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
+
 import { CreateMovement, Movement, createMovement, getMovements, updateMovement } from "../../api";
-import { QueryData, updateInArray } from "./util";
 import { QueryKeys } from "./keys";
+import { QueryData, updateInArray } from "./util";
 
 export type MovementsQueryData = QueryData<ReturnType<typeof useMovementsQuery>>;
 

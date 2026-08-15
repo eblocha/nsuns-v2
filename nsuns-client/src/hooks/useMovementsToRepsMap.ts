@@ -1,6 +1,7 @@
 import { Accessor, createMemo } from "solid-js";
-import { Reps } from "../api/reps";
+
 import { ProgramSet } from "../api";
+import { Reps } from "../api/reps";
 
 export const useMovementsToRepsMap = (repsList: Accessor<Reps[]>) => {
   return createMemo(() => {
@@ -27,4 +28,3 @@ export const getLatestReps = (movementsToRepsMap: Record<string, Reps[]>, set: P
     return undefined;
   }
 };
-

@@ -1,10 +1,11 @@
-import { Component, Show, createSignal } from "solid-js";
-import { Input } from "../forms/Input";
 import { useParams } from "@solidjs/router";
-import { Spinner } from "../icons/Spinner";
-import { useCreateProgram } from "../hooks/queries/programs";
-import { useNavigateToProgram } from "../hooks/navigation";
+import { Component, Show, createSignal } from "solid-js";
+
+import { Input } from "../forms/Input";
 import { createControl, required } from "../hooks/forms";
+import { useNavigateToProgram } from "../hooks/navigation";
+import { useCreateProgram } from "../hooks/queries/programs";
+import { Spinner } from "../icons/Spinner";
 import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
 import { TemplatedPrograms } from "./TemplatedProgram";

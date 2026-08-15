@@ -1,4 +1,6 @@
 import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
+import { Accessor } from "solid-js";
+
 import {
   CreateProgram,
   Program,
@@ -11,11 +13,10 @@ import {
   reorderSets,
   updateProgram,
 } from "../../api";
-import { Accessor } from "solid-js";
-import { QueryData, updateInArray } from "./util";
+import { ProgramTemplate, createProgramFromTemplate } from "../../api/programTemplate";
 import { QueryKeys } from "./keys";
 import { ProgramSummaryQueryData } from "./sets";
-import { ProgramTemplate, createProgramFromTemplate } from "../../api/programTemplate";
+import { QueryData, updateInArray } from "./util";
 
 export type ProgramsQueryData = QueryData<ReturnType<typeof useProgramsQuery>>;
 
@@ -99,9 +100,8 @@ export const useDeleteProgram = <TError = unknown, TContext = unknown>(
     mutationFn: deleteProgram,
     onSuccess: (program, id, ...args) => {
       options?.onSuccess?.(program, id, ...args);
-      queryClient.setQueryData(
-        QueryKeys.programs.list(program.owner),
-        (programs?: ProgramsQueryData) => programs?.filter((p) => p.id !== id)
+      queryClient.setQueryData(QueryKeys.programs.list(program.owner), (programs?: ProgramsQueryData) =>
+        programs?.filter((p) => p.id !== id)
       );
     },
   }));

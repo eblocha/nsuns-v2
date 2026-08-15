@@ -1,18 +1,19 @@
 import { Route, Router, useLocation } from "@solidjs/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { Component, ParentComponent, Show, createEffect } from "solid-js";
-import { SelectProfile } from "./profile/entry/SelectProfile";
-import { CreateProfile } from "./profile/entry/CreateProfile";
-import { ProfileHome } from "./profile/ProfileHome";
-import { ProgramBuilder } from "./program/builder/ProgramBuilder";
-import { NotFound } from "./NotFound";
+
 import { ApiError } from "./api";
-import { Login } from "./login/Login";
-import { ExpiryWarning } from "./login/ExpiryWarning";
-import { useUserInfoQuery } from "./hooks/queries/auth";
-import { Spinner } from "./icons/Spinner";
 import { DELAY_BEFORE_ASYNC_MS, SPINNER_DELAY_MS, createSmartAsyncDelay } from "./hooks/asymmetricDelay";
 import { useNavigateToLogin, useNavigateToProfileHome } from "./hooks/navigation";
+import { useUserInfoQuery } from "./hooks/queries/auth";
+import { Spinner } from "./icons/Spinner";
+import { ExpiryWarning } from "./login/ExpiryWarning";
+import { Login } from "./login/Login";
+import { NotFound } from "./NotFound";
+import { CreateProfile } from "./profile/entry/CreateProfile";
+import { SelectProfile } from "./profile/entry/SelectProfile";
+import { ProfileHome } from "./profile/ProfileHome";
+import { ProgramBuilder } from "./program/builder/ProgramBuilder";
 import { SimpleProgramRunner } from "./program/runner/simple/SimpleProgramRunner";
 
 const queryClient = new QueryClient({

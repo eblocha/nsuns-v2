@@ -1,12 +1,13 @@
 import { Component, For, Setter, Show, createSignal } from "solid-js";
+
 import { ProgramSummary, getSetsByDay } from "../../api";
-import { Plus } from "../../icons/Plus";
-import { NewSet } from "./NewSet";
 import { useMovementsQuery } from "../../hooks/queries/movements";
-import { SetSummary } from "./SetSummary";
 import { ChevronDown } from "../../icons/ChevronDown";
+import { Plus } from "../../icons/Plus";
 import { Day, dayNames } from "../../util/days";
+import { NewSet } from "./NewSet";
 import { SetList } from "./SetList";
+import { SetSummary } from "./SetSummary";
 
 const EMPTY: never[] = [];
 

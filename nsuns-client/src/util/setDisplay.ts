@@ -19,7 +19,7 @@ export const resolveWeight = (set: ProgramSet, max?: number) => {
   } else {
     return set.amount;
   }
-}
+};
 
 /**
  * " 55 lbs", " 1 lb", " 0 lbs" (if percent mode), "" (if 0 amount, not percent mode)

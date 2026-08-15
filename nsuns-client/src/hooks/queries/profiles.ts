@@ -1,4 +1,5 @@
 import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
+
 import { CreateProfile, Profile, createProfile, deleteProfile, getProfiles, updateProfile } from "../../api";
 import { QueryKeys } from "./keys";
 import { QueryData, updateInArray } from "./util";

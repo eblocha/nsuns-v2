@@ -1,5 +1,7 @@
 import { Component, createMemo, For, Match, Show, Switch } from "solid-js";
+
 import { calculatePlates, PlateCount } from "../../util/plates";
+
 import style from "./PlateGraphic.module.css";
 
 const Plate45: Component = () => {
@@ -69,7 +71,7 @@ export const PlateGraphic: Component<{ weight: number | undefined }> = (props) =
           <For each={reversePlates()}>{(plate) => <PlateGroup plate={plate} />}</For>
         </div>
         <div class="pr-6 flex items-center">
-        <For each={plates()}>{(plate) => <PlateGroup plate={plate} />}</For>
+          <For each={plates()}>{(plate) => <PlateGroup plate={plate} />}</For>
         </div>
       </div>
     </Show>

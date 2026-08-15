@@ -1,11 +1,12 @@
+import { useMutation } from "@tanstack/solid-query";
 import { createRenderEffect } from "solid-js";
+
 import { Movement } from "../api";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
 import { createControl } from "./forms";
 import { useCreateMaxMutation, useUpdateMaxMutation } from "./queries/maxes";
 import { useCreateRepsMutation, useUpdateRepsMutation } from "./queries/reps";
-import { useMutation } from "@tanstack/solid-query";
 
 export type CommonProps = {
   movement?: Movement;

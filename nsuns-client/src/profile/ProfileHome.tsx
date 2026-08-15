@@ -1,16 +1,17 @@
 import { A, useParams } from "@solidjs/router";
-import { ParentComponent, For, Match, Show, Switch, createSignal } from "solid-js";
-import { LoadingProgram, ProgramItem } from "./Program";
-import { ProfileGreeting } from "./ProfileGreeting";
-import { createMinimumAsyncDelay } from "../hooks/asymmetricDelay";
-import { RefreshButton } from "../components/RefreshButton";
-import { useProgramsQuery } from "../hooks/queries/programs";
-import { MovementList } from "../movements/MovementList";
-import { StatsProvider } from "../stats/StatsProvider";
 import { useQuery } from "@tanstack/solid-query";
+import { ParentComponent, For, Match, Show, Switch, createSignal } from "solid-js";
+
 import { getProfile, isNotFound } from "../api";
+import { RefreshButton } from "../components/RefreshButton";
+import { createMinimumAsyncDelay } from "../hooks/asymmetricDelay";
+import { useProgramsQuery } from "../hooks/queries/programs";
 import { Plus } from "../icons/Plus";
+import { MovementList } from "../movements/MovementList";
 import { NewProgram } from "../program/NewProgram";
+import { StatsProvider } from "../stats/StatsProvider";
+import { ProfileGreeting } from "./ProfileGreeting";
+import { LoadingProgram, ProgramItem } from "./Program";
 
 export const ProfileHome: ParentComponent = (props) => {
   const params = useParams<{ profileId: string; programId?: string }>();
@@ -104,9 +105,7 @@ export const ProfileHome: ParentComponent = (props) => {
           <MovementList />
         </StatsProvider>
       </div>
-      <div class="2xl:h-full 2xl:col-span-5 2xl:overflow-auto">
-        {props.children}
-      </div>
+      <div class="2xl:h-full 2xl:col-span-5 2xl:overflow-auto">{props.children}</div>
     </div>
   );
 };

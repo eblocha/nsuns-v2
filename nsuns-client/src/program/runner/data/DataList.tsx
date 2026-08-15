@@ -1,12 +1,13 @@
 import { Component, For, Match, Show, Switch, createMemo } from "solid-js";
-import { useProgram } from "../context/ProgramProvider";
+
 import { Max } from "../../../api/maxes";
-import { Graph } from "../../../graph/Graph";
 import { Reps } from "../../../api/reps";
 import { Input } from "../../../forms/Input";
-import { useEditStat, CommonProps, EditableStatProps } from "../../../hooks/useEditStat";
+import { Graph } from "../../../graph/Graph";
 import { SPINNER_DELAY_MS, createMinimumAsyncDelay, createSmartAsyncDelay } from "../../../hooks/asymmetricDelay";
+import { useEditStat, CommonProps, EditableStatProps } from "../../../hooks/useEditStat";
 import { Spinner } from "../../../icons/Spinner";
+import { useProgram } from "../context/ProgramProvider";
 
 type StatsProps = CommonProps &
   (
@@ -75,12 +76,11 @@ const LastAmountCard: Component<StatsProps> = (props) => {
 };
 
 const StatRow: Component<StatsProps> = (props) => {
-  const points = createMemo(
-    () =>
-      props.stats?.map((stat, index) => ({
-        x: index,
-        y: stat.amount ?? 0,
-      }))
+  const points = createMemo(() =>
+    props.stats?.map((stat, index) => ({
+      x: index,
+      y: stat.amount ?? 0,
+    }))
   );
 
   return (

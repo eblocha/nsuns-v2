@@ -1,14 +1,15 @@
 import { A, useParams } from "@solidjs/router";
 import { Component } from "solid-js";
+
 import { ArrowRight } from "../../icons/ArrowRight";
-import { decrementDay, incrementDay } from "./state";
-import { AnimatedSetList } from "./AnimatedSetList";
-import { TitleBanner } from "./SetTitle";
 import { Edit } from "../../icons/Edit";
 import { User } from "../../icons/User";
-import { Tools } from "./Tools";
+import { AnimatedSetList } from "./AnimatedSetList";
 import { ProgramProvider } from "./context/ProgramProvider";
 import { DataList } from "./data/DataList";
+import { TitleBanner } from "./SetTitle";
+import { decrementDay, incrementDay } from "./state";
+import { Tools } from "./Tools";
 
 export const ProgramRunner: Component = () => {
   const params = useParams<{ programId: string; profileId: string }>();

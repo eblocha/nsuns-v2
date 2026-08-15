@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
-import { QueryKeys } from "./keys";
+
 import { login, loginAnonymous, logout, userInfo } from "../../api/auth";
+import { QueryKeys } from "./keys";
 
 export const useUserInfoQuery = () => {
   return useQuery(() => ({

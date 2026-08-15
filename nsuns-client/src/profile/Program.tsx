@@ -1,14 +1,16 @@
-import { Component, Show, createSignal } from "solid-js";
-import { Program } from "../api/program";
-import styles from "./Program.module.css";
 import { A, useParams } from "@solidjs/router";
-import { Plus } from "../icons/Plus";
-import { Play } from "../icons/Play";
-import { Trash } from "../icons/Trash";
-import { Modal } from "../modal/Modal";
-import { Spinner } from "../icons/Spinner";
+import { Component, Show, createSignal } from "solid-js";
+
+import { Program } from "../api/program";
 import { useNavigateToProfileHome } from "../hooks/navigation";
 import { useDeleteProgram } from "../hooks/queries/programs";
+import { Play } from "../icons/Play";
+import { Plus } from "../icons/Plus";
+import { Spinner } from "../icons/Spinner";
+import { Trash } from "../icons/Trash";
+import { Modal } from "../modal/Modal";
+
+import styles from "./Program.module.css";
 
 const DeleteProgram: Component<{
   show: boolean;

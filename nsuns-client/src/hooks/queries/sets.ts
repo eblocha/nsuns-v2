@@ -1,4 +1,6 @@
 import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
+import { Accessor } from "solid-js";
+
 import {
   CreateProgramSet,
   ProgramSet,
@@ -9,10 +11,9 @@ import {
   getSetsPropByDay,
   updateSet,
 } from "../../api";
-import { Accessor } from "solid-js";
-import { QueryData, updateInArray } from "./util";
-import { QueryKeys } from "./keys";
 import { Day } from "../../util/days";
+import { QueryKeys } from "./keys";
+import { QueryData, updateInArray } from "./util";
 
 export type ProgramSummaryQueryData = QueryData<ReturnType<typeof useProgramSummaryQuery>>;
 
@@ -50,9 +51,7 @@ export const useCreateSet = <TError = unknown, TContext = unknown>(
 };
 
 export const useEditSet = <TError = unknown, TContext = unknown>(
-  options?: Partial<
-    MutationOptions<ProgramSet, TError, UpdateProgramSet & { programId: string; day: Day }, TContext>
-  >
+  options?: Partial<MutationOptions<ProgramSet, TError, UpdateProgramSet & { programId: string; day: Day }, TContext>>
 ) => {
   const queryClient = useQueryClient();
   const mutation = useMutation(() => ({

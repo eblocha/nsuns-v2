@@ -1,6 +1,6 @@
-import { acceptJson, bothJson, del, get, json, post, put } from "./util";
-import { ProgramSet } from "./sets";
 import { Day } from "../util/days";
+import { ProgramSet } from "./sets";
+import { acceptJson, bothJson, del, get, json, post, put } from "./util";
 
 export type Program = {
   id: string;

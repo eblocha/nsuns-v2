@@ -1,8 +1,9 @@
 import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
-import { CreateMax, Max, UpdateMax, createMax, getMaxes, updateMax } from "../../api/maxes";
 import { Accessor } from "solid-js";
-import { QueryData, updateInArray } from "./util";
+
+import { CreateMax, Max, UpdateMax, createMax, getMaxes, updateMax } from "../../api/maxes";
 import { QueryKeys } from "./keys";
+import { QueryData, updateInArray } from "./util";
 
 export type MaxesQueryData = QueryData<ReturnType<typeof useMaxesQuery>>;
 

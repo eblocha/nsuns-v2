@@ -1,8 +1,9 @@
 import { MutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/solid-query";
 import { Accessor } from "solid-js";
-import { QueryData, updateInArray } from "./util";
+
 import { CreateReps, Reps, UpdateReps, createReps, getReps, updateReps } from "../../api/reps";
 import { QueryKeys } from "./keys";
+import { QueryData, updateInArray } from "./util";
 
 export type RepsQueryData = QueryData<ReturnType<typeof useRepsQuery>>;
 

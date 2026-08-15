@@ -1,17 +1,18 @@
-import { Component, Show, createMemo } from "solid-js";
-import { Control, ControlGroup } from "../../hooks/forms";
-import { Select, SelectOption } from "../../forms/Select";
-import { Checkbox } from "../../forms/Checkbox";
-import { TextArea } from "../../forms/TextArea";
 import { CreateMutationResult } from "@tanstack/solid-query";
+import { Component, Show, createMemo } from "solid-js";
+
 import { CreateProgramSet, Movement, UpdateProgramSet } from "../../api";
-import { Spinner } from "../../icons/Spinner";
+import { Checkbox } from "../../forms/Checkbox";
 import { Input } from "../../forms/Input";
-import { Warning } from "../../icons/Warning";
-import { displayError } from "../../util/errors";
-import { Day } from "../../util/days";
-import { DeleteSetMeta } from "../../hooks/queries/sets";
+import { Select, SelectOption } from "../../forms/Select";
+import { TextArea } from "../../forms/TextArea";
 import { createSmartAsyncDelay } from "../../hooks/asymmetricDelay";
+import { Control, ControlGroup } from "../../hooks/forms";
+import { DeleteSetMeta } from "../../hooks/queries/sets";
+import { Spinner } from "../../icons/Spinner";
+import { Warning } from "../../icons/Warning";
+import { Day } from "../../util/days";
+import { displayError } from "../../util/errors";
 
 export type SetFormControls = ControlGroup<{
   movementId: Control<string>;
@@ -70,12 +71,11 @@ export const SetForm: Component<{
     props.onSubmit?.();
   };
 
-  const movementOptions = createMemo<SelectOption[] | undefined>(
-    () =>
-      props.movements?.map((movement) => ({
-        value: movement.id.toString(),
-        name: movement.name,
-      }))
+  const movementOptions = createMemo<SelectOption[] | undefined>(() =>
+    props.movements?.map((movement) => ({
+      value: movement.id.toString(),
+      name: movement.name,
+    }))
   );
 
   const onDelete = () => {

@@ -1,9 +1,10 @@
-import { Component, Show } from "solid-js";
-import { Profile } from "../api";
 import { useNavigate } from "@solidjs/router";
+import { Component, Show } from "solid-js";
+
+import { Profile } from "../api";
 import { createDeleteProfileMutation } from "../hooks/queries/profiles";
-import { Modal } from "../modal/Modal";
 import { Spinner } from "../icons/Spinner";
+import { Modal } from "../modal/Modal";
 
 export const DeleteProfile: Component<{
   show: boolean;

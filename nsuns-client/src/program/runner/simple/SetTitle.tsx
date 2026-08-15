@@ -1,11 +1,12 @@
 import { Component, Match, Show, Switch } from "solid-js";
+
 import { Movement, ProgramSet } from "../../../api";
-import { repsDisplay, resolvedWeightDisplay, resolveWeight } from "../../../util/setDisplay";
-import { currentSet, day } from "../state";
-import { getLatestMax } from "../../../hooks/useMovementsToMaxesMap";
-import { useProgram } from "../context/ProgramProvider";
 import { createSmartAsyncDelay } from "../../../hooks/asymmetricDelay";
+import { getLatestMax } from "../../../hooks/useMovementsToMaxesMap";
+import { repsDisplay, resolvedWeightDisplay, resolveWeight } from "../../../util/setDisplay";
+import { useProgram } from "../context/ProgramProvider";
 import { PlateGraphic } from "../PlateGraphic";
+import { currentSet, day } from "../state";
 
 export const SetTitle: Component<{
   current?: ProgramSet;

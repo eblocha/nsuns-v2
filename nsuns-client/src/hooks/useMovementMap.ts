@@ -1,4 +1,5 @@
 import { Accessor, createMemo } from "solid-js";
+
 import { Movement } from "../api";
 
 export const useMovementMap = (movements: Accessor<Movement[]>) => {

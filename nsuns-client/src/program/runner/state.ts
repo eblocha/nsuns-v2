@@ -1,4 +1,5 @@
 import { createEffect, createSignal, on } from "solid-js";
+
 import { Day } from "../../util/days";
 
 export const [today, setToday] = createSignal(new Date().getDay() as Day);

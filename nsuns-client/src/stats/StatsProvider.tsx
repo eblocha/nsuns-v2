@@ -1,11 +1,12 @@
 import { Accessor, Component, JSX, createContext, useContext } from "solid-js";
+
 import { Movement } from "../api";
 import { Max } from "../api/maxes";
 import { Reps } from "../api/reps";
-import { MergedQueryState, combineQueries } from "../hooks/queries/util";
-import { useMovementsQuery } from "../hooks/queries/movements";
 import { useMaxesQuery } from "../hooks/queries/maxes";
+import { useMovementsQuery } from "../hooks/queries/movements";
 import { useRepsQuery } from "../hooks/queries/reps";
+import { MergedQueryState, combineQueries } from "../hooks/queries/util";
 import { useMovementMap } from "../hooks/useMovementMap";
 import { useMovementsToMaxesMap } from "../hooks/useMovementsToMaxesMap";
 import { useMovementsToRepsMap } from "../hooks/useMovementsToRepsMap";

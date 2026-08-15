@@ -1,6 +1,7 @@
 import { Accessor, createMemo } from "solid-js";
-import { Max } from "../api/maxes";
+
 import { ProgramSet } from "../api";
+import { Max } from "../api/maxes";
 
 export const useMovementsToMaxesMap = (maxes: Accessor<Max[]>) => {
   return createMemo(() => {

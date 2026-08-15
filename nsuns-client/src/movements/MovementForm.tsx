@@ -1,14 +1,15 @@
-import { Component, Show } from "solid-js";
-import { Input } from "../forms/Input";
-import { Control, ControlGroup } from "../hooks/forms";
-import { ErrorMessages } from "../forms/ErrorMessages";
-import { TextArea } from "../forms/TextArea";
 import { CreateMutationResult } from "@tanstack/solid-query";
+import { Component, Show } from "solid-js";
+
 import { CreateMovement, Movement } from "../api";
+import { ErrorMessages } from "../forms/ErrorMessages";
+import { Input } from "../forms/Input";
+import { TextArea } from "../forms/TextArea";
+import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
+import { Control, ControlGroup } from "../hooks/forms";
 import { Spinner } from "../icons/Spinner";
 import { Warning } from "../icons/Warning";
 import { displayError } from "../util/errors";
-import { createSmartAsyncDelay } from "../hooks/asymmetricDelay";
 
 export type MovementFormControls = ControlGroup<{
   name: Control<string>;

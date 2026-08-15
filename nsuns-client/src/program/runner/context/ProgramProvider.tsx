@@ -1,9 +1,10 @@
 import { Accessor, Component, JSX, createContext, createMemo, useContext } from "solid-js";
+
 import { ProgramSet, getSetsByDay } from "../../../api";
 import { useProgramSummaryQuery } from "../../../hooks/queries/sets";
 import { MergedQueryState } from "../../../hooks/queries/util";
-import { Day, days } from "../../../util/days";
 import { StatsProvider, useStats } from "../../../stats/StatsProvider";
+import { Day, days } from "../../../util/days";
 
 type ProgramContextData = ReturnType<typeof useStats> & {
   programId: Accessor<string>;

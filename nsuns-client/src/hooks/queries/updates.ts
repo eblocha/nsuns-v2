@@ -1,8 +1,9 @@
 import { MutationOptions, useMutation, useQueryClient } from "@tanstack/solid-query";
+
 import { UndoResponse, UpdateRequest, UpdateResponse, runUpdates, undoUpdates } from "../../api/updates";
 import { QueryKeys } from "./keys";
-import { RepsQueryData } from "./reps";
 import { MaxesQueryData } from "./maxes";
+import { RepsQueryData } from "./reps";
 
 export const createRunUpdatesMutation = <TError = unknown, TContext = unknown>(
   options?: Partial<MutationOptions<UpdateResponse, TError, UpdateRequest, TContext>>

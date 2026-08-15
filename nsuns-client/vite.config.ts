@@ -1,6 +1,7 @@
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
-import tailwindcss from '@tailwindcss/vite'
+
 import compress from "./build/vite-plugin-compression/index.ts";
 
 export default defineConfig({
@@ -10,7 +11,7 @@ export default defineConfig({
       filter: /\.(js|css|ico)$/i,
       algorithm: "brotli",
     }),
-    tailwindcss()
+    tailwindcss(),
   ],
   server: {
     proxy: {

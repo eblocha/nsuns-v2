@@ -1,14 +1,15 @@
+import { useParams } from "@solidjs/router";
 import { Component, Show } from "solid-js";
-import { Forward } from "../../../icons/Forward";
-import { currentSet, day, decrementDay, goToToday, incrementDay, setCurrentSet, today } from "../state";
-import { useProgram } from "../context/ProgramProvider";
+
 import { Select, SelectOption } from "../../../forms/Select";
 import { createControl } from "../../../hooks/forms";
-import { useParams } from "@solidjs/router";
-import { createProfileQuery } from "../../../hooks/queries/profiles";
 import { useSwitchProfileInRunner } from "../../../hooks/navigation";
+import { createProfileQuery } from "../../../hooks/queries/profiles";
 import { ArrowRight } from "../../../icons/ArrowRight";
+import { Forward } from "../../../icons/Forward";
 import { dayNames } from "../../../util/days";
+import { useProgram } from "../context/ProgramProvider";
+import { currentSet, day, decrementDay, goToToday, incrementDay, setCurrentSet, today } from "../state";
 
 const NextSet: Component<{ nSets: number }> = (props) => {
   return (

@@ -1,10 +1,11 @@
 import { Component, Match, Switch } from "solid-js";
-import { useProgram } from "../../context/ProgramProvider";
+
 import { createSmartAsyncDelay } from "../../../../hooks/asymmetricDelay";
-import { currentSet, day } from "../../state";
 import { getLatestMax } from "../../../../hooks/useMovementsToMaxesMap";
 import { getLatestReps } from "../../../../hooks/useMovementsToRepsMap";
+import { useProgram } from "../../context/ProgramProvider";
 import { EditableCard } from "../../data/DataList";
+import { currentSet, day } from "../../state";
 
 export const DataList: Component = () => {
   const {

@@ -1,6 +1,8 @@
 import { type Component, JSX } from "solid-js";
-import style from "./Input.module.css";
+
 import { Control } from "../hooks/forms";
+
+import style from "./Input.module.css";
 
 export const Input: Component<
   JSX.InputHTMLAttributes<HTMLInputElement> & {
